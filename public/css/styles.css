@@ -1,0 +1,109 @@
+@font-face {
+    font-family: "Mitr";
+    src: url("../fonts/Mitr-ExtraLight.ttf") format("truetype");
+    font-weight: 200;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: "Mitr";
+    src: url("../fonts/Mitr-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Mitr";
+    src: url("../fonts/Mitr-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Mitr";
+    src: url("../fonts/Mitr-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Mitr";
+    src: url("../fonts/Mitr-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Mitr";
+    src: url("../fonts/Mitr-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+  }
+
+
+:root {
+    --primary-font: "Mitr", sans-serif;
+    --primary-color: #F2F2F2;
+    --secondary-color: #1A1A1A;
+    --accent-color: #67A329;
+    --primary-padding: 20px;
+    --secondary-padding: 40px;
+    --primary-margin: 20px;
+    --secondary-margin: 40px;
+}
+
+h1 {
+    font-size: 40px;
+    line-height: 130%;
+    font-weight:600;
+    font-family: var(--primary-font);
+}
+
+h2 {
+    font-size: 28px;
+    line-height: 44;
+    font-weight:400;
+    font-family: var(--primary-font);
+}
+
+p {
+    font-size: 14px;
+    line-height: 25;
+    font-weight:300;
+    letter-spacing: 5%;
+    font-family: var(--primary-font);
+}
+
+
+.brand-name {
+    font-weight: 800;
+    letter-spacing: 3%;
+}
+
+.subheader {
+    font-family: var(--primary-font);
+    font-size: 18px;
+    line-height: 28.3;
+    letter-spacing: 1%;
+    font-weight:400;
+}
+
+.button {
+    font-family: var(--primary-font);
+    font-size: 18px;
+    line-height: 28.3;
+    font-weight:500;
+}
+
+
+
+body {
+    display: flex;
+    justify-content: center;
+}
+.body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 1240px;
+}
+
+.header {
+    padding: 20px;
+}
