@@ -66,14 +66,14 @@ p {
     font-size: 14px;
     line-height: 25;
     font-weight:300;
-    letter-spacing: 5%;
+    letter-spacing: 1px;
     font-family: var(--primary-font);
 }
 
 
 .brand-name {
     font-weight: 800;
-    letter-spacing: 3%;
+    letter-spacing: 2px;
 }
 
 .subheader {
