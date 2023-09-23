@@ -4,7 +4,7 @@ if(process.env.NODE_ENV !== 'production') {
 
 const dbService = require('./database.js');
 
-const validHTMLPaths = ['index.html', 'about.html', 'abstract-art.html'];
+const validHTMLPaths = ['/','/index', '/about', '/abstract-art', '/blog-entry','/blog','/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
 const validFetchPaths = ['/getCategory'];
 
 const express = require('express');

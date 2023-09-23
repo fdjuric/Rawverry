@@ -40,10 +40,14 @@
 :root {
     --primary-font: "Mitr", sans-serif;
     --primary-color: #F2F2F2;
+    --primary-shade: #D9D9D9;
     --secondary-color: #1A1A1A;
+    --secondary-shade: #333333;
     --accent-color: #67A329;
-    --primary-padding: 20px;
-    --secondary-padding: 40px;
+    --gray-color: #E4DACE;
+    --gray-accent: #D2C1AD;
+    --horizontal-padding: 0px 20px;
+    --vertical-padding: 20px 0px;
     --primary-margin: 20px;
     --secondary-margin: 40px;
 }
@@ -57,53 +61,238 @@ h1 {
 
 h2 {
     font-size: 28px;
-    line-height: 44;
+    line-height: 44px;
     font-weight:400;
     font-family: var(--primary-font);
 }
 
 p {
     font-size: 14px;
-    line-height: 25;
+    line-height: 25px;
     font-weight:300;
     letter-spacing: 1px;
     font-family: var(--primary-font);
 }
 
 
+
 .brand-name {
     font-weight: 800;
     letter-spacing: 2px;
+    font-size: 40px;
+    line-height: 130%;
+    font-weight:600;
+    font-family: var(--primary-font);
 }
 
 .subheader {
     font-family: var(--primary-font);
     font-size: 18px;
-    line-height: 28.3;
-    letter-spacing: 1%;
+    line-height: 28.3px;
+    letter-spacing: 1px;
     font-weight:400;
 }
 
 .button {
     font-family: var(--primary-font);
     font-size: 18px;
-    line-height: 28.3;
+    line-height: 28.3px;
     font-weight:500;
 }
 
-
-
 body {
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
+    margin: 0;
 }
 .body {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
     max-width: 1240px;
+    width: 100%;
 }
 
-.header {
-    padding: 20px;
+header {
+    margin: 0px 20px;
+    display: flex; 
+    max-width: 1240px;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+  height: 60px;
+  padding: var(--horizontal-padding);
+}
+
+nav {
+  height: auto;
+  padding: var(--horizontal-padding);
+}
+
+nav  ul{
+  display: flex;
+  justify-content: end;
+  list-style: none;
+
+}
+
+nav ul li:nth-child(1), nav ul li:nth-child(2), nav ul li:nth-child(3) {
+  padding: var(--horizontal-padding);
+}
+
+a{
+  text-decoration: none;
+  color: var(--secondary-color);
+}
+
+.hamburger {
+  padding: var(--horizontal-padding);
+}
+.hamburger path{
+  transition: all 0.3s ease-in-out;
+}
+
+.hamburger path {
+  stroke: var(--secondary-color);
+}
+
+.hamburger:hover svg g path{
+  stroke: var(--accent-color);
+}
+
+footer {
+  width: 100%;
+  background-color: var(--secondary-color);
+  display: flex;
+  justify-content: center;
+  position: relative;
+  bottom: 0;
+}
+
+.footer-wrapper {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  max-width: 1240px;
+  width: 100%;
+}
+
+.footer-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  padding: var(--vertical-padding);
+}
+
+.footer-header {
+  padding: var(--horizontal-padding);
+  color: var(--primary-color);
+}
+
+.footer-elements {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+  padding: var(--vertical-padding);
+}
+
+.footer-element {
+  color: var(--primary-shade);
+  padding: var(--horizontal-padding);
+  transition: color 0.3 ease-in-out;
+}
+
+.footer-element:hover {
+  color: var(--primary-color);
+  padding: var(--horizontal-padding);
+}
+
+.newsletter-wrapper {
+  display:flex;
+  padding: var(--horizontal-padding);
+  align-items: center;
+
+}
+
+.newsletter {
+  color: var(--primary-color);
+  resize: none;
+  width: 80%;
+  height: 51px;
+  padding: var(--horizontal-padding);
+  border: none;
+  font-size: 14px;
+  background-color: var(--secondary-shade);
+  outline: none;
+}
+
+.send {
+  background-color: var(--accent-color);
+  padding: 15px;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.send img {
+  background-color: var(--accent-color);
+  width: 20px;
+  height: 20px;
+}
+
+.col4 {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.footer-socials {
+  display: flex;
+  padding: var(--horizontal-padding);
+}
+
+.footer-socials a {
+  padding-right: 10px;
+}
+.social {
+  width: 24px;
+  height: 24px;
+}
+
+.name {
+  color:var(--primary-color);
+  padding: var(--horizontal-padding);
+}
+
+.copyright {
+  color: var(--primary-color);
+  padding: var(--horizontal-padding);
+}
+
+@media (min-width: 720px){
+
+  .hamburger {
+    display: none;
+  }
+  
+}
+
+@media (max-width: 720px){
+  header nav {
+    display: none;
+  }
+
+  .hamburger {
+    display:block;
+  }
 }
