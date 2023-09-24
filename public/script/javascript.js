@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     fetch('/getCategory')
-    .then(response => response.json())
-    .then(data => {
-        displayCategory(data['data']);
-    })
+        .then(response => response.json())
+        .then(data => {
+            displayCategory(data['data']);
+        })
 
     function displayCategory(category) {
         console.log("category:", category);
@@ -19,4 +19,74 @@ document.addEventListener('DOMContentLoaded', function () {
             header.appendChild(categoryName);
         })
     }
+
+    var isOpen = false;
+
+    const hamburger = document.querySelector(".hamburger");
+    const menu = document.querySelector(".phone-menu");
+    const hamburgerPath1 = document.querySelector(".path1");
+    const hamburgerPath2 = document.querySelector(".path2");
+    const hamburgerPath3 = document.querySelector(".path3");
+
+    hamburger.addEventListener("click", function () {
+        if (!isOpen) {
+            setTimeout(function () {
+                menu.classList.toggle("phone-menu-open");
+                hamburgerPath1.classList.toggle("path1-animate");
+                hamburgerPath2.classList.toggle("path2-animate");
+                hamburgerPath3.classList.toggle("path3-animate");
+            }, 50);
+        } else if (isOpen) {
+            menu.classList.toggle("phone-menu-open");
+            setTimeout(function () {
+                hamburgerPath1.classList.toggle("path1-animate");
+                hamburgerPath2.classList.toggle("path2-animate");
+                hamburgerPath3.classList.toggle("path3-animate");
+
+            }, 500);
+        }
+    })
+
+
+    const email = document.querySelector(".newsletter");
+    const sub = document.querySelector(".send");
+
+    sub.addEventListener('click', (event) => {
+        event.preventDefault();
+        const emailData = email.value;
+        console.log(emailData);
+        if (validateEmail(emailData)) {
+          fetch('/insertNewsletter', {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ emailData }),
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("Error");
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log(data);
+            })
+            .catch(error => {
+              console.error(error);
+              alert("Oops! Something went wrong. Please try again later.");
+            });
+        } else {
+          console.log('Invalid email address');
+        }
+      });
+
+
+
+    function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        return emailRegex.test(email);
+    }
+
 })

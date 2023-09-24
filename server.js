@@ -1,11 +1,11 @@
-if(process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config();
 }
 
 const dbService = require('./database.js');
 
-const validHTMLPaths = ['/','/index', '/about', '/abstract-art', '/blog-entry','/blog','/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/getCategory'];
+const validHTMLPaths = ['/', '/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter'];
 
 const express = require('express');
 const app = express();
@@ -20,14 +20,14 @@ const session = require('express-session');
 //app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(flash());
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: {maxAge: 180 * 24 * 60 * 60 * 1000}
+    cookie: { maxAge: 180 * 24 * 60 * 60 * 1000 }
 }));
 
 app.use(passport.initialize())
@@ -64,13 +64,31 @@ app.use((req, res, next) => {
 app.get('/getCategory', (request, response) => {
     const db = dbService.getDbServiceInstance();
     try {
-    const category = db.getCategories();
-    category
-        .then(data => response.json({data: data}))
-        .catch(err => console.log(err));
-    } catch (error){
+        const category = db.getCategories();
+        category
+            .then(data => response.json({ data: data }))
+            .catch(err => console.log(err));
+    } catch (error) {
         console.log(error);
-        response.status(500).json({error: 'Internal Server Error'});
+        response.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.post('/insertNewsletter', (request, response) => {
+    const db = dbService.getDbServiceInstance();
+    var email = request.body.emailData;
+    console.log("Email from server" + email);
+    if (email) {
+        db.insertNewsletter(email)
+            .then(() => {
+                response.json({ success: true });
+            })
+            .catch((error) => {
+                console.error(error);
+                response.json({ success: false });
+            });
+    } else {
+        response.status(400).json({ success: false, message: "Invalid request" });
     }
 });
 

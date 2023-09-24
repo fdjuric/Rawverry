@@ -50,6 +50,22 @@ async getCategories(){
         console.log(error);
     }
 }
+
+async insertNewsletter(email){
+    try {
+        const response = await new Promise((resolve, reject) => {
+            const query = "INSERT INTO newsletter (email, date_col) VALUES (?, CURDATE())";
+
+            db.query(query, [email], (err, results) => {
+                if(err) reject(new Error(err.message));
+                resolve(results);
+                console.log("The mail is added succesfully.");
+            }) 
+        });
+    } catch(error) {
+        console.log(error);
+    }
+}
 }
 
 module.exports = dbService;
