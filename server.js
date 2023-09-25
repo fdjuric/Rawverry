@@ -3,9 +3,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const dbService = require('./database.js');
+const crypto = require('crypto');
 
 const validHTMLPaths = ['/', '/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test'];
 
 const express = require('express');
 const app = express();
@@ -47,7 +48,7 @@ app.use((req, res, next) => {
         res.sendFile(`${__dirname}/public${urlPath}.html`);
     } else if (validFetchPaths.includes(urlPath)) {
         next();
-    } else if (urlPath.startsWith('/product/')) {
+    } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/')) {
         next();
     } else {
         next({ status: 404, message: 'File not found' });
@@ -61,6 +62,14 @@ app.use((req, res, next) => {
     res. status(statusCode).render('error', { statusCode: statusCode, errorMessage: errorMessage});
 }); */
 
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_NAME,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 app.get('/getCategory', (request, response) => {
     const db = dbService.getDbServiceInstance();
     try {
@@ -68,6 +77,8 @@ app.get('/getCategory', (request, response) => {
         category
             .then(data => response.json({ data: data }))
             .catch(err => console.log(err));
+
+        response.redirect('/test');
     } catch (error) {
         console.log(error);
         response.status(500).json({ error: 'Internal Server Error' });
@@ -78,10 +89,44 @@ app.post('/insertNewsletter', (request, response) => {
     const db = dbService.getDbServiceInstance();
     var email = request.body.emailData;
     console.log("Email from server" + email);
+
     if (email) {
-        db.insertNewsletter(email)
-            .then(() => {
-                response.json({ success: true });
+
+        //create random token then send the link to the email
+
+        const tokenLength = 64;
+        const tokenValue = generateRandomToken(tokenLength);
+        //on opening the link go into db.insertNewsletter with the email
+        db.insertNewsletter(email, tokenValue)
+            .then((emailExists) => {
+                console.log(emailExists);
+                if (emailExists) {
+                    console.log('Email already exists!');
+                    var newsletterStatus = request.body.newsletterStatusData;
+                    console.log(newsletterStatus);
+                    newsletterStatus = "Email already exists!";
+                    console.log("New: " + newsletterStatus);
+                    response.json({ success: false, message: newsletterStatus });
+                } else {
+                    const mailOptions = {
+                        from: process.env.EMAIL_NAME,
+                        to: email,
+                        subject: 'Confirm Your Subscription',
+                        text: `Click on the following link to confirm your subscription: http://localhost:3001/confirm/${tokenValue},
+                    else if you want to unsubscribe click on the following link: http://localhost:3001/unsubscribe/${tokenValue}`,
+                    };
+
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        if (error) {
+                            console.log(error);
+                            res.status(500).send('Failed to send confirmation email.');
+                        } else {
+                            console.log('Email sent: ' + info.response);
+                            res.send('Check your email for a confirmation link.');
+                        }
+                    });
+                    response.json({ success: true, message: newsletterStatus });
+                }
             })
             .catch((error) => {
                 console.error(error);
@@ -92,7 +137,56 @@ app.post('/insertNewsletter', (request, response) => {
     }
 });
 
+app.get('/confirm/:token', (request, response) => {
+
+    const db = dbService.getDbServiceInstance();
+    const token = request.params.token;
+
+    if (token) {
+        db.confirmNewsletter(token)
+            .then(() => {
+                response.json({ success: true });
+                console.log('Subscribed successfully!')
+            })
+            .catch((error) => {
+                console.error(error);
+                response.json({ success: false });
+            })
+    }
+})
+
+app.get('/unsubscribe/:token', (request, response) => {
+    const db = dbService.getDbServiceInstance();
+    const token = request.params.token;
+    console.log(token);
+    if (token) {
+        db.unsubscribeNewsletter(token)
+            .then(() => {
+                response.json({ success: true });
+            })
+            .catch((error) => {
+                console.error(error);
+                response.json({ success: false });
+            })
+    }
+})
+
 
 app.listen('3001', () => {
     console.log('Server started on port 3001');
 });
+
+function generateRandomToken(length) {
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let token = '';
+
+    for (let i = 0; i < length; i++) {
+        const randomIndex = crypto.randomInt(charset.length);
+        token += charset.charAt(randomIndex);
+    }
+
+    return token;
+}
+
+const sadf = generateRandomToken(64);
+console.log(sadf);

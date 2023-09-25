@@ -1,4 +1,4 @@
-if(process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config();
 }
 
@@ -17,7 +17,7 @@ const db = mysql.createConnection({
 //Connecting to the database 
 
 db.connect((err) => {
-    if(err){
+    if (err) {
         console.log(err);
     }
     console.log('MySQL database connected!');
@@ -32,40 +32,92 @@ class dbService {
 
     //MySQL queries
 
-async getCategories(){
-    try {
-        const response = await new Promise((resolve, reject) => {
-            const query = `
+    async getCategories() {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `
             SELECT * FROM product_category
             `;
 
-            db.query(query, (err, results) => {
-                if(err) reject(new Error(err.message));
-                resolve(results);
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                })
             })
-        })
 
-        return response;
-    }catch(error) {
-        console.log(error);
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
     }
-}
 
-async insertNewsletter(email){
-    try {
-        const response = await new Promise((resolve, reject) => {
-            const query = "INSERT INTO newsletter (email, date_col) VALUES (?, CURDATE())";
+    async insertNewsletter(email, token) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                var emailExists = false;
+                const queryCheck = `SELECT * FROM newsletter WHERE email = ?`;
 
-            db.query(query, [email], (err, results) => {
-                if(err) reject(new Error(err.message));
-                resolve(results);
-                console.log("The mail is added succesfully.");
-            }) 
-        });
-    } catch(error) {
-        console.log(error);
+                db.query(queryCheck, [email], (err, results) => {
+
+                    if (results.length > 0) {
+                        emailExists = true;
+                        resolve(emailExists);
+                    } else {
+                        const queryInsert = "INSERT INTO newsletter (email, date_col, token, isConfirmed) VALUES (?, CURDATE(), ?, ?)";
+
+                        db.query(queryInsert, [email, token, false], (err, results) => {
+                            if (err) reject(new Error(err.message));
+                            resolve(emailExists);
+                            console.log("The mail is added succesfully.");
+                        })
+                    }
+                })
+            });
+
+            return response;
+
+        } catch (error) {
+            console.log(error);
+        }
     }
-}
+
+    async confirmNewsletter(token) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `UPDATE newsletter SET isConfirmed = ? WHERE token = ?`;
+
+                db.query(query, [true, token], (err, results) => {
+                    if (err) {
+                        console.log(error);
+                        reject.status(500).send('Failed to confirm subscription');
+                    } else {
+                        resolve('Subscription confirmed. Thank you!');
+                    }
+                })
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async unsubscribeNewsletter(token) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `DELETE FROM newsletter WHERE token = ?`;
+                console.log(token);
+                db.query(query, [token], (err, results) => {
+                    if (err) {
+                        console.log(error);
+                        reject.status(500).send('Failed to unsubscribe');
+                    } else {
+                        resolve('You unsubscribed!');
+                    }
+                })
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 
 module.exports = dbService;

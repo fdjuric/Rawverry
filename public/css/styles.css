@@ -52,6 +52,7 @@
   --secondary-color: #1A1A1A;
   --secondary-shade: #333333;
   --accent-color: #67A329;
+  --red-color:#a32929;
   --gray-color: #E4DACE;
   --gray-accent: #D2C1AD;
   --padding-20: 20px;
@@ -327,7 +328,7 @@ footer {
 
 .newsletter-wrapper {
   display: flex;
-  padding: var(---padding-20);
+  padding-bottom: var(--padding-20);
   align-items: center;
   width: 100%;
   height: 50px;
@@ -368,6 +369,14 @@ footer {
 .send svg path {
   fill: var(--primary-color);
   transition: all 300ms ease-in-out;
+}
+
+.newsletter-status-success {
+  color: var(--accent-color);
+}
+
+.newsletter-status-failed {
+  color: var(--red-color);
 }
 
 .col4 {
