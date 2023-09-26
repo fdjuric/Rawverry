@@ -137,9 +137,22 @@ p {
 
 .button {
   font-family: var(--primary-font);
+  color: var(--primary-color);
   font-size: 18px;
   line-height: 28.3px;
   font-weight: 500;
+  padding: 15px 20px;
+  display: inline-block;
+  background-color: var(--accent-color);
+  margin-left: var(--margin-20);
+  transition: all 100ms ease-in-out;
+}
+
+.button:hover {
+  color: var(--secondary-color);
+  background-color: transparent;
+  border: 1px solid var(--accent-color);
+  cursor:pointer;
 }
 
 body {
@@ -155,8 +168,8 @@ body {
 .body {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: start;
+  align-items: start;
   max-width: 1240px;
   width: 100%;
   min-height: 100vh;

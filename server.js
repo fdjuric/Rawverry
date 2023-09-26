@@ -59,7 +59,7 @@ app.use((req, res, next) => {
             next();
         }
     } else {
-        next({ status: 404, message: 'File not found' });
+        res.render('404notfound');
     }
 });
 

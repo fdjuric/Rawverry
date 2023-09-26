@@ -1,0 +1,13 @@
+.notfound-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    left: 0;
+    width: 100%;
+    padding: var(--padding-40) 0px;
+}
+.message{
+    padding-left: var(--padding-20);
+    max-width: 400px;
+    padding-bottom: var(--padding-20);
+}
