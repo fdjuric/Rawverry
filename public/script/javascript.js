@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   }
 
+
+  //Phone menu with animation
+
   var isOpen = false;
 
   const hamburger = document.querySelector(".hamburger");
@@ -48,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
   })
 
 
+  //Newsletter subscription with status
   const email = document.querySelector(".newsletter");
   const sub = document.querySelector(".send");
   const newsletterStatus = document.querySelector(".newsletter-status");
@@ -89,12 +93,15 @@ document.addEventListener('DOMContentLoaded', function () {
           alert("Oops! Something went wrong. Please try again later.");
         });
     } else {
-      console.log('Invalid email address');
+      newsletterStatus.textContent = "Invalid email address!";
+      newsletterStatus.classList.remove("newsletter-status-success");
+      newsletterStatus.classList.add("newsletter-status-failed");
     }
   });
 
 
 
+  //Checking if the email format is correct
   function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

@@ -5,7 +5,7 @@ if (process.env.NODE_ENV !== 'production') {
 const dbService = require('./database.js');
 const crypto = require('crypto');
 
-const validHTMLPaths = ['/', '/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
+const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
 const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test'];
 
 const express = require('express');
@@ -18,7 +18,7 @@ const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
 
-//app.set('view engine', 'ejs');
+app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -42,14 +42,22 @@ app.use(function (req, res, next) {
 app.use((req, res, next) => {
     const urlPath = req.path;
 
-    if (urlPath === '/index') {
+    if (urlPath.includes('/index') ) {
         res.redirect('/');
     } else if (validHTMLPaths.includes(urlPath)) {
         res.sendFile(`${__dirname}/public${urlPath}.html`);
     } else if (validFetchPaths.includes(urlPath)) {
         next();
     } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/')) {
-        next();
+        const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
+        console.log(newPath);
+
+        if (newPath) {
+            // Redirect to the URL without the common prefixes and with the valid HTML path
+            res.redirect(newPath);
+        } else {
+            next();
+        }
     } else {
         next({ status: 404, message: 'File not found' });
     }
@@ -70,6 +78,8 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS,
     },
 });
+
+/*
 app.get('/getCategory', (request, response) => {
     const db = dbService.getDbServiceInstance();
     try {
@@ -78,12 +88,11 @@ app.get('/getCategory', (request, response) => {
             .then(data => response.json({ data: data }))
             .catch(err => console.log(err));
 
-        response.redirect('/test');
     } catch (error) {
         console.log(error);
         response.status(500).json({ error: 'Internal Server Error' });
     }
-});
+}); */
 
 app.post('/insertNewsletter', (request, response) => {
     const db = dbService.getDbServiceInstance();
@@ -93,7 +102,6 @@ app.post('/insertNewsletter', (request, response) => {
     if (email) {
 
         //create random token then send the link to the email
-
         const tokenLength = 64;
         const tokenValue = generateRandomToken(tokenLength);
         //on opening the link go into db.insertNewsletter with the email
@@ -145,7 +153,7 @@ app.get('/confirm/:token', (request, response) => {
     if (token) {
         db.confirmNewsletter(token)
             .then(() => {
-                response.json({ success: true });
+                response.render('confirm');
                 console.log('Subscribed successfully!')
             })
             .catch((error) => {
@@ -162,7 +170,7 @@ app.get('/unsubscribe/:token', (request, response) => {
     if (token) {
         db.unsubscribeNewsletter(token)
             .then(() => {
-                response.json({ success: true });
+                response.render('unsubscribe');
             })
             .catch((error) => {
                 console.error(error);
