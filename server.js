@@ -71,6 +71,8 @@ app.use((req, res, next) => {
 }); */
 
 
+//Setting up credentials for the email
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -79,20 +81,10 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-/*
-app.get('/getCategory', (request, response) => {
-    const db = dbService.getDbServiceInstance();
-    try {
-        const category = db.getCategories();
-        category
-            .then(data => response.json({ data: data }))
-            .catch(err => console.log(err));
 
-    } catch (error) {
-        console.log(error);
-        response.status(500).json({ error: 'Internal Server Error' });
-    }
-}); */
+
+
+//Inserting the email to the database
 
 app.post('/insertNewsletter', (request, response) => {
     const db = dbService.getDbServiceInstance();
@@ -102,7 +94,7 @@ app.post('/insertNewsletter', (request, response) => {
     if (email) {
 
         //create random token then send the link to the email
-        const tokenLength = 64;
+        const tokenLength = 128;
         const tokenValue = generateRandomToken(tokenLength);
         //on opening the link go into db.insertNewsletter with the email
         db.insertNewsletter(email, tokenValue)
@@ -145,6 +137,8 @@ app.post('/insertNewsletter', (request, response) => {
     }
 });
 
+//Confirming the email for the newsletter
+
 app.get('/confirm/:token', (request, response) => {
 
     const db = dbService.getDbServiceInstance();
@@ -163,6 +157,8 @@ app.get('/confirm/:token', (request, response) => {
     }
 })
 
+
+//Unsubscribing from the newsletter
 app.get('/unsubscribe/:token', (request, response) => {
     const db = dbService.getDbServiceInstance();
     const token = request.params.token;
@@ -180,9 +176,13 @@ app.get('/unsubscribe/:token', (request, response) => {
 })
 
 
+//Opens the server on the port 3001
+
 app.listen('3001', () => {
     console.log('Server started on port 3001');
 });
+
+//Generates an unique token
 
 function generateRandomToken(length) {
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -195,6 +195,3 @@ function generateRandomToken(length) {
 
     return token;
 }
-
-const sadf = generateRandomToken(64);
-console.log(sadf);
