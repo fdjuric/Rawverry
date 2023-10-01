@@ -64,49 +64,49 @@
 h1 {
   font-size: 40px;
   line-height: 130%;
-  font-weight: 600;
+  font-weight: 500;
   font-family: var(--primary-font);
 }
 
 h2 {
   font-size: 28px;
   line-height: 44px;
-  font-weight: 400;
+  font-weight: 300;
   font-family: var(--primary-font);
 }
 
 h3 {
   font-size: 26px;
   line-height: 44px;
-  font-weight: 400;
+  font-weight: 300;
   font-family: var(--primary-font);
 }
 
 h4 {
   font-size: 24px;
   line-height: 44px;
-  font-weight: 400;
+  font-weight: 300;
   font-family: var(--primary-font);
 }
 
 h5 {
   font-size: 22px;
   line-height: 44px;
-  font-weight: 400;
+  font-weight: 300;
   font-family: var(--primary-font);
 }
 
 h6 {
   font-size: 20px;
   line-height: 44px;
-  font-weight: 400;
+  font-weight: 300;
   font-family: var(--primary-font);
 }
 
 p {
   font-size: 14px;
   line-height: 25px;
-  font-weight: 300;
+  font-weight: 200;
   letter-spacing: 1px;
   font-family: var(--primary-font);
 }
@@ -114,13 +114,13 @@ p {
 .paragraph-bold {
   font-size: 14px;
   line-height: 25px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 1px;
   font-family: var(--primary-font);
 }
 
 .brand-name {
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 2px;
   font-size: 40px;
   line-height: 130%;
@@ -132,7 +132,7 @@ p {
   font-size: 18px;
   line-height: 28.3px;
   letter-spacing: 1px;
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .button {
@@ -140,17 +140,16 @@ p {
   color: var(--primary-color);
   font-size: 18px;
   line-height: 28.3px;
-  font-weight: 500;
+  font-weight: 400;
   padding: 15px 20px;
   display: inline-block;
   background-color: var(--accent-color);
-  margin-left: var(--margin-20);
   transition: all 200ms ease-in-out;
 }
 
 .button:hover {
   color: var(--accent-color);
-  background-color: transparent;
+  background-color: var(--primary-color);
   box-shadow: 1px 1px 0px 0px var(--accent-color),
     -1px -1px 0px 0px var(--accent-color),
     1px -1px 0px 0px var(--accent-color),
@@ -167,14 +166,22 @@ body {
   min-height: 100vh;
   padding: 0;
   margin: 0;
+  gap: 100px;
 }
 
+
+.header-hero-wrapper{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 header {
   display: flex;
   flex-direction: column;
   max-width: 1240px;
   width: 100%;
-  justify-content: space-between;
+  justify-content: center;
   align-items: start;
 }
 
@@ -290,17 +297,6 @@ a {
 
 .phone-menu ul li {
   padding-bottom: var(--padding-20);
-}
-
-
-.content {
-  display: flex;
-  padding-inline: var(--padding-20);
-  max-width: 1240px;
-  width: 100%;
-  background-image: url("../images/hero-background.png");
-  z-index: 1;
-  flex: 1;
 }
 
 footer {
