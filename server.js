@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail'];
 
 const express = require('express');
 const app = express();
@@ -175,6 +175,30 @@ app.get('/unsubscribe/:token', (request, response) => {
     }
 })
 
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.post('/sendEmail', (request, response) => {
+    const { name, email, message } = request.body;
+
+    const mailOptions = {
+        from: `${email}`,
+        to: `${process.env.Email_NAME}`,
+        subject: `New message from ${name}`,
+        text: `From: ${name} (${email})\n\nMessage: ${message}`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+            response.status(500).send("Error sending email");
+        } else {
+            console.log(info);
+            response.status(200).send("Email sent successfully");
+        }
+    });
+
+});
 
 //Opens the server on the port 3001
 

@@ -92,6 +92,10 @@ input {
     box-sizing: border-box;
     outline: none;
 }
+.message-field:focus {
+    border-width: 2px;
+    
+}
 
 .button-wrapper {
     display: flex;
