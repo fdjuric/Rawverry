@@ -50,7 +50,7 @@
   --primary-color: #F2F2F2;
   --primary-shade: #D9D9D9;
   --secondary-color: #1A1A1A;
-  --secondary-shade: #333333;
+  --secondary-shade: #3d3d3d;
   --accent-color: #67A329;
   --red-color: #a32929;
   --gray-color: #E4DACE;
@@ -106,7 +106,7 @@ h6 {
 p {
   font-size: 14px;
   line-height: 25px;
-  font-weight: 200;
+  font-weight: 300;
   letter-spacing: 1px;
   font-family: var(--primary-font);
 }
@@ -115,6 +115,14 @@ p {
   font-size: 14px;
   line-height: 25px;
   font-weight: 400;
+  letter-spacing: 1px;
+  font-family: var(--primary-font);
+}
+
+a {
+  font-size: 14px;
+  line-height: 25px;
+  font-weight: 300;
   letter-spacing: 1px;
   font-family: var(--primary-font);
 }
@@ -132,7 +140,7 @@ p {
   font-size: 18px;
   line-height: 28.3px;
   letter-spacing: 1px;
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .button {
@@ -444,9 +452,8 @@ footer {
 
 }
 
-@media (max-width: 768px) {
 
-
+@media (max-width: 480px){
   h1 {
     font-size: 20px;
     line-height: 130%;
@@ -531,6 +538,10 @@ footer {
   .newsletter {
     font-size: 12px;
   }
+}
+
+@media (max-width: 768px) {
+
 
 
   header nav {
