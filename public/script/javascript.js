@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
+
+  window.onload = function() {
+    setTimeout(function(){
+      window.scrollTo(0, 0);
+    }, 0);
+  }
+  
   fetch('/getCategory')
     .then(response => response.json())
     .then(data => {

@@ -86,6 +86,14 @@
     box-sizing: border-box;
 }
 
+.feature h2 {
+    color: var(--secondary-shade);
+}
+
+.feature p {
+    color: var(--secondary-shade);
+}
+
 .favourites {
     width: 100%;
     background-color: var(--gray-color);
@@ -111,6 +119,7 @@
     display: flex;
     gap: 10px;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .collection:hover {
@@ -159,7 +168,6 @@
     max-width: 1240px;
     width: 100%;
     box-sizing: border-box;
-    padding-inline: var(--padding-20);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -167,11 +175,15 @@
 }
 
 .products {
-    display: flex;
+    display: inline-flex;
     gap: 105px;
     align-items: center;
     justify-content: flex-start;
     height: 475px;
+    transform: translateX(0);
+    will-change: transform;
+    scrollbar-width: none;
+    transition: transform 0.3s ease-out;
     color: var(--secondary-shade);
 }
 
@@ -183,7 +195,7 @@
     transition: all 400ms ease-in-out;
     position: relative;
     left: 50%;
-    transform:translate(-200px);
+    transform: translate(-200px);
 }
 
 .product img {
@@ -196,6 +208,7 @@
 .product-main img {
     width: 400px;
     height: 400px;
+    transition: all 400ms ease-in-out;
 }
 
 .product-main {
@@ -279,12 +292,103 @@
     .features-wrapper {
         grid-template-columns: 1fr 1fr;
     }
-  
-  }
 
-  @media (max-width: 768px){
+}
+
+@media (max-width: 768px) {
 
     .features-wrapper {
         grid-template-columns: 1fr;
     }
-  }
+
+    .products {
+        gap: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+
+
+
+    .hero {
+        height: 96vh;
+    }
+
+    .hero-picture {
+        content: url("../images/hero-phone.png");
+        transform: translate(0px);
+        top: 40px;
+        box-sizing:border-box;
+        aspect-ratio: 4/3;
+        padding-inline: var(--padding-20);
+    }
+
+    .hero-wrapper {
+        position: relative;
+        bottom: -100px;
+    }
+
+    .favourites-carousel-wrapper {
+        height: 410px;
+    }
+
+    .products {
+        gap: 0px;
+        padding-inline: var(--padding-20);
+    }
+
+    .product img {
+        width: 190px;
+        height: auto;
+        aspect-ratio: 1/1;
+    }
+
+    .product-main img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+    }
+
+    .product {
+        flex: 0 0 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        justify-content: center;
+        height: 410px;
+        left: 0;
+        transform: translate(0);
+        margin-right: var(--margin-40);
+    }
+
+    .product .subheader {
+        color: var(--secondary-color);
+    }
+
+    .feature {
+        padding: var(--padding-20);
+    }
+
+    .brush-pattern {
+        transform: rotate(10deg) translate(-200px, -50px);
+    }
+
+    .favourites-title-wrapper {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .collection {
+        max-width: 176px;
+    }
+
+    .button-back {
+        display: none;
+    }
+
+    .button-next {
+        display: none;
+    }
+
+
+}
