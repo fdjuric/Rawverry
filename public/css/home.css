@@ -317,8 +317,9 @@
 
 .cta-pic {
     max-width: 100%;
-    max-height: auto;
+    aspect-ratio: 4/2.5;
 }
+
 
 .blog-picture {
     position: relative;
@@ -327,10 +328,7 @@
 
 .catalog-picture {
     width: 50%;
-}
-
-.red {
-    background-color: red;
+    position: relative;
 }
 
 .cta svg {
@@ -351,6 +349,7 @@
     flex-direction: column;
     gap: 20px;
     width: 50%;
+    height: 100%;
 }
 
 .brush-cta1 {
