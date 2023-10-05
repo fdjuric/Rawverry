@@ -66,6 +66,9 @@ h1 {
   line-height: 130%;
   font-weight: 500;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 h2 {
@@ -73,6 +76,9 @@ h2 {
   line-height: 44px;
   font-weight: 300;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 h3 {
@@ -80,6 +86,9 @@ h3 {
   line-height: 44px;
   font-weight: 300;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 h4 {
@@ -87,6 +96,9 @@ h4 {
   line-height: 44px;
   font-weight: 300;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 h5 {
@@ -94,6 +106,9 @@ h5 {
   line-height: 44px;
   font-weight: 300;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 h6 {
@@ -101,6 +116,9 @@ h6 {
   line-height: 44px;
   font-weight: 300;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 p {
@@ -109,6 +127,9 @@ p {
   font-weight: 300;
   letter-spacing: 1px;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 .paragraph-bold {
@@ -117,6 +138,9 @@ p {
   font-weight: 400;
   letter-spacing: 1px;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 a {
@@ -125,6 +149,9 @@ a {
   font-weight: 300;
   letter-spacing: 1px;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 .brand-name {
@@ -133,6 +160,9 @@ a {
   font-size: 40px;
   line-height: 130%;
   font-family: var(--primary-font);
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 .subheader {
@@ -141,6 +171,9 @@ a {
   line-height: 28.3px;
   letter-spacing: 1px;
   font-weight: 400;
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 .button {
@@ -153,6 +186,9 @@ a {
   display: inline-block;
   background-color: var(--accent-color);
   transition: all 200ms ease-in-out;
+  white-space: normal;
+  font-smooth: always;
+  text-rendering: optimizeLegibility;
 }
 
 .button:hover {
@@ -174,7 +210,7 @@ body {
   min-height: 100vh;
   padding: 0;
   margin: 0;
-  gap: 100px;
+  gap: 150px;
 }
 
 
@@ -456,42 +492,36 @@ footer {
     font-size: 24px;
     line-height: 130%;
     font-weight: 600;
-    font-family: var(--primary-font);
   }
 
   h2 {
     font-size: 20px;
     line-height: 44px;
     font-weight: 400;
-    font-family: var(--primary-font);
   }
 
   h3 {
     font-size: 17px;
     line-height: 44px;
     font-weight: 400;
-    font-family: var(--primary-font);
   }
 
   h4 {
     font-size: 16px;
     line-height: 44px;
     font-weight: 400;
-    font-family: var(--primary-font);
   }
 
   h5 {
     font-size: 15px;
     line-height: 44px;
     font-weight: 400;
-    font-family: var(--primary-font);
   }
 
   h6 {
     font-size: 14px;
     line-height: 44px;
     font-weight: 400;
-    font-family: var(--primary-font);
   }
 
   p {
@@ -499,15 +529,12 @@ footer {
     line-height: 25px;
     font-weight: 300;
     letter-spacing: 1px;
-    font-family: var(--primary-font);
   }
 
   .paragraph-bold {
     font-size: 13px;
     line-height: 25px;
     font-weight: 500;
-    letter-spacing: 1px;
-    font-family: var(--primary-font);
   }
 
   a {
@@ -515,7 +542,6 @@ footer {
     line-height: 25px;
     font-weight: 300;
     letter-spacing: 1px;
-    font-family: var(--primary-font);
   }
 
   .brand-name {
@@ -523,19 +549,16 @@ footer {
     font-weight: 800;
     letter-spacing: 2px;
     line-height: 130%;
-    font-family: var(--primary-font);
   }
 
   .subheader {
-    font-family: var(--primary-font);
     font-size: 15px;
-    line-height: 28.3px;
+    line-height: 26.3px;
     letter-spacing: 1px;
     font-weight: 400;
   }
 
   .button {
-    font-family: var(--primary-font);
     font-size: 14px;
     line-height: 28.3px;
     font-weight: 500;

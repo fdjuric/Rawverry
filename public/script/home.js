@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+
+    //Favourites Carousel
+
     const products = document.querySelector('.products');
     const product = document.querySelectorAll('.product');
     const productCount = document.querySelectorAll('.products-count span');
@@ -58,11 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
     })
 
 
+    //Carousel for Mobile Device
+
     if (window.innerWidth < 480) {
 
 
         const heroImage = document.querySelector('.hero-picture');
-        
+
         heroImage.src = "images/hero-phone.png";
         console.log(currentProduct);
 
@@ -148,10 +153,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (currentIndex > slides.length - 1)
                 return;
 
-                if(Math.abs(prevTranslate - currentTranslate) === Math.abs(window.innerWidth)){
-                    hasMoved = true;
-                    setElementAtributes();
-                }
+            if (Math.abs(prevTranslate - currentTranslate) === Math.abs(window.innerWidth)) {
+                hasMoved = true;
+                setElementAtributes();
+            }
             prevTranslate = currentTranslate
 
             setSliderPosition()
@@ -170,31 +175,87 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!isSliding) {
                     isSliding = true;
 
-                if (currentPosition - startPos > 0 && currentProduct > 0) {
+                    if (currentPosition - startPos > 0 && currentProduct > 0) {
 
-                    prevProduct = currentProduct;
-                    currentProduct--;
+                        prevProduct = currentProduct;
+                        currentProduct--;
 
-                    slides[prevProduct].classList.remove('product-main');
-                    productCount[prevProduct].style.backgroundColor = "var(--primary-color)";
-                    slides[currentProduct].classList.add('product-main');
-                    productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
+                        slides[prevProduct].classList.remove('product-main');
+                        productCount[prevProduct].style.backgroundColor = "var(--primary-color)";
+                        slides[currentProduct].classList.add('product-main');
+                        productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
 
 
-                } else if ((currentPosition - startPos) < 0 && currentProduct < slides.length - 1) {
-                    prevProduct = currentProduct;
-                    currentProduct++;
+                    } else if ((currentPosition - startPos) < 0 && currentProduct < slides.length - 1) {
+                        prevProduct = currentProduct;
+                        currentProduct++;
 
-                    slides[prevProduct].classList.remove('product-main');
-                    productCount[prevProduct].style.backgroundColor = "var(--primary-color)";
-                    slides[currentProduct].classList.add('product-main');
-                    productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
+                        slides[prevProduct].classList.remove('product-main');
+                        productCount[prevProduct].style.backgroundColor = "var(--primary-color)";
+                        slides[currentProduct].classList.add('product-main');
+                        productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
+                    }
                 }
             }
-        }
 
         }
 
     }
+
+
+    //FAQ section
+
+
+    const faqRow = document.querySelectorAll('.faq-row');
+    const faqButton = document.querySelectorAll('.faq-question img');
+    const faqAnswer = document.querySelectorAll('.faq-answer');
+    const faqQuestion = document.querySelectorAll(".faq-question");
+
+    let faqRowHeight = 0;
+    let faqAnswerHeight = 0;
+
+    let faqInitialRowHeight = 0;
+
+
+    //Delay for the FAQ section
+    setTimeout(function () {
+
+        faqButton.forEach((item, index) => {
+            console.log(index);
+        
+            faqInitialRowHeight = faqQuestion[index].scrollHeight;
+        
+            console.log("Initial Height: " + faqInitialRowHeight);
+        
+            faqRow[index].style.height = faqInitialRowHeight + "px";
+        
+            let toggleHeight = true;
+        
+            item.addEventListener('click', () => {
+                faqRowHeight = faqRow[index].clientHeight;
+                faqAnswerHeight = faqAnswer[index].clientHeight;
+        
+                console.log("faqRowHeight: " + faqRowHeight);
+                console.log("faqAnswerHeight: " + faqAnswerHeight);
+        
+                faqButton[index].classList.toggle("faq-button-rotate");
+        
+                if (toggleHeight) {
+                    console.log("Expanding...");
+                    faqRow[index].style.height = faqAnswerHeight + faqRowHeight + 20 + "px";
+        
+                    toggleHeight = false;
+                } else {
+                    console.log("Collapsing...");
+                    faqRow[index].style.height = faqInitialRowHeight + "px";
+                    toggleHeight = true;
+                }
+            });
+        });
+        
+    }, 500);
+
+
+
 
 });

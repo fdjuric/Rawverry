@@ -100,7 +100,7 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-    padding: var(--padding-40) 0px;
+    padding: 60px 0px;
     gap: 40px;
     overflow: hidden;
     height: 620px;
@@ -203,12 +203,14 @@
     width: 295px;
     height: 295px;
     transition: all 400ms ease-in-out;
+    object-fit: cover;
 }
 
 .product-main img {
     width: 400px;
     height: 400px;
     transition: all 400ms ease-in-out;
+    object-fit: cover;
 }
 
 .product-main {
@@ -286,6 +288,151 @@
     transform: translate(180px, 180px);
 }
 
+.cta-container {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 1050px;
+}
+
+.cta-wrapper {
+    max-width: 1240px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    gap: 150px;
+    padding-inline: var(--padding-20);
+}
+
+.cta{
+    display: flex;
+    width: 100%;
+    gap: 100px;
+    align-items: center;
+}
+
+.cta-pic {
+    max-width: 100%;
+    max-height: auto;
+}
+
+.blog-picture {
+    position: relative;
+    width: 50%;
+}
+
+.catalog-picture {
+    width: 50%;
+}
+
+.red {
+    background-color: red;
+}
+
+.cta svg {
+    position: absolute;
+    z-index: -1;
+    left: -40px;
+    bottom: -40px;
+    max-width: 110px;
+    width: 100%;
+    height: 100%;
+}
+.cta svg rect {
+    fill: var(--gray-color);
+}
+
+.catalog-header {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 50%;
+}
+
+.brush-cta1 {
+    width: 820px;
+    height: 315px;
+    transform: rotate(338deg) translate(-350px, -200px);
+    opacity: 50%;
+    position: absolute;
+    z-index: -1;
+}
+
+.brush-cta2 {
+    width: 820px;
+    height: 315px;
+    transform: rotate(22deg) translate(50px, -50px);
+    opacity: 50%;
+    position: absolute;
+    z-index: -1;
+}
+
+.blog-header {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 50%;
+}
+
+.faq {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    background-color: var(--gray-color);
+}
+
+.faq-wrapper {
+    max-width: 1240px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 60px var(--padding-20);
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.faq-row {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-bottom: 1px solid var(--gray-accent);
+    transition: all 0.3s ease-in-out;
+    box-sizing: border-box;
+}
+
+.faq-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-bottom: var(--padding-20);
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.faq-answer {
+    transition: all 0.3s ease-in-out;
+}
+
+.faq-img {
+    transform: rotate(90deg);
+    transition: all 0.3s ease-in-out;
+}
+
+.faq-question img:hover {
+    cursor: pointer;
+}
+
+.faq-button-rotate {
+    transform: rotate(270deg);
+}
+
+
 
 @media (min-width: 768px) and (max-width: 1220px) {
 
@@ -303,6 +450,41 @@
 
     .products {
         gap: 50px;
+    }
+
+    .cta {
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    .cta:first-child {
+        flex-direction:column-reverse;
+    }
+
+    .cta svg {
+        display: none;
+    }
+
+    .catalog-header, .blog-header {
+        width: 100%;
+    }
+
+    .catalog-picture, .blog-picture {
+        width: 100%;
+    }
+
+    .brush-cta1, .brush-cta2 {
+
+        width: 440px;
+        height: 160px;
+    }
+
+    .brush-cta1 {
+        transform: rotate(338deg) translate(-150px, -50px)
+    }
+
+    .brush-cta2 {
+        transform: rotate(22deg) translate(0px, 0px);
     }
 }
 
@@ -341,6 +523,7 @@
         width: 190px;
         height: auto;
         aspect-ratio: 1/1;
+        object-fit: cover;
     }
 
     .product-main img {
@@ -388,6 +571,11 @@
 
     .button-next {
         display: none;
+    }
+
+    .faq-img {
+        width: 30px;
+        height: 25px;
     }
 
 
