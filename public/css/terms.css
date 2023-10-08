@@ -1,0 +1,29 @@
+
+
+.terms-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 610px;
+    width: 100%;
+    justify-content: start;
+    align-items: center;
+    box-sizing: border-box;
+    padding-inline: var(--padding-20);
+    gap: 40px;
+}
+
+.terms-wrapper div {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-self: start;
+}
+
+.terms-wrapper div p a {
+    color:blue;
+}
+
+.terms-wrapper div .horizontal {
+    display: flex;
+    flex-direction: row;
+}

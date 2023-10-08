@@ -576,6 +576,18 @@
         width: 30px;
         height: 25px;
     }
+}
 
+@media (min-width: 768px) and (max-width: 1024px) {
+
+
+    .cta {
+        
+        gap: 20px;
+    }
+
+    .catalog-picture svg, .blog-picture svg {
+        display: none;
+    }
 
 }
