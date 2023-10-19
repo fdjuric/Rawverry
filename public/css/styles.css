@@ -599,6 +599,10 @@ footer {
     display: flex;
   }
 
+  .phone-menu ul li:first-child {
+    padding-top: 20px;
+  }
+
   .logo {
     height: 45px;
   }
