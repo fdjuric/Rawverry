@@ -75,6 +75,55 @@
 }
 
 
+.products {
+    display: grid;
+    width: 100%;
+    max-width: 1240px;
+    box-sizing: border-box;
+    padding-inline: var(--padding-20);
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+}
+
+
+.product {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: start;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1;
+}
+
+.product img {
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.price {
+    display: flex;
+    gap: 10px;
+}
+
+.price-reduced {
+    text-decoration: line-through;
+    font-size: 12px;
+}
+
+.product:hover {
+    cursor:pointer;
+
+}
+
+.product img:hover{
+    transform: rotate(180deg);
+    
+}
+
+
 
 
 
