@@ -118,6 +118,23 @@ class dbService {
             console.log(error);
         }
     }
+
+
+    async registerUser(username, password, email, token) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = "INSERT INTO account (user_name, user_password, user_email, token) VALUES (?, ?, ?, ?)";
+
+                db.query(query, [username, password, email, token], (err, results) => {
+                    if(err) reject(new Error(err.message));
+                    resolve(results);
+
+                })
+            });
+        }catch (error) {
+            console.log(error);
+        }
+    }
 }
 
 module.exports = dbService;

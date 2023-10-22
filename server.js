@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', , '/register', '/login'];
 
 const express = require('express');
 const app = express();
@@ -42,7 +42,7 @@ app.use(function (req, res, next) {
 app.use((req, res, next) => {
     const urlPath = req.path;
 
-    if (urlPath.includes('/index') ) {
+    if (urlPath.includes('/index')) {
         res.redirect('/');
     } else if (validHTMLPaths.includes(urlPath)) {
         res.sendFile(`${__dirname}/public${urlPath}.html`);
@@ -200,6 +200,48 @@ app.post('/sendEmail', (request, response) => {
 
 });
 
+
+app.post('/register', async (request, response) => {
+
+    try {
+        const hashedPassword = await bcrypt.hash(request.body.password, 10);
+        const db = dbService.getDbServiceInstance();
+        if (request.body.username && hashedPassword && request.body.email != null) {
+
+            let isEmail = validateEmail(request.body.email);
+
+            if (isEmail) {
+                const tokenLength = 128;
+                const tokenValue = generateRandomToken(tokenLength);
+
+                db.registerUser(request.body.username, hashedPassword, request.body.email, tokenValue)
+                    .then(() => {
+                        response.redirect('/login');
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        response.json({ success: false });
+                    })
+            }else {
+                console.log("Wrong email!");
+            }
+        } else {
+            response.status(400).json({ success: false, message: "Invalid request" });
+        }
+    } catch {
+        response.redirect('/register')
+    }
+})
+
+app.get('/register', (req, res) => {
+    res.render('register.ejs')
+})
+
+app.get('/login', (req, res) => {
+    res.render('login.ejs')
+})
+
+
 //Opens the server on the port 3001
 
 app.listen('3001', () => {
@@ -218,4 +260,12 @@ function generateRandomToken(length) {
     }
 
     return token;
+}
+
+
+//Checking if the email format is correct
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    return emailRegex.test(email);
 }
