@@ -71,6 +71,10 @@ body {
 .blog-entry img {
     transition: all 0.8s ease;
 }
+
+.blog-entry:hover {
+    cursor: pointer;
+}
 .blog-entry:hover img {
     transform: scale(1.5);
 }
