@@ -4,8 +4,8 @@
     height: 500px;
     overflow: hidden;
     position: relative;
-    background-image: url(../images/hero-figure.jpg);
-    background-size: 150%;
+    background-image: url(../images/hero-abstract.jpg);
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: left;
     display: flex;
@@ -36,8 +36,8 @@
     position: absolute;
     z-index: 1;
     left: 0;
-    -webkit-backdrop-filter: blur(2px) brightness(50%);
-    backdrop-filter: blur(2px) brightness(50%);
+    -webkit-backdrop-filter: blur(1px) brightness(80%);
+    backdrop-filter: blur(1px) brightness(80%);
 }
 
 
@@ -130,7 +130,7 @@
 @media (min-width: 768px) and (max-width: 1024px) {
 
     .hero-text h1 {
-        max-width: 420px;
+        max-width: 450px;
     }
 
     .hero-text p {
@@ -155,11 +155,11 @@
 @media (min-width: 320px) and (max-width: 768px) {
 
     .hero-text h1 {
-        max-width: 400px;
+        max-width: 430px;
     }
 
     .hero-text p {
-        max-width: 430px;
+        max-width: 440px;
     }
 }
 
@@ -170,8 +170,7 @@
     }
 
     .hero-text p {
-        max-width: 430px;
+        max-width: 350px;
     }
 }
-
 
