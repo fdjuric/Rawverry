@@ -5,8 +5,8 @@ if (process.env.NODE_ENV !== 'production') {
 const dbService = require('./database.js');
 const crypto = require('crypto');
 
-const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/panel', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', , '/register', '/login'];
+const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel'];
 
 const express = require('express');
 const app = express();
@@ -33,6 +33,9 @@ app.use(session({
 
 app.use(passport.initialize())
 app.use(passport.session());
+
+const initializePassport = require('./passport-config')
+initializePassport(passport, getUserByUsername)
 
 app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -240,6 +243,42 @@ app.get('/register', (req, res) => {
 app.get('/login', (req, res) => {
     res.render('login.ejs')
 })
+
+app.post('/login', passport.authenticate('local', {
+    successRedirect: '/panel',
+    failureRedirect: '/login',
+    failureFlash: true
+}))
+
+app.get('/panel', checkAuthenticated, (req, res) => {
+    res.render('panel.ejs')
+})
+
+
+
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    } else
+        res.redirect('/login');
+
+}
+
+function getUserByUsername(username) {
+    const db = dbService.getDbServiceInstance()
+    console.log(db.getUser(username))
+    return db.getUser(username)
+}
+
+/*function getUserById(username){
+    const db = dbService.getDbServiceInstance()
+    console.log(db.getUser(username))
+    const ide = db.getUser(username).admin_id
+    console.log(ide)
+    return ide
+} */
+
+
 
 
 //Opens the server on the port 3001

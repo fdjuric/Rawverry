@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <link rel="stylesheet" type="text/css" href="css/login.css">
+    <link rel="icon" type="image/png" href="images/tab-icon.png" />
+    <script src="script/javascript.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+
+
+    <div class="register-wrapper">
+
+        <form action="/login" method="POST">
+
+                        <h1>Log in</h1>
+                        <div>
+                            <label class="subheader" for="username">Username</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                        <div>
+                            <label class="subheader" for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <button class="button" type="submit">Login</button>
+                        <p class="underlined">Forgot password?</p>
+                        <% if (messages.error) {%>
+                            <%= messages.error %>
+                                <% } %>
+        </form>
+    </div>
+
+</body>
+
+</html>

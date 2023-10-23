@@ -123,7 +123,7 @@ class dbService {
     async registerUser(username, password, email, token) {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = "INSERT INTO account (user_name, user_password, user_email, token) VALUES (?, ?, ?, ?)";
+                const query = "INSERT INTO account (user_name, user_password, user_email, token, date_col) VALUES (?, ?, ?, ?, CURDATE())";
 
                 db.query(query, [username, password, email, token], (err, results) => {
                     if(err) reject(new Error(err.message));
@@ -135,6 +135,22 @@ class dbService {
             console.log(error);
         }
     }
+
+    async getUser(username) {
+        try {
+          const response = await new Promise((resolve, reject) => {
+            const query = "SELECT * FROM account WHERE user_name = ?";
+            db.query(query, [username], (err, results) => {
+              if (err) reject(new Error(err.message));
+              resolve(results[0]);
+            });
+          });
+          return response;
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
 }
 
 module.exports = dbService;
