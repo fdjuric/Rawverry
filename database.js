@@ -151,6 +151,58 @@ class dbService {
         }
       }
 
+      async getAccountEmail(email){
+
+        try {
+            const response = await new Promise((resolve, reject) => {
+              const query = "SELECT user_email FROM account WHERE user_email = ?";
+              db.query(query, [email], (err, results) => {
+                if (err) reject(new Error(err.message));
+                console.log(results[0]);
+                resolve(results[0]);
+              });
+            });
+            return response;
+          } catch (error) {
+            console.log(error);
+          }
+
+      }
+
+      async changePassword(token, password){
+        try{
+            const response = await new Promise((resolve, reject) => {
+                const query = `UPDATE account
+                                SET user_password = ?
+                                WHERE token = ?`;
+                db.query(query, [password, token], (err, results) => {
+                    if(err) reject(new Error(err.message));
+                    resolve(results);
+                });
+            });
+        }catch (error) {
+            console.log(error);
+        }
+      }
+
+      async changeAccountToken(token, email){
+
+        try{
+            const response = await new Promise((resolve, reject) => {
+                const query = `UPDATE account
+                                SET token = ?
+                                WHERE user_email = ?`;
+                db.query(query, [token, email], (err, results) => {
+                    if(err) reject(new Error(err.message));
+                    resolve(results);
+                });
+            });
+        }catch (error) {
+            console.log(error);
+        }
+
+      }
+
 }
 
 module.exports = dbService;

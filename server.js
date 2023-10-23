@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password'];
 
 const express = require('express');
 const app = express();
@@ -51,7 +51,7 @@ app.use((req, res, next) => {
         res.sendFile(`${__dirname}/public${urlPath}.html`);
     } else if (validFetchPaths.includes(urlPath)) {
         next();
-    } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/')) {
+    } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/')) {
         const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
         console.log(newPath);
 
@@ -225,7 +225,7 @@ app.post('/register', async (request, response) => {
                         console.log(error);
                         response.json({ success: false });
                     })
-            }else {
+            } else {
                 console.log("Wrong email!");
             }
         } else {
@@ -253,6 +253,88 @@ app.post('/login', passport.authenticate('local', {
 app.get('/panel', checkAuthenticated, (req, res) => {
     res.render('panel.ejs')
 })
+
+app.get('/forgot-password', (req, res) => {
+    res.render('forgot-password.ejs');
+})
+
+
+app.post('/forgot-password', (request, response) => {
+    const { email } = request.body;
+
+    const db = dbService.getDbServiceInstance();
+
+    const checkEmail = db.getAccountEmail(email);
+    checkEmail
+        .then(data => {
+
+            const tokenLength = 128;
+            const tokenValue = generateRandomToken(tokenLength);
+
+            db.changeAccountToken(tokenValue, data.user_email)
+            .then (() => {
+
+                const mailOptions = {
+                    from: process.env.EMAIL_NAME,
+                    to: data.user_email,
+                    subject: 'Reset Your Password',
+                    text: `Click on the following link to reset your password: http://25.48.211.38:3001/password-reset/${tokenValue},
+                    NOTE: If you did not request a password reset ignore this email.`,
+                };
+    
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.log(error);
+                        response.status(500).send("Error sending email");
+                    } else {
+                        console.log(info);
+                        response.status(200).send("Email sent successfully");
+                    }
+                });
+
+            })
+
+        })
+        .catch(err => console.log(err));
+
+});
+
+app.get('/password-reset/:token', (request, response) => {
+
+    const token = request.params.token;
+
+    response.render('password-reset', { token });
+
+})
+
+app.post('/password-reset/:token', async (request, response) => {
+
+   // try {
+
+        if(request.body.password != null){
+        const hashedPassword = await bcrypt.hash(request.body.password, 10);
+
+        const db = dbService.getDbServiceInstance();
+        if (hashedPassword && request.params.token != null) {
+
+                db.changePassword(request.params.token, hashedPassword)
+                    .then(() => {
+                        console.log("Password changed successfully!");
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                        response.json({ success: false });
+                    })
+        } else {
+            response.status(400).json({ success: false, message: "Invalid request" });
+        }
+    }
+  //  } catch(error) {
+   //     console.log(error);
+        
+   // }
+
+});
 
 
 

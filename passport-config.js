@@ -9,7 +9,7 @@ function initialize(passport, getUserByUsername) {
         const db = dbService.getDbServiceInstance();
         const user = await db.getUser(username);
         if(user == null){
-            return done(null, false, {message: 'No user with that username'})
+            return done(null, false, {message: 'Username or Password incorrect!'})
         }
 
         try {
@@ -17,7 +17,7 @@ function initialize(passport, getUserByUsername) {
             if(await bcrypt.compare(password, user.user_password)) {
                 return done(null, user)
             }else {
-                return done(null, false, {message: 'Password incorrect'})
+                return done(null, false, {message: 'Username or Password incorrect!'})
             }
         }catch(e){
             return done(e)
