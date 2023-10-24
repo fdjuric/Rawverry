@@ -5,12 +5,14 @@ document.addEventListener('DOMContentLoaded', function () {
       window.scrollTo(0, 0);
     }, 0);
   } */
-  
   fetch('/getCategory')
     .then(response => response.json())
     .then(data => {
       displayCategory(data['data']);
     })
+
+  fetch('/sessionCount')
+  .then(response => response.json());
 
   function displayCategory(category) {
     console.log("category:", category);
