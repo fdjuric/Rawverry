@@ -478,6 +478,30 @@ footer {
   padding-bottom: 10px;
 }
 
+
+.hidden {
+  opacity: 0;
+  transition: all 0.8s ease;
+}
+
+.hiddenBot {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease;
+}
+
+.hiddenLeft {
+  opacity: 0;
+  transform: translateX(-100px);
+  transition: all 0.8s ease;
+}
+
+.scrollAnimate {
+  opacity: 1;
+  transform: translate(0px, 0px);
+
+}
+
 @media (min-width: 768px) {
 
   .hamburger {
