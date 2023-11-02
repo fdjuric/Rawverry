@@ -1,14 +1,77 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
 
 
-    //Favourites Carousel
+    const imageSize = document.querySelectorAll('.button-size');
+
+    imageSize.forEach((item) => {
+        item.addEventListener('click', () => {
+
+            imageSize.forEach((item) => {
+                if(item.classList.contains('selected')){
+                    item.classList.remove('selected');
+                }
+            })
+            item.classList.add('selected');
+        })
+
+    })
+
+
+
+    const descRow = document.querySelectorAll('.description-row');
+    const descButton = document.querySelectorAll('.description-question img');
+    const descAnswer = document.querySelectorAll('.description-answer');
+    const descQuestion = document.querySelectorAll(".description-question");
+
+    let descRowHeight = 0;
+    let descAnswerHeight = 0;
+
+    let descInitialRowHeight = 0;
+
+
+    //Delay for the description section
+    setTimeout(function () {
+
+        descRow.forEach((item, index) => {
+            console.log(index);
+        
+            descInitialRowHeight = descQuestion[index].scrollHeight;
+        
+            console.log("Initial Height: " + descInitialRowHeight);
+        
+            descRow[index].style.height = descInitialRowHeight + "px";
+        
+            let toggleHeight = true;
+        
+            item.addEventListener('click', () => {
+                descRowHeight = descRow[index].clientHeight;
+                descAnswerHeight = descAnswer[index].clientHeight;
+        
+                console.log("descRowHeight: " + descRowHeight);
+                console.log("descAnswerHeight: " + descAnswerHeight);
+        
+                descButton[index].classList.toggle("description-button-rotate");
+        
+                if (toggleHeight) {
+                    console.log("Expanding...");
+                    descRow[index].style.height = descAnswerHeight + descRowHeight + 20 + "px";
+        
+                    toggleHeight = false;
+                } else {
+                    console.log("Collapsing...");
+                    descRow[index].style.height = descInitialRowHeight + "px";
+                    toggleHeight = true;
+                }
+            });
+        });
+        
+    }, 500);
+
+
 
     const products = document.querySelector('.products');
     const product = document.querySelectorAll('.product');
     const productCount = document.querySelectorAll('.products-count span');
-
-    const buttonBack = document.querySelector('.button-back');
-    const buttonNext = document.querySelector('.button-next');
 
     productCount[0].style.backgroundColor = "var(--accent-color)";
 
@@ -18,71 +81,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var lastScrollLeft = 0;
     var isSliding = false;
 
-    buttonBack.style.display= "none";
-
-
-    buttonBack.addEventListener('click', function () {
-
-        if (currentProduct != 0) {
-
-            product[currentProduct].classList.remove('product-main');
-            productCount[currentProduct].style.backgroundColor = "var(--primary-color)";
-            currentProduct--;
-            product[currentProduct].classList.add('product-main');
-            productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
-            transformPosition += 400;
-            console.log(transformPosition);
-            product.forEach((item) => {
-
-                item.style.transform = "translate(" + transformPosition + "px)";
-            })
-            if(currentProduct === 0){
-                buttonBack.style.display= "none";
-            }else {
-                buttonBack.style.display= "flex";
-                buttonNext.style.display= "flex";
-            }
-        } else {
-            return;
-        }
-
-    })
-
-    buttonNext.addEventListener('click', function () {
-
-        if (currentProduct < product.length - 1) {
-            product[currentProduct].classList.remove('product-main');
-            productCount[currentProduct].style.backgroundColor = "var(--primary-color)";
-            currentProduct++;
-            product[currentProduct].classList.add('product-main');
-            productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
-            transformPosition -= 400;
-            console.log(transformPosition);
-            product.forEach((item) => {
-
-                item.style.transform = "translate(" + transformPosition + "px)";
-            })
-            if(currentProduct === product.length -1){
-                buttonNext.style.display= "none";
-            }else {
-                buttonNext.style.display= "flex";
-                buttonBack.style.display = "flex";
-            }
-        } else {
-            return;
-        }
-
-    })
-
-
     //Carousel for Mobile Device
 
     if (window.innerWidth < 480) {
 
-
-        const heroImage = document.querySelector('.hero-picture');
-
-        heroImage.src = "images/hero-phone.png";
         console.log(currentProduct);
 
         const slider = document.querySelector('.products'),
@@ -215,61 +217,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     }
-
-
-    //FAQ section
-
-
-    const faqRow = document.querySelectorAll('.faq-row');
-    const faqButton = document.querySelectorAll('.faq-question img');
-    const faqAnswer = document.querySelectorAll('.faq-answer');
-    const faqQuestion = document.querySelectorAll(".faq-question");
-
-    let faqRowHeight = 0;
-    let faqAnswerHeight = 0;
-
-    let faqInitialRowHeight = 0;
-
-
-    //Delay for the FAQ section
-    setTimeout(function () {
-
-        faqRow.forEach((item, index) => {
-            console.log(index);
-        
-            faqInitialRowHeight = faqQuestion[index].scrollHeight;
-        
-            console.log("Initial Height: " + faqInitialRowHeight);
-        
-            faqRow[index].style.height = faqInitialRowHeight + "px";
-        
-            let toggleHeight = true;
-        
-            item.addEventListener('click', () => {
-                faqRowHeight = faqRow[index].clientHeight;
-                faqAnswerHeight = faqAnswer[index].clientHeight;
-        
-                console.log("faqRowHeight: " + faqRowHeight);
-                console.log("faqAnswerHeight: " + faqAnswerHeight);
-        
-                faqButton[index].classList.toggle("faq-button-rotate");
-        
-                if (toggleHeight) {
-                    console.log("Expanding...");
-                    faqRow[index].style.height = faqAnswerHeight + faqRowHeight + 20 + "px";
-        
-                    toggleHeight = false;
-                } else {
-                    console.log("Collapsing...");
-                    faqRow[index].style.height = faqInitialRowHeight + "px";
-                    toggleHeight = true;
-                }
-            });
-        });
-        
-    }, 500);
-
-
-
-
-});
+})

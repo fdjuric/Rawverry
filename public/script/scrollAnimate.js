@@ -5,7 +5,6 @@ const observer = new IntersectionObserver((entries) => {
         console.log(entry)
         if(entry.isIntersecting){
             if(entry.target.classList.contains('faq-row')){
-                console.log("FAQ");
                 setTimeout(function () {
                     entry.target.classList.add('scrollAnimate');
                 }, 500)
@@ -20,6 +19,7 @@ const observer = new IntersectionObserver((entries) => {
 const hiddenElements = document.querySelectorAll('.hidden');
 const hiddenElementsMoveUp = document.querySelectorAll('.hiddenBot');
 const hiddenElementsMoveRight = document.querySelectorAll('.hiddenLeft');
+
 
 hiddenElements.forEach((el) => observer.observe(el));
 hiddenElementsMoveUp.forEach((el) => observer.observe(el));

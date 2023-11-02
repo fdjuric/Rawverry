@@ -62,7 +62,7 @@
 }
 
 h1 {
-  font-size: 40px;
+  font-size: 38px;
   line-height: 130%;
   font-weight: 500;
   font-family: var(--primary-font);
@@ -182,7 +182,7 @@ a {
   font-size: 18px;
   line-height: 28.3px;
   font-weight: 400;
-  padding: 15px 20px;
+  padding: 10px 20px;
   display: inline-block;
   background-color: var(--accent-color);
   transition: all 200ms ease-in-out;
@@ -201,6 +201,23 @@ a {
   cursor: pointer;
 }
 
+
+.blk {
+  color: var(--secondary-color);
+}
+
+.blk-shade {
+  color: var(--secondary-shade);
+}
+
+.wht {
+  color: var(--primary-color);
+}
+
+.wht-shade {
+  color: var(--primary-shade);
+}
+
 body {
   display: flex;
   flex-direction: column;
@@ -211,6 +228,7 @@ body {
   padding: 0;
   margin: 0;
   gap: 150px;
+  background-color: var(--primary-color);
 }
 
 
@@ -500,6 +518,10 @@ footer {
   opacity: 1;
   transform: translate(0px, 0px);
 
+}
+
+.product:hover {
+  cursor: pointer;
 }
 
 @media (min-width: 768px) {

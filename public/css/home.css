@@ -86,6 +86,10 @@
     box-sizing: border-box;
 }
 
+.feature:first-child img {
+    padding: 5px;
+}
+
 .feature h2 {
     color: var(--secondary-shade);
 }
@@ -423,7 +427,7 @@
     transition: all 0.3s ease-in-out;
 }
 
-.faq-question img:hover {
+.faq-row:hover {
     cursor: pointer;
 }
 
@@ -458,14 +462,6 @@
     transition-delay: 600ms;
 }
 
-.button {
-    transition-delay: 250ms;
-}
-
-
-
-
-
 
 @media (min-width: 768px) and (max-width: 1220px) {
 
@@ -479,10 +475,6 @@
 
     .features-wrapper {
         grid-template-columns: 1fr;
-    }
-
-    .products {
-        gap: 50px;
     }
 
     .cta {
@@ -541,6 +533,10 @@
     .hero-wrapper {
         position: relative;
         bottom: -100px;
+    }
+
+    .favourites{
+        gap: 80px;
     }
 
     .favourites-carousel-wrapper {
