@@ -10,7 +10,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonBack = document.querySelector('.button-back');
     const buttonNext = document.querySelector('.button-next');
 
+
+    const mainImage = document.querySelector('.product-main');
+    const productWrapper = document.querySelector('.products');
+
+    productWrapper.style.height = mainImage.clientHeight + "px";
+
     productCount[0].style.backgroundColor = "var(--accent-color)";
+    
 
     var currentProduct = 0;
     var transformPosition = -200;
@@ -83,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const heroImage = document.querySelector('.hero-picture');
 
         heroImage.src = "images/hero-phone.png";
-        console.log(currentProduct);
 
         const slider = document.querySelector('.products'),
             slides = Array.from(document.querySelectorAll('.product'))
@@ -112,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // make responsive to viewport changes
         window.addEventListener('resize', setPositionByIndex)
+        window.addEventListener('resize', setSize)
 
         // prevent menu popup on long press
         window.oncontextmenu = function (event) {
@@ -162,7 +169,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (isDragging) requestAnimationFrame(animation)
         }
 
+        function setSize() {
+
+            productWrapper.style.height = mainImage.clientHeight + "px";
+
+        }
+
         function setPositionByIndex() {
+
             currentTranslate = currentIndex * -window.innerWidth
             if (currentIndex > slides.length - 1)
                 return;
@@ -235,11 +249,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
 
         faqRow.forEach((item, index) => {
-            console.log(index);
         
             faqInitialRowHeight = faqQuestion[index].scrollHeight;
-        
-            console.log("Initial Height: " + faqInitialRowHeight);
         
             faqRow[index].style.height = faqInitialRowHeight + "px";
         
@@ -249,18 +260,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 faqRowHeight = faqRow[index].clientHeight;
                 faqAnswerHeight = faqAnswer[index].clientHeight;
         
-                console.log("faqRowHeight: " + faqRowHeight);
-                console.log("faqAnswerHeight: " + faqAnswerHeight);
-        
                 faqButton[index].classList.toggle("faq-button-rotate");
         
                 if (toggleHeight) {
-                    console.log("Expanding...");
                     faqRow[index].style.height = faqAnswerHeight + faqRowHeight + 20 + "px";
         
                     toggleHeight = false;
                 } else {
-                    console.log("Collapsing...");
                     faqRow[index].style.height = faqInitialRowHeight + "px";
                     toggleHeight = true;
                 }

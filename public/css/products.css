@@ -1,6 +1,6 @@
 
 body {
-    gap: 20px;
+    gap: 50px;
 }
 
 .product-wrapper {
@@ -58,10 +58,11 @@ body {
 
     font-family: var(--primary-font);
     color: var(--secondary-color);
-    font-size: 14px;
+    font-size: 12px;
     line-height: 28.3px;
     font-weight: 400;
-    padding: 10px 20px;
+    padding: 5px 10px;
+    box-sizing: border-box;
     display: inline-block;
     box-shadow: 1px 1px 0px 0px var(--primary-shade),
       -1px -1px 0px 0px var(--primary-shade),
@@ -234,7 +235,15 @@ body {
 }
 
 
+@media (min-width: 768px){
+    .image-wrapper-phone{
+        display: none;
+    }
 
+    .product-wrapper {
+        padding-inline: var(--padding-20);
+    }
+}
 
 @media (max-width: 768px) {
 
@@ -249,38 +258,62 @@ body {
 .description-wrapper {
     box-sizing: border-box;
     padding-inline: var(--padding-20);
+
+}
+
+.image-wrapper {
+    display: none;
+}
+
+.image-wrapper-phone {
+    display: flex;
+}
+
+.products {
+    gap: 0px;
+}
+
+.button-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.button-wrapper p {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.box-wrapper {
+    padding: 0;
 }
 
 }
 
-@media (max-width: 480px){
 
-    .image-wrapper {
+@media (min-width: 480px){
+
+    .image-wrapper-phone{
         display: none;
     }
 
-    .image-wrapper-phone {
-        display: flex;
+    .image-wrapper{
+        display: grid;
+    }
+    .product-wrapper {
+        padding-inline: var(--padding-20);
     }
 
-    .products {
-        gap: 0px;
+    .products-count{
+        display: none;
     }
 
-    .button-wrapper {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .button-wrapper p {
-        width: 100%;
-        text-align: center;
-        box-sizing: border-box;
-    }
-
-    .box-wrapper {
+    .description-wrapper {
         padding: 0;
     }
+}
+
+@media (max-width: 480px){
 
     .product img {
         width: 190px;
@@ -288,21 +321,51 @@ body {
         aspect-ratio: 1/1;
         object-fit: cover;
     }
-
+    
     .product-main img {
         width: 100%;
         height: auto;
         aspect-ratio: 1/1;
         object-fit: cover;
     }
-
+    
     .product {
         flex: 0 0 100%;
         max-width: 100%;
         box-sizing: border-box;
         justify-content: center;
-        height: 410px;
+        height: auto;
         left: 0;
         transform: translate(0);
     }
+
+    .product-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+    }
+
+    .image-wrapper-phone{
+        height: auto;
+    }
+
+    .products {
+        gap: 0px;
+        height: auto;
+    }
+
+    .product img {
+        width: 190px;
+        height: auto;
+        aspect-ratio: 2.5/2;
+        object-fit: cover;
+    }
+
+    .product-main img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 2.5/2;
+        object-fit: cover;
+    }
+
 }

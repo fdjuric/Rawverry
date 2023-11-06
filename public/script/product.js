@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const imageSize = document.querySelectorAll('.button-size');
 
+    const mainImage = document.querySelector('.product-main');
+    const productWrapper = document.querySelector('.products');
+
+    productWrapper.style.height = mainImage.clientHeight + "px";
+
     imageSize.forEach((item) => {
         item.addEventListener('click', () => {
 
@@ -114,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // make responsive to viewport changes
         window.addEventListener('resize', setPositionByIndex)
+        window.addEventListener('resize', setSize)
 
         // prevent menu popup on long press
         window.oncontextmenu = function (event) {
@@ -164,7 +170,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isDragging) requestAnimationFrame(animation)
         }
 
+        function setSize(){
+            productWrapper.style.height = mainImage.clientHeight + "px";
+        }
+
         function setPositionByIndex() {
+
             currentTranslate = currentIndex * -window.innerWidth
             if (currentIndex > slides.length - 1)
                 return;
@@ -197,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         currentProduct--;
 
                         slides[prevProduct].classList.remove('product-main');
-                        productCount[prevProduct].style.backgroundColor = "var(--primary-color)";
+                        productCount[prevProduct].style.backgroundColor = "var(--gray-color)";
                         slides[currentProduct].classList.add('product-main');
                         productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
 
@@ -207,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         currentProduct++;
 
                         slides[prevProduct].classList.remove('product-main');
-                        productCount[prevProduct].style.backgroundColor = "var(--primary-color)";
+                        productCount[prevProduct].style.backgroundColor = "var(--gray-color)";
                         slides[currentProduct].classList.add('product-main');
                         productCount[currentProduct].style.backgroundColor = "var(--accent-color)";
                     }
