@@ -110,6 +110,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+  const productLink = document.querySelectorAll('.product');
+
+  productLink.forEach((item) => {
+
+    item.addEventListener('click', () => {
+      window.location.href= '/products';
+    })
+  })
+
+
+
   //Checking if the email format is correct
   function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products'];
 
 const express = require('express');
 const app = express();
@@ -308,6 +308,10 @@ app.get('/panel', checkAuthenticated, (req, res) => {
 
 app.get('/forgot-password', (req, res) => {
     res.render('forgot-password.ejs');
+})
+
+app.get('/products', (req, res) => {
+    res.render('products.ejs');
 })
 
 

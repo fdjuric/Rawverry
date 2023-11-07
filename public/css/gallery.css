@@ -36,8 +36,8 @@
     position: absolute;
     z-index: 1;
     left: 0;
-    -webkit-backdrop-filter: blur(1px) brightness(90%);
-    backdrop-filter: blur(1px) brightness(90%);
+    -webkit-backdrop-filter: blur(2px) brightness(70%);
+    backdrop-filter: blur(2px) brightness(70%);
 }
 
 
@@ -162,10 +162,6 @@
     .category-wrapper {
         grid-template-columns: 1fr 1fr;
         justify-content: center;
-    }
-
-    .hero-wrapper div:first-child {
-        max-width: 650px;
     }
 
     .hero-text h1 {

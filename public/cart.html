@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
-    <link rel="stylesheet" type="text/css" href="css/home.css">
+    <link rel="stylesheet" type="text/css" href="css/cart.css">
     <link rel="icon" type="image/png" href="images/tab-icon.png" />
     <script src="script/javascript.js"></script>
-    <script src="script/home.js"></script>
+    <script src="script/cart.js"></script>
     <title>Rawverry</title>
 </head>
 
@@ -20,16 +20,24 @@
                 <nav>
                     <ul>
                         <li>
-                            <a class="subheader" href="gallery">GALLERY</a>
+                            <a class="subheader nav-text" href="gallery">GALLERY
+                                <span></span>
+                            </a>
                         </li>
                         <li>
-                            <a class="subheader" href="cart">CART</a>
+                            <a class="subheader nav-text" href="cart">CART
+                                <span></span>
+                            </a>
                         </li>
                         <li>
-                            <a class="subheader" href="contact">CONTACT</a>
+                            <a class="subheader nav-text" href="contact">CONTACT
+                                <span></span>
+                            </a>
                         </li>
                         <li>
-                            <a class="subheader" href="about">ABOUT</a>
+                            <a class="subheader nav-text" href="about">ABOUT
+                                <span></span>
+                            </a>
                         </li>
                     </ul>
                 </nav>
@@ -66,6 +74,122 @@
             </div>
         </header>
 
+    </div>
+
+    <div class="cart">
+        <h1>Cart</h1>
+        <div class="cart-wrapper">
+            <div class="cart-table">
+                <div class="cart-row">
+                    <h2>Product</h2>
+                </div>
+                <div class="cart-row">
+                    <h2>Quantity</h2>
+                </div>
+                <div class="cart-row">
+                    <h2>Total</h2>
+                </div>
+                <div class="cart-row"></div>
+            </div>
+
+            <div class="cart-item">
+                <div class="info-wrapper">
+                    <div class="image-wrapper">
+                        <img class="product-image" src="images/product1.jpg">
+                    </div>
+                    <div class="desc-wrapper">
+                        <h2 class="product-name">Conceal</h2>
+                        <p class="product-price">$399.99</p>
+                        <p class="product-size">50cm x 50cm</p>
+                    </div>
+                </div>
+                <div class="quantity-wrapper">
+                    <div>
+                        <p class="quantity">1</p>
+                    </div>
+                </div>
+                <div class="total-wrapper">
+                    <p class="total">$399.99</p>
+                </div>
+                <div class="remove-wrapper">
+                    <p class="remove-button">Remove</p>
+                </div>
+            </div>
+            <div class="cart-item">
+                <div class="info-wrapper">
+                    <div class="image-wrapper">
+                        <img class="product-image" src="images/product1.jpg">
+                    </div>
+                    <div class="desc-wrapper">
+                        <h2 class="product-name">Conceal</h2>
+                        <p class="product-price">$399.99</p>
+                        <p class="product-size">50cm x 50cm</p>
+                    </div>
+                </div>
+                <div class="quantity-wrapper">
+                    <div>
+                        <p class="quantity">1</p>
+                    </div>
+                </div>
+                <div class="total-wrapper">
+                    <p class="total">$399.99</p>
+                </div>
+                <div class="remove-wrapper">
+                    <p class="remove-button">Remove</p>
+                </div>
+            </div>
+            <div class="cart-item-phone">
+                <div class="info-wrapper">
+                    <div class="image-wrapper">
+                        <img class="product-image" src="images/product1.jpg">
+                    </div>
+                    <div class="desc-wrapper">
+                        <h2 class="product-name">Conceal</h2>
+                        <p class="product-price">$399.99</p>
+                        <p class="product-size">50x50cm</p>
+                        <div class="row">
+                            <p class="quantity">1</p>
+                            <p class="remove-button">Remove</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="cart-item-phone">
+                <div class="info-wrapper">
+                    <div class="image-wrapper">
+                        <img class="product-image" src="images/product1.jpg">
+                    </div>
+                    <div class="desc-wrapper">
+                        <h2 class="product-name">Conceal</h2>
+                        <p class="product-price">$399.99</p>
+                        <p class="product-size">50x50cm</p>
+                        <div class="row">
+                            <p class="quantity">1</p>
+                            <p class="remove-button">Remove</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-wrapper">
+        <div class="checkout-box1">
+            <div class="checkout-subtotal">
+                <p class="subtotal">Subtotal</p>
+                <p class="subtotal-price">$399.99</p>
+            </div>
+            <div class="checkout-total">
+                <h2 class="total">Total</h2>
+                <h2 class="total-price">$399.99</h2>
+            </div>
+            <div class="checkout-shipping">
+                <p class="shipping subheader">Free Shipping</p>
+            </div>
+        </div>
+        <div class="checkout-box2">
+            <p class="button">Proceed to Checkout</p>
+        </div>
     </div>
 
     <footer>
