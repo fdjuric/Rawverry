@@ -182,7 +182,7 @@ a {
   font-size: 18px;
   line-height: 28.3px;
   font-weight: 400;
-  padding: 10px 20px;
+  padding: 15px 40px;
   display: inline-block;
   background-color: var(--accent-color);
   transition: all 200ms ease-in-out;

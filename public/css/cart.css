@@ -55,6 +55,11 @@ body {
     gap: 20px;
 }
 
+.desc-wrapper {
+    box-sizing: border-box;
+    margin-right: var(--margin-40);
+}
+
 
 .product-image {
     width: 100%;
@@ -162,7 +167,7 @@ body {
     }
 
     .info-wrapper {
-        grid-template-columns: 50% 50%;
+        grid-template-columns: 40% 60%;
     }
 
     .row {

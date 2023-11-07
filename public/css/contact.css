@@ -70,6 +70,8 @@ input {
     font-family: var(--primary-font);
     font-size: 14px;
     box-sizing: border-box;
+    background-color:var(--primary-color);
+    transition: all 0.4s ease;
 }
 
 .message-wrapper {
@@ -91,9 +93,12 @@ input {
     padding-top: var(--padding-20);
     box-sizing: border-box;
     outline: none;
+    background-color:var(--primary-color);
+    transition: all 0.4s ease;
 }
-.message-field:focus {
+.message-field:focus, .name-field:focus, .email-field:focus {
     border-width: 2px;
+    background-color:white;
     
 }
 
@@ -105,9 +110,6 @@ input {
     box-sizing: border-box;
 }
 
-.button-wrapper p {
-    padding-left: var(--padding-20);
-}
 
 .send-button {
     margin: 0;
