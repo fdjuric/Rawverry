@@ -115,30 +115,6 @@ const transporter = nodemailer.createTransport({
 });
 
 
-app.get('/sessionCount', (req, res) => {
-    const sessionIds = loadSessionIds();
-
-  // Check if the current session ID exists in the session IDs file
-  if (!sessionIds[req.sessionID]) {
-    // If it doesn't exist, add it to the session IDs object
-    sessionIds[req.sessionID] = true;
-
-    // Save session IDs to the JSON file
-    saveSessionIds(sessionIds);
-    console.log('Session ID added and saved.');
-  } else {
-    console.log('Session ID already exists.');
-
-  }
-
-
-  // Rest of your route logic
-  res.send('Hello World');
-
-});
-
-
-
 //Inserting the email to the database
 
 app.post('/insertNewsletter', (request, response) => {
@@ -415,23 +391,6 @@ function getUserByUsername(username) {
     console.log(ide)
     return ide
 } */
-
-
-function loadSessionIds() {
-  try {
-    const data = fs.readFileSync(sessionIdsFilePath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    // Return an empty object if the file does not exist or there's an error reading it
-    return {};
-  }
-}
-
-function saveSessionIds(sessionIds) {
-  fs.writeFileSync(sessionIdsFilePath, JSON.stringify(sessionIds, null, 2));
-}
-
-
 
 
 //Opens the server on the port 3001

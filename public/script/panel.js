@@ -1,11 +1,45 @@
 document.addEventListener('DOMContentLoaded', function () {
 
 
+    const navElement = document.querySelectorAll('nav div');
+    const navSvg = document.querySelectorAll('nav div svg path');
+    const navText = document.querySelectorAll('nav div p');
+
+    const section = document.querySelectorAll('.section');
+
+    navSvg[0].style.fill = "var(--accent-color)";
+    navText[0].style.color = "var(--accent-color)";
+
+
+    navElement.forEach((item, index) => {
+
+        console.log(section[index]);
+
+        if(index >= 1 && index < section.length){
+            section[index].style.display = "none";
+        }
+
+        item.addEventListener('click', () => {
+
+            console.log(index);
+
+            navSvg.forEach((item) => {
+                item.style.fill = "var(--secondary-color)";
+            })
+            navText.forEach((item) => {
+                item.style.color = "var(--secondary-color)";
+            })
+            navSvg[index].style.fill = "var(--accent-color)";
+            navText[index].style.color = "var(--accent-color)";
+        })
+    })
+
+
     const ctx = document.querySelector('.sales-graph');
 
     const orderStatus = document.querySelector('.status-graph');
 
-    Chart.defaults.font.family = 'Mitr';
+    //Chart.defaults.font.family = 'Mitr';
     Chart.defaults.font.size = 16;
     Chart.defaults.font.weight = '400';
     Chart.defaults.color = '#1A1A1A';
@@ -16,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
         id: 'legendMargin',
         beforeInit(chart, legend, options) {
             const fitValue = chart.legend.fit;
-            chart.legend.fit = function fit(){
+            chart.legend.fit = function fit() {
                 fitValue.bind(chart.legend)();
                 return this.height += 40;
             }
@@ -39,7 +73,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     right: 20
                 }
             },
-            clip: false
+            plugins: {
+                annotation: {
+                    clip: false,
+                },
+            }
         },
         plugins: [legendMargin]
     };
@@ -62,8 +100,11 @@ document.addEventListener('DOMContentLoaded', function () {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 1400
+                    max: 1200
                 }
+            },
+            ticks: {
+                stepSize: 300
             }
         }
     };
@@ -74,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var chartDataStatus = {
         labels: ["Sales", "Pending", "Returns"],
         datasets: [{
-            label: 'Value ',
+            label: ' Amount ',
             data: [300, 50, 100],
             backgroundColor: [
                 '#67A329',
@@ -88,10 +129,26 @@ document.addEventListener('DOMContentLoaded', function () {
     var statusChartConfig = {
         type: 'doughnut',
         data: chartDataStatus,
+        options: {
+            responsive: false,
+            maintainAspectRatio: true,
+            aspectRatio: 1,
+            plugins: {
+                legend: {
+                    labels: {
+                        boxWidth: 20
+                    }
+                },
+
+            }
+        },
         plugins: [legendMargin]
     };
 
     new Chart(orderStatus, statusChartConfig);
+
+    orderStatus.style.width = "100%";
+    orderStatus.style.height = "100%";
 
 
 })
