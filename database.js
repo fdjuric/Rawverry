@@ -169,6 +169,22 @@ class dbService {
 
       }
 
+      async getAccountData(){
+        try {
+            const response = await new Promise ((resolve, reject) => {
+                const query = `SELECT id, user_name, user_email, account_role, token FROM account`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                });
+            });
+            return response;
+        }catch(error) {
+            console.log(error);
+        }
+      }
+
       async changePassword(token, password){
         try{
             const response = await new Promise((resolve, reject) => {

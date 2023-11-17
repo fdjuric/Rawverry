@@ -8,25 +8,27 @@ function initialize(passport, getUserByUsername) {
 
         const db = dbService.getDbServiceInstance();
         const user = await db.getUser(username);
-        if(user == null){
-            return done(null, false, {message: 'Username or Password incorrect!'})
+        if (user == null) {
+            return done(null, false, { message: 'Username or Password incorrect!' })
         }
 
         try {
 
-            if(await bcrypt.compare(password, user.user_password)) {
+            if (await bcrypt.compare(password, user.user_password)) {
+
                 return done(null, user)
-            }else {
-                return done(null, false, {message: 'Username or Password incorrect!'})
+            } else {
+                return done(null, false, { message: 'Username or Password incorrect!' })
             }
-        }catch(e){
+        } catch (e) {
             return done(e)
         }
+
     }
-    passport.use(new LocalStrategy({ usernameField: 'username'}, authenticateUser))
-    passport.serializeUser((user, done) => done(null,user.id))
-    passport.deserializeUser((id, done) => { 
-        return done(null,getUserByUsername(id.user_name))
+    passport.use(new LocalStrategy({ usernameField: 'username' }, authenticateUser))
+    passport.serializeUser((user, done) => done(null, {id: user.id, username: user.user_name, role: user.account_role, picture: user.picture_path}))
+    passport.deserializeUser((id, done) => {
+        return done(null, getUserByUsername(id.user_name))
     })
 
 }
