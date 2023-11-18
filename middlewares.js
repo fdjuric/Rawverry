@@ -1,8 +1,15 @@
 
 const checkPermission = (requiredRole) => {
     return (req, res, next) => {
-        const user = req.session.passport?.user; // Access user data from the session
-        if (user && user.role === requiredRole) {
+        const user = req.session.passport?.user; 
+        
+        /*console.log(requiredRole);
+        if(requiredRole.includes(user.role)){
+        console.log("Access");
+        } */
+        
+        // Access user data from the session
+        if (user && requiredRole.includes(user.role)) {
             next(); // Proceed to the next middleware or route handler
         } else if (user == null){
 

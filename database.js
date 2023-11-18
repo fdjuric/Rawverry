@@ -219,6 +219,23 @@ class dbService {
 
       }
 
+
+      async SetPicturePath(path, user) {
+        try{
+            const response = await new Promise((resolve, reject) => {
+                const query = `UPDATE account
+                                SET picture_path = ?
+                                WHERE user_name = ?`;
+                db.query(query, [path, user], (err, results) => {
+                    if(err) reject(new Error(err.message));
+                    resolve(results);
+                });
+            });
+        }catch (error) {
+            console.log(error);
+        }
+    }
+
 }
 
 module.exports = dbService;

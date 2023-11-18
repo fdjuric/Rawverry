@@ -20,7 +20,14 @@ const faqObserver = new IntersectionObserver((entries) => {
                 faqRow.forEach((item) => {
                     item.classList.add('scrollAnimate');
                 }); 
+
             }, 500);
+
+            setTimeout(() => {
+                faqRow.forEach((item) => {
+                    item.style.transitionDelay = '0s';
+                })
+            }, 600)
         }
     });
 });

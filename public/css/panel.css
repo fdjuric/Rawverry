@@ -44,6 +44,7 @@ nav div:hover {
     cursor: pointer;
 }
 
+
 .side div {
     display: flex;
     gap: 20px;
@@ -57,12 +58,30 @@ main {
     margin-bottom: 40px;
 }
 
+
+.change-profile-pic{
+
+    width: 500px;
+    height: 400px;
+    position: fixed;
+    display: none;
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 99;
+    top: 50%;
+    left: 50%;
+    background-color: var(--primary-color);
+    border: 1px solid var(--accent-color);
+
+}
+
 .content-wrapper {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 40px;
     margin-bottom: 40px;
+    position: relative;
 }
 
 .header {
@@ -71,6 +90,10 @@ main {
     justify-content: space-between;
     align-items: center;
     background-color: var(--primary-color);
+}
+
+.welcome div {
+    display: flex;
 }
 
 .account-wrapper {
@@ -105,8 +128,16 @@ main {
     justify-content: center;
     align-items: center;
     background-color: var(--primary-shade);
+    overflow: hidden;
+    position: relative;
+    width: 40px;
+    aspect-ratio: 1/1;
 }
 
+.acc-pic {
+    width: 60px;
+    aspect-ratio: 1/1;
+}
 .dashboard {
     display: flex;
     flex-direction: column;
@@ -114,6 +145,16 @@ main {
     gap: 40px;
     box-sizing: border-box;
     padding-inline: var(--padding-40);
+    opacity: 1;
+}
+
+.section {
+    transition: all 0.4s ease;
+}
+
+.hidden {
+    opacity: 0;
+    display: none;
 }
 
 .row1 {
@@ -288,6 +329,50 @@ td div {
     aspect-ratio: 1/1;
     object-fit: cover;
 }
+
+
+
+
+
+
+
+.lds-ring {
+    display: none;
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    top: 35%;
+    left: 45%;
+  }
+  .lds-ring div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border: 8px solid #fff;
+    border-radius: 50%;
+    animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: var(--accent-color) transparent transparent transparent;
+  }
+  .lds-ring div:nth-child(1) {
+    animation-delay: -0.45s;
+  }
+  .lds-ring div:nth-child(2) {
+    animation-delay: -0.3s;
+  }
+  .lds-ring div:nth-child(3) {
+    animation-delay: -0.15s;
+  }
+  @keyframes lds-ring {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 
 
 

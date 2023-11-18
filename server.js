@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/manage-accounts'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic'];
 
 const express = require('express');
 const app = express();
@@ -18,6 +18,8 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
+
+const multer = require('multer');
 
 const {checkPermission} = require('./middlewares.js')
 
@@ -82,20 +84,6 @@ app.use((req, res, next) => {
         res.render('404notfound');
     }
 
-    /*fs.readFile(`./sessions/sess-${req.sessionID}`, 'utf8', (err, data) => {
-         if (err) {
-           console.error(err);
-         } else {
-           try {
-             const sessionData = JSON.parse(data);
-             req.session.visited = sessionData.visited || false;
-             req.session.visitorCount = sessionData.visitorCount || 0;
-           } catch (error) {
-             console.error(error);
-           }
-         }
-         next();
-       }); */
 
 });
 
@@ -838,6 +826,42 @@ app.get('/sendTest', (request, response) => {
 
 });
 
+const profilePicDir = 'public/images/profile';
+
+// Define storage location and filename
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, profilePicDir); // Save files to the 'images/profile' folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Save file with its original name
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Handle file upload POST request
+app.post('/change-profile-pic', upload.single('file'), (req, res) => {
+  
+  const db = dbService.getDbServiceInstance();
+
+  console.log("asdfasdfas");
+
+
+
+  if(req.file){
+    const fileName = profilePicDir.substring('public/'.length) + "/" + req.file.originalname;
+
+    console.log(fileName);
+    console.log(req.session.passport.user.username);
+    db.SetPicturePath(fileName, req.session.passport.user.username)
+    .then(() => {
+      console.log("Path Added to Database!")
+    })
+    .catch((err) => console.log(err));
+  }
+});
+
 
 app.post('/register', async (request, response) => {
 
@@ -889,10 +913,67 @@ app.get('/panel', checkAuthenticated, (req, res) => {
 
    user = req.session.passport.user;
 
-   console.log(user.role);
 
-    res.render('panel.ejs')
+   if(user.role === 'Admin'){
+    res.render('adminPanel.ejs', {user: user});
+   }else if(user.role === 'Editor'){
+    res.render('editorPanel.ejs', {user: user});
+   }else if(user.role == null){
+    res.redirect('/login');
+   }
+
 })
+
+app.get('/panel/products', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const getAccounts = db.getAccountData();
+
+  console.log("Have access!")
+
+}) 
+
+app.get('/panel/orders', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const getAccounts = db.getAccountData();
+
+  console.log("Have access!")
+
+}) 
+
+app.get('/panel/transactions', checkPermission(['Admin']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const getAccounts = db.getAccountData();
+
+  console.log("Have access!")
+
+}) 
+
+app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const getAccounts = db.getAccountData();
+
+  console.log("Have access!")
+
+}) 
+
+
+app.get('/panel/newsletter', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const getAccounts = db.getAccountData();
+
+  console.log("Have access!")
+
+}) 
 
 app.get('/panel/manage-accounts', checkPermission('Admin'), (req, res) => {
 
@@ -907,6 +988,8 @@ app.get('/panel/manage-accounts', checkPermission('Admin'), (req, res) => {
   })
 
 }) 
+
+
 
 app.get('/forgot-password', (req, res) => {
     res.render('forgot-password.ejs');

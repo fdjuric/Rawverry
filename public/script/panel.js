@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    let prevSection = 0;
 
     const navElement = document.querySelectorAll('nav div');
     const navSvg = document.querySelectorAll('nav div svg path');
@@ -15,22 +16,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log(section[index]);
 
-        if(index >= 1 && index < section.length){
+        if (index >= 1 && index < section.length) {
             section[index].style.display = "none";
         }
 
         item.addEventListener('click', () => {
 
             console.log(index);
+            console.log(section[index]);
+            console.log("prev index " + prevSection)
 
-            navSvg.forEach((item) => {
-                item.style.fill = "var(--secondary-color)";
-            })
-            navText.forEach((item) => {
-                item.style.color = "var(--secondary-color)";
-            })
-            navSvg[index].style.fill = "var(--accent-color)";
-            navText[index].style.color = "var(--accent-color)";
+
+
+            section[prevSection].style.opacity = 0;
+
+            setTimeout(() => {
+                section[prevSection].style.display = "none";
+
+                navSvg.forEach((item) => {
+                    item.style.fill = "var(--secondary-color)";
+                })
+                navText.forEach((item) => {
+                    item.style.color = "var(--secondary-color)";
+                })
+                navSvg[index].style.fill = "var(--accent-color)";
+                navText[index].style.color = "var(--accent-color)";
+
+                section[index].style.display = "flex";
+                section[index].style.opacity = 1;
+
+                prevSection = index;
+
+                console.log("after index " + prevSection)
+
+            }, 500)
+
         })
     })
 
@@ -150,5 +170,56 @@ document.addEventListener('DOMContentLoaded', function () {
     orderStatus.style.width = "100%";
     orderStatus.style.height = "100%";
 
+    const svgIcon = document.querySelector('.acc-default');
+    const imgElement = document.querySelector('.acc-pic');
 
+    if (!imgElement.src || imgElement.src === window.location.href || imgElement.src === 'about:blank') {
+        svgIcon.style.display = 'block';
+        imgElement.style.display = 'none';
+    } else {
+        svgIcon.style.display = 'none';
+        imgElement.style.display = 'block';
+    }
+
+
+    const profilePic = document.querySelector('.account-picture');
+
+    const changePicWindow = document.querySelector('.change-profile-pic');
+
+    const uploadButton = document.querySelector('.change-profile-pic form button');
+
+    profilePic.addEventListener('click', () => {
+
+        changePicWindow.style.display = "flex";
+
+        setTimeout(() => {
+            changePicWindow.style.opacity = 1;
+        }, 100)
+
+
+    })
+
+    uploadButton.addEventListener('click', uploadFile);
+
+    function uploadFile(){
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        console.log(fileInput.files)
+
+        const form = new FormData();
+
+        form.append('file', file);
+
+        fetch('/change-profile-pic', {
+            method: 'POST',
+            body: form
+        })
+        .then(response => {
+            console.log("File uploaded!")
+        })
+        .catch(error => {
+            console.log(error);
+        })
+    }
 })
