@@ -1,8 +1,4 @@
 
-html, body {
-    height: 100%;
-    min-height: 100%;
-}
 
 body {
     align-items: start;
@@ -52,10 +48,10 @@ nav div:hover {
     align-items: center;
 }
 
-main {
+.main {
     width: 100%;
+    min-height: 100%;
     display: flex;
-    margin-bottom: 40px;
 }
 
 
@@ -330,11 +326,166 @@ td div {
     object-fit: cover;
 }
 
+.products {
+    box-sizing: border-box;
+    padding-inline: var(--padding-40);
+}
+
+.products-wrapper{
+
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--padding-40);
+    background-color: var(--primary-color);
+    border-radius: 10px;
+}
+
+.products-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.add-product {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.add-product div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: var(--primary-shade);
+    padding: 5px;
+    transition: all 0.4s ease;
+}
+
+.add-product div svg {
+    transition: all 0.4s ease;
+}
+
+.add-product:hover {
+    cursor: pointer;
+}
+
+.add-product p span {
+    position: absolute;
+    display: block;
+    background: var(--secondary-color);
+    transition: transform ease-in-out 0.4s;
+}
+
+.add-product p span {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition-delay: 0s;
+}
+
+.add-product:hover p span{
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+.add-product:hover div {
+    background-color: var(--accent-color);
+}
+
+.add-product:hover svg path{
+    fill: var(--primary-color);
+}
+
+.products-table {
+    width: 100%;
+}
+
+.products-table table {
+    width: 100%;
+}
+
+.products-table table tbody tr td:last-child {
+    text-align: right;
+}
 
 
+.product-settings {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
 
+.in-stock {
+    color: var(--accent-color);
+}
 
+.out-of-stock {
+    color: var(--red-color);
+}
 
+.product-settings svg {
+    border-radius: 50%;
+    background-color: var(--primary-shade);
+    padding: 5px;
+    transition: all 0.4s ease;
+}
+
+.product-settings svg:hover {
+    background-color: var(--accent-color);
+    cursor: pointer;
+}
+
+.product-settings svg:first-child:hover path{
+    
+    stroke: var(--primary-color);
+}
+
+.product-settings svg:last-child:hover path{
+    fill: var(--primary-color);
+    
+}
+
+.editor-container {
+
+    min-height: 500px;
+}
+
+#editor {
+    height: 90%;
+}
+
+.blog {
+    display: flex;
+    flex-direction: column;
+    margin: var(--margin-40);
+    gap: 40px;
+}
+
+.blog-content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    max-height: 50px;
+    white-space: nowrap;
+}
+
+.blog-creation {
+    display: flex;
+    flex-direction: column;
+    padding: var(--padding-40);
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    gap: 20px;
+}
 
 .lds-ring {
     display: none;

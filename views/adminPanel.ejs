@@ -7,15 +7,17 @@
     <title>Dashboard</title>
     <link rel="stylesheet" type="text/css" href="css/styles.css">
     <link rel="stylesheet" type="text/css" href="css/panel.css">
+    <link href="https://cdn.quilljs.com/1.0.0/quill.snow.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="images/tab-icon.png" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="script/panel.js"></script>
+    <script src="https://cdn.quilljs.com/1.0.0/quill.js"></script>
 </head>
 
 <body>
 
-    <main>
+    <div class="main">
         <div class="side">
             <h1 class="brand-name">Rawverry</h1>
 
@@ -99,7 +101,7 @@
             <form id="uploadForm" enctype="multipart/form-data">
                 <input type="file" id="fileInput" name="fileInput">
                 <button type="button" onclick="uploadFile()">Upload</button>
-              </form>
+            </form>
         </div>
 
         <div class="content-wrapper">
@@ -107,7 +109,9 @@
                 <div class="welcome">
                     <div>
                         <h1>Welcome Back, &nbsp;</h1>
-                        <h1 class="welcome-name"><%= user.username %></h1>
+                        <h1 class="welcome-name">
+                            <%= user.username %>
+                        </h1>
                     </div>
                     <p class="date">Teusday 25 October 2023</p>
                 </div>
@@ -128,8 +132,8 @@
 
                     <div class="account-info">
                         <div class="account-picture">
-                            <svg class="acc-default" xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35"
-                                fill="none">
+                            <svg class="acc-default" xmlns="http://www.w3.org/2000/svg" width="35" height="35"
+                                viewBox="0 0 35 35" fill="none">
                                 <path
                                     d="M17.4987 17.5C15.8945 17.5 14.5213 16.9288 13.3789 15.7864C12.2365 14.6441 11.6654 13.2708 11.6654 11.6666C11.6654 10.0625 12.2365 8.68922 13.3789 7.54685C14.5213 6.40449 15.8945 5.83331 17.4987 5.83331C19.1029 5.83331 20.4761 6.40449 21.6185 7.54685C22.7609 8.68922 23.332 10.0625 23.332 11.6666C23.332 13.2708 22.7609 14.6441 21.6185 15.7864C20.4761 16.9288 19.1029 17.5 17.4987 17.5ZM5.83203 29.1666V25.0833C5.83203 24.2569 6.04495 23.4971 6.47078 22.8039C6.89661 22.1107 7.46148 21.5823 8.16536 21.2187C9.67231 20.4653 11.2036 19.8999 12.7591 19.5227C14.3147 19.1455 15.8945 18.9573 17.4987 18.9583C19.1029 18.9583 20.6827 19.1469 22.2383 19.5241C23.7938 19.9014 25.3251 20.4662 26.832 21.2187C27.5369 21.5833 28.1022 22.1122 28.5281 22.8054C28.9539 23.4986 29.1663 24.2579 29.1654 25.0833V29.1666H5.83203ZM8.7487 26.25H26.2487V25.0833C26.2487 24.816 26.1816 24.5729 26.0474 24.3541C25.9133 24.1354 25.7373 23.9653 25.5195 23.8437C24.207 23.1875 22.8824 22.6955 21.5456 22.3679C20.2088 22.0403 18.8598 21.876 17.4987 21.875C16.1376 21.875 14.7886 22.0393 13.4518 22.3679C12.115 22.6965 10.7904 23.1885 9.47786 23.8437C9.25911 23.9653 9.08266 24.1354 8.94849 24.3541C8.81432 24.5729 8.74773 24.816 8.7487 25.0833V26.25ZM17.4987 14.5833C18.3008 14.5833 18.9877 14.2975 19.5593 13.7258C20.131 13.1541 20.4163 12.4678 20.4154 11.6666C20.4154 10.8646 20.1295 10.1777 19.5579 9.60602C18.9862 9.03435 18.2998 8.74901 17.4987 8.74998C16.6966 8.74998 16.0097 9.03581 15.4381 9.60748C14.8664 10.1791 14.5811 10.8655 14.582 11.6666C14.582 12.4687 14.8679 13.1556 15.4395 13.7273C16.0112 14.2989 16.6976 14.5843 17.4987 14.5833Z"
                                     fill="var(--accent-color)" />
@@ -137,7 +141,9 @@
                             <img class="acc-pic" src="<%= user.picture %>">
                         </div>
                         <div class="account-name">
-                            <p class="subheader welcome-name"><%= user.username %></p>
+                            <p class="subheader welcome-name">
+                                <%= user.username %>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -303,10 +309,391 @@
             </div>
 
             <div class="products section">
-                <h1>HELLO</h1>
+                <div class="products-wrapper">
+                    <div class="products-header">
+                        <h2>Products</h2>
+                        <div class="add-product">
+                            <p class="subheader">Add a Product
+                                <span></span>
+                            </p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"
+                                    fill="none">
+                                    <path
+                                        d="M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z"
+                                        fill="#67A329" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="products-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <p class="subheader">Product ID</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Product Name</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Price</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Amount Sold</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Reduced Price</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">In Stock</p>
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <p class="product-id">1</p>
+                                    </td>
+                                    <td>
+                                        <div><img class="table-img" src="images/product1.jpg">
+                                            <p class="product-name">Conceal</p>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="product-price">$399.99</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-amount">1050</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-reduced">$369.99</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-in-stock in-stock">In Stock</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-settings"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                height="25" viewBox="0 0 24 25" fill="none">
+                                                <path
+                                                    d="M16.474 5.90801L18.592 8.02501M17.836 4.04301L12.109 9.77001C11.8131 10.0655 11.6113 10.442 11.529 10.852L11 13.5L13.648 12.97C14.058 12.888 14.434 12.687 14.73 12.391L20.457 6.66401C20.6291 6.49191 20.7656 6.2876 20.8588 6.06275C20.9519 5.83789 20.9998 5.59689 20.9998 5.35351C20.9998 5.11013 20.9519 4.86913 20.8588 4.64427C20.7656 4.41942 20.6291 4.21511 20.457 4.04301C20.2849 3.87091 20.0806 3.7344 19.8557 3.64126C19.6309 3.54812 19.3899 3.50018 19.1465 3.50018C18.9031 3.50018 18.6621 3.54812 18.4373 3.64126C18.2124 3.7344 18.0081 3.87091 17.836 4.04301Z"
+                                                    stroke="#67A329" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                                <path
+                                                    d="M19 15.5V18.5C19 19.0304 18.7893 19.5391 18.4142 19.9142C18.0391 20.2893 17.5304 20.5 17 20.5H6C5.46957 20.5 4.96086 20.2893 4.58579 19.9142C4.21071 19.5391 4 19.0304 4 18.5V7.5C4 6.96957 4.21071 6.46086 4.58579 6.08579C4.96086 5.71071 5.46957 5.5 6 5.5H9"
+                                                    stroke="#67A329" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                            </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25"
+                                                viewBox="0 0 24 25" fill="none">
+                                                <path
+                                                    d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                                    fill="#67A329" />
+                                            </svg>
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="product-id">1</p>
+                                    </td>
+                                    <td>
+                                        <div><img class="table-img" src="images/product1.jpg">
+                                            <p class="product-name">Conceal</p>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="product-price">$399.99</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-amount">1050</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-reduced">$369.99</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-in-stock in-stock">In Stock</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-settings"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                height="25" viewBox="0 0 24 25" fill="none">
+                                                <path
+                                                    d="M16.474 5.90801L18.592 8.02501M17.836 4.04301L12.109 9.77001C11.8131 10.0655 11.6113 10.442 11.529 10.852L11 13.5L13.648 12.97C14.058 12.888 14.434 12.687 14.73 12.391L20.457 6.66401C20.6291 6.49191 20.7656 6.2876 20.8588 6.06275C20.9519 5.83789 20.9998 5.59689 20.9998 5.35351C20.9998 5.11013 20.9519 4.86913 20.8588 4.64427C20.7656 4.41942 20.6291 4.21511 20.457 4.04301C20.2849 3.87091 20.0806 3.7344 19.8557 3.64126C19.6309 3.54812 19.3899 3.50018 19.1465 3.50018C18.9031 3.50018 18.6621 3.54812 18.4373 3.64126C18.2124 3.7344 18.0081 3.87091 17.836 4.04301Z"
+                                                    stroke="#67A329" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                                <path
+                                                    d="M19 15.5V18.5C19 19.0304 18.7893 19.5391 18.4142 19.9142C18.0391 20.2893 17.5304 20.5 17 20.5H6C5.46957 20.5 4.96086 20.2893 4.58579 19.9142C4.21071 19.5391 4 19.0304 4 18.5V7.5C4 6.96957 4.21071 6.46086 4.58579 6.08579C4.96086 5.71071 5.46957 5.5 6 5.5H9"
+                                                    stroke="#67A329" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                            </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25"
+                                                viewBox="0 0 24 25" fill="none">
+                                                <path
+                                                    d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                                    fill="#67A329" />
+                                            </svg>
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="product-id">1</p>
+                                    </td>
+                                    <td>
+                                        <div><img class="table-img" src="images/product1.jpg">
+                                            <p class="product-name">Conceal</p>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="product-price">$399.99</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-amount">1050</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-reduced">$369.99</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-instock out-of-stock">Out of Stock</p>
+                                    </td>
+                                    <td>
+                                        <p class="product-settings"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                                height="25" viewBox="0 0 24 25" fill="none">
+                                                <path
+                                                    d="M16.474 5.90801L18.592 8.02501M17.836 4.04301L12.109 9.77001C11.8131 10.0655 11.6113 10.442 11.529 10.852L11 13.5L13.648 12.97C14.058 12.888 14.434 12.687 14.73 12.391L20.457 6.66401C20.6291 6.49191 20.7656 6.2876 20.8588 6.06275C20.9519 5.83789 20.9998 5.59689 20.9998 5.35351C20.9998 5.11013 20.9519 4.86913 20.8588 4.64427C20.7656 4.41942 20.6291 4.21511 20.457 4.04301C20.2849 3.87091 20.0806 3.7344 19.8557 3.64126C19.6309 3.54812 19.3899 3.50018 19.1465 3.50018C18.9031 3.50018 18.6621 3.54812 18.4373 3.64126C18.2124 3.7344 18.0081 3.87091 17.836 4.04301Z"
+                                                    stroke="#67A329" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                                <path
+                                                    d="M19 15.5V18.5C19 19.0304 18.7893 19.5391 18.4142 19.9142C18.0391 20.2893 17.5304 20.5 17 20.5H6C5.46957 20.5 4.96086 20.2893 4.58579 19.9142C4.21071 19.5391 4 19.0304 4 18.5V7.5C4 6.96957 4.21071 6.46086 4.58579 6.08579C4.96086 5.71071 5.46957 5.5 6 5.5H9"
+                                                    stroke="#67A329" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                            </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25"
+                                                viewBox="0 0 24 25" fill="none">
+                                                <path
+                                                    d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                                    fill="#67A329" />
+                                            </svg>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+
+                </div>
             </div>
+
+            <div class="orders section"></div>
+
+            <div class="transactions section"></div>
+
+            <div class="blog section">
+
+                <div class="products-wrapper">
+                    <div class="products-header">
+                        <h2>Blog</h2>
+                        <div class="add-product">
+                            <p class="subheader">Create a Blog
+                                <span></span>
+                            </p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"
+                                    fill="none">
+                                    <path
+                                        d="M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z"
+                                        fill="#67A329" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="products-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <p class="subheader"> ID</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Title</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Content</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Author</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Created at</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Updated at</p>
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <p class="blog-id">1</p>
+                                    </td>
+                                    <td>
+                                        <p class="blog-title">Conceal</p>
+                    </div>
+                    </td>
+                    <td>
+                        <p class="blog-content">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Fuga
+                            repudiandae, sed aliquid asperiores deleniti veniam sapiente tempora dicta? Corrupti
+                            adipisci error ad sit necessitatibus aperiam doloribus harum repudiandae, quae sapiente!</p>
+                    </td>
+                    <td>
+                        <p class="blog-author">Rawverry</p>
+                    </td>
+                    <td>
+                        <p class="blog-created">18. Jul 2023</p>
+                    </td>
+                    <td>
+                        <p class="blog-updated">20. Jul 2023</p>
+                    </td>
+                    <td>
+                        <p class="product-settings"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="25"
+                                viewBox="0 0 24 25" fill="none">
+                                <path
+                                    d="M16.474 5.90801L18.592 8.02501M17.836 4.04301L12.109 9.77001C11.8131 10.0655 11.6113 10.442 11.529 10.852L11 13.5L13.648 12.97C14.058 12.888 14.434 12.687 14.73 12.391L20.457 6.66401C20.6291 6.49191 20.7656 6.2876 20.8588 6.06275C20.9519 5.83789 20.9998 5.59689 20.9998 5.35351C20.9998 5.11013 20.9519 4.86913 20.8588 4.64427C20.7656 4.41942 20.6291 4.21511 20.457 4.04301C20.2849 3.87091 20.0806 3.7344 19.8557 3.64126C19.6309 3.54812 19.3899 3.50018 19.1465 3.50018C18.9031 3.50018 18.6621 3.54812 18.4373 3.64126C18.2124 3.7344 18.0081 3.87091 17.836 4.04301Z"
+                                    stroke="#67A329" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <path
+                                    d="M19 15.5V18.5C19 19.0304 18.7893 19.5391 18.4142 19.9142C18.0391 20.2893 17.5304 20.5 17 20.5H6C5.46957 20.5 4.96086 20.2893 4.58579 19.9142C4.21071 19.5391 4 19.0304 4 18.5V7.5C4 6.96957 4.21071 6.46086 4.58579 6.08579C4.96086 5.71071 5.46957 5.5 6 5.5H9"
+                                    stroke="#67A329" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25"
+                                fill="none">
+                                <path
+                                    d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                    fill="#67A329" />
+                            </svg>
+                        </p>
+                    </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p class="blog-id">1</p>
+                        </td>
+                        <td>
+                            <p class="blog-title">Conceal</p>
+                </div>
+                </td>
+                <td>
+                    <p class="blog-content">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Fuga repudiandae,
+                        sed aliquid asperiores deleniti veniam sapiente tempora dicta? Corrupti adipisci error ad sit
+                        necessitatibus aperiam doloribus harum repudiandae, quae sapiente!</p>
+                </td>
+                <td>
+                    <p class="blog-author">Rawverry</p>
+                </td>
+                <td>
+                    <p class="blog-created">18. Jul 2023</p>
+                </td>
+                <td>
+                    <p class="blog-updated">20. Jul 2023</p>
+                </td>
+                <td>
+                    <p class="product-settings"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="25"
+                            viewBox="0 0 24 25" fill="none">
+                            <path
+                                d="M16.474 5.90801L18.592 8.02501M17.836 4.04301L12.109 9.77001C11.8131 10.0655 11.6113 10.442 11.529 10.852L11 13.5L13.648 12.97C14.058 12.888 14.434 12.687 14.73 12.391L20.457 6.66401C20.6291 6.49191 20.7656 6.2876 20.8588 6.06275C20.9519 5.83789 20.9998 5.59689 20.9998 5.35351C20.9998 5.11013 20.9519 4.86913 20.8588 4.64427C20.7656 4.41942 20.6291 4.21511 20.457 4.04301C20.2849 3.87091 20.0806 3.7344 19.8557 3.64126C19.6309 3.54812 19.3899 3.50018 19.1465 3.50018C18.9031 3.50018 18.6621 3.54812 18.4373 3.64126C18.2124 3.7344 18.0081 3.87091 17.836 4.04301Z"
+                                stroke="#67A329" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path
+                                d="M19 15.5V18.5C19 19.0304 18.7893 19.5391 18.4142 19.9142C18.0391 20.2893 17.5304 20.5 17 20.5H6C5.46957 20.5 4.96086 20.2893 4.58579 19.9142C4.21071 19.5391 4 19.0304 4 18.5V7.5C4 6.96957 4.21071 6.46086 4.58579 6.08579C4.96086 5.71071 5.46957 5.5 6 5.5H9"
+                                stroke="#67A329" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                            <path
+                                d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                fill="#67A329" />
+                        </svg>
+                    </p>
+                </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p class="blog-id">1</p>
+                    </td>
+                    <td>
+                        <p class="blog-title">Conceal</p>
+            </div>
+            </td>
+            <td>
+                <p class="blog-content">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Fuga repudiandae, sed
+                    aliquid asperiores deleniti veniam sapiente tempora dicta? Corrupti adipisci error ad sit
+                    necessitatibus aperiam doloribus harum repudiandae, quae sapiente!</p>
+            </td>
+            <td>
+                <p class="blog-author">Rawverry</p>
+            </td>
+            <td>
+                <p class="blog-created">18. Jul 2023</p>
+            </td>
+            <td>
+                <p class="blog-updated">20. Jul 2023</p>
+            </td>
+            <td>
+                <p class="product-settings"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="25"
+                        viewBox="0 0 24 25" fill="none">
+                        <path
+                            d="M16.474 5.90801L18.592 8.02501M17.836 4.04301L12.109 9.77001C11.8131 10.0655 11.6113 10.442 11.529 10.852L11 13.5L13.648 12.97C14.058 12.888 14.434 12.687 14.73 12.391L20.457 6.66401C20.6291 6.49191 20.7656 6.2876 20.8588 6.06275C20.9519 5.83789 20.9998 5.59689 20.9998 5.35351C20.9998 5.11013 20.9519 4.86913 20.8588 4.64427C20.7656 4.41942 20.6291 4.21511 20.457 4.04301C20.2849 3.87091 20.0806 3.7344 19.8557 3.64126C19.6309 3.54812 19.3899 3.50018 19.1465 3.50018C18.9031 3.50018 18.6621 3.54812 18.4373 3.64126C18.2124 3.7344 18.0081 3.87091 17.836 4.04301Z"
+                            stroke="#67A329" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path
+                            d="M19 15.5V18.5C19 19.0304 18.7893 19.5391 18.4142 19.9142C18.0391 20.2893 17.5304 20.5 17 20.5H6C5.46957 20.5 4.96086 20.2893 4.58579 19.9142C4.21071 19.5391 4 19.0304 4 18.5V7.5C4 6.96957 4.21071 6.46086 4.58579 6.08579C4.96086 5.71071 5.46957 5.5 6 5.5H9"
+                            stroke="#67A329" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25" fill="none">
+                        <path
+                            d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                            fill="#67A329" />
+                    </svg>
+                </p>
+            </td>
+            </tr>
+            </tbody>
+            </table>
         </div>
-    </main>
+
+    </div>
+
+        <div class="blog-creation">
+            <h2>Create a Blog Post</h2>
+
+            <div class="editor-container">
+                <div id="toolbar">
+                </div>
+
+                <div id="editor">
+                    <p>Hello World!</p>
+                </div>
+            </div>
+
+            <div>
+                <p class="button">Publish</p>
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="newsletter section">
+    </div>
+
+    <div class="manage-accounts section"></div>
+
+    </div>
+    </div>
 
 </body>
 

@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -908,6 +908,18 @@ app.post('/login', passport.authenticate('local', {
     failureRedirect: '/login',
     failureFlash: true
 }))
+
+app.get('/logout', (req, res) => {
+  // Destroy the session data
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+      res.status(500).send('Error logging out');
+    } else {
+      res.redirect('/login'); // Redirect to a login page or any other page after logout
+    }
+  });
+});
 
 app.get('/panel', checkAuthenticated, (req, res) => {
 

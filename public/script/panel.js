@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     uploadButton.addEventListener('click', uploadFile);
 
-    function uploadFile(){
+    function uploadFile() {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
 
@@ -215,11 +215,52 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             body: form
         })
-        .then(response => {
-            console.log("File uploaded!")
-        })
-        .catch(error => {
-            console.log(error);
-        })
+            .then(response => {
+                console.log("File uploaded!")
+            })
+            .catch(error => {
+                console.log(error);
+            })
     }
+
+    var toolbarOptions = [
+        ['bold', 'underline'],
+
+        [{ 'header': 1 }, ['header: 2']],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+        [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+        [{ 'direction': 'rtl' }],
+        [{ 'header': [1, 2, false] }],
+        [{ 'align': [] }],
+        ['link', 'image']
+    ];
+
+    var editor = new Quill('#editor', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+    var Bold = Quill.import('formats/bold');
+
+    class CustomBold extends Bold {
+        static create(value){
+            const node = super.create(value);
+            node.classList.add('subheader');
+            return node;
+        }
+    }
+
+    Quill.register({
+        'formats/bold': CustomBold,
+    }, true);
+    
+
+
+    const logoutButton = document.querySelector('.side nav div:last-child');
+    console.log(logoutButton);
+
+    logoutButton.addEventListener('click', () => {
+        window.location.href= '/logout';
+    })
 })
