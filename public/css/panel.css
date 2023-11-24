@@ -274,7 +274,6 @@ nav div:hover {
 
 .row3 {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
     gap: 40px;
 }
 
@@ -285,8 +284,6 @@ nav div:hover {
     box-sizing: border-box;
     padding: var(--padding-40);
     background-color: var(--primary-color);
-    grid-column-start: 1;
-    grid-column-end: 4;
     border-radius: 10px;
 }
 
@@ -341,6 +338,7 @@ td div {
     padding: var(--padding-40);
     background-color: var(--primary-color);
     border-radius: 10px;
+    transition: all 0.4s ease;
 }
 
 .products-header {
@@ -470,6 +468,12 @@ td div {
     gap: 40px;
 }
 
+.blog-title {
+    padding: 5px;
+    outline: none;
+    color: var(--secondary-color);
+}
+
 .blog-content {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -478,13 +482,20 @@ td div {
     white-space: nowrap;
 }
 
-.blog-creation {
-    display: flex;
+.blog-form {
+    display: none;
     flex-direction: column;
     padding: var(--padding-40);
     background-color: var(--primary-color);
     border-radius: 10px;
     gap: 20px;
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+.blog-form-title {
+    outline: none;
+    padding: 5px;
 }
 
 .lds-ring {
@@ -522,6 +533,30 @@ td div {
     }
     100% {
       transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 1620px){
+
+    .row1 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .row2 {
+        grid-template-rows: 1fr 0.5fr;
+        grid-template-columns: 1fr;
+
+    }
+    .sales-overview {
+        grid-column-start: 1;
+        grid-column-end: 2;
+    }
+
+    .order-status {
+        height: 100%;
+        width: 40%;
+        aspect-ratio: 1/1;
+        justify-self: center;
     }
   }
 

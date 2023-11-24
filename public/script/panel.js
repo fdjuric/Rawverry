@@ -236,7 +236,87 @@ document.addEventListener('DOMContentLoaded', function () {
         ['link', 'image']
     ];
 
+
+    //Blog
+
+    const createBlog = document.querySelector('.add-blog');
+    const blogCreateWrapper = document.querySelector('.blog-creation');
+    const blogEditWrapper = document.querySelector('.blog-edit');
+    const blogTitle = document.querySelector('.blog-title');
+
+
+    const createButton = document.querySelector('.creation-button');
+
+    createButton.addEventListener('click', () => {
+
+
+        let contentWithTags = getTextWithTags();
+        console.log(contentWithTags); // Output: All text with <p> and <h1> tags
+    })
+
+    createBlog.addEventListener('click', () => {
+
+        blogCreateWrapper.style.display = "flex";
+
+        setTimeout(() => {
+            blogCreateWrapper.style.opacity = 1;
+        }, 100);
+
+        const blogFormTitle = document.querySelector('.blog-creation .blog-form-title');
+
+    })
+
+
+    const editButton = document.querySelector('.edit-button');
+
+    const blogSettings = document.querySelectorAll('.blog .edit');
+
+    blogSettings.forEach((parent, index) => {
+        const editBlog = parent.firstElementChild;
+        //console.log(editBlog);
+
+        editBlog.addEventListener('click', () => {
+
+            const blogTitle = document.querySelectorAll('.blog-title');
+            console.log(blogTitle[index].textContent);
+
+            const blogContent = document.querySelectorAll('.blog-content');
+            console.log(blogContent[index].textContent);
+
+            blogEditWrapper.style.display = "flex";
+            blogEditWrapper.style.opacity = 1;
+
+            const blogFormTitle = document.querySelector('.blog-edit .blog-form-title');
+
+            console.log(blogFormTitle);
+
+            const blogEditor = document.querySelector('.blog-edit .editor-container #editor2');
+
+            console.log(blogEditor);
+            blogFormTitle.value = blogTitle[index].textContent;
+            //blogEditor.textContent = blogContent[index].textContent;
+
+            // Convert HTML to Quill delta format
+            const delta = editor2.clipboard.convert(blogContent[index].textContent);
+
+            // Insert the delta into the Quill editor
+            editor2.setContents(delta);
+
+            //insertTextIntoQuill(blogContent[index].textContent);
+        })
+    })
+    // const editBlog = blogSettings.querySelectorAll(':first-child');
+
+    //console.log(editBlog);
+
+
+
     var editor = new Quill('#editor', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+    var editor2 = new Quill('#editor2', {
         modules: { toolbar: toolbarOptions },
         theme: 'snow'
     });
@@ -244,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var Bold = Quill.import('formats/bold');
 
     class CustomBold extends Bold {
-        static create(value){
+        static create(value) {
             const node = super.create(value);
             node.classList.add('subheader');
             return node;
@@ -254,13 +334,39 @@ document.addEventListener('DOMContentLoaded', function () {
     Quill.register({
         'formats/bold': CustomBold,
     }, true);
-    
+
 
 
     const logoutButton = document.querySelector('.side nav div:last-child');
     console.log(logoutButton);
 
     logoutButton.addEventListener('click', () => {
-        window.location.href= '/logout';
+        window.location.href = '/logout';
     })
+
+    const date = document.querySelector('.date');
+
+
+    const monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const dayArray = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    const d = new Date();
+    let month = monthArray[d.getMonth()];
+    let dayWeek = dayArray[d.getDay()];
+    let dayMonth = d.getDate();
+
+    date.textContent = dayWeek + " " + d.getDate() + " " + month + " " + d.getFullYear();
+
+
+    // Blog Text
+    function getTextWithTags() {
+        let editorContent = editor.root.innerHTML;
+        return editorContent;
+    }
+
+    function insertTextIntoQuill(text) {
+        const cursorIndex = editor2.getSelection()?.index || 0; // Get cursor position or default to 0
+        editor2.insertText(cursorIndex, text);
+    }
+
 })
