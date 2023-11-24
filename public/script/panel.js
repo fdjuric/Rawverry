@@ -247,12 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const createButton = document.querySelector('.creation-button');
 
-    createButton.addEventListener('click', () => {
-
-
-        let contentWithTags = getTextWithTags();
-        console.log(contentWithTags); // Output: All text with <p> and <h1> tags
-    })
+    createButton.addEventListener('click', handleBlogCreation);
 
     createBlog.addEventListener('click', () => {
 
@@ -261,9 +256,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => {
             blogCreateWrapper.style.opacity = 1;
         }, 100);
-
-        const blogFormTitle = document.querySelector('.blog-creation .blog-form-title');
-
     })
 
 
@@ -277,6 +269,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         editBlog.addEventListener('click', () => {
 
+            const blogId = document.querySelectorAll('.blog-id');
+            const blogFormId = document.querySelector('.blog-form-id');
             const blogTitle = document.querySelectorAll('.blog-title');
             console.log(blogTitle[index].textContent);
 
@@ -293,6 +287,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const blogEditor = document.querySelector('.blog-edit .editor-container #editor2');
 
             console.log(blogEditor);
+
+            blogFormId.textContent = blogId[index].textContent;
             blogFormTitle.value = blogTitle[index].textContent;
             //blogEditor.textContent = blogContent[index].textContent;
 
@@ -309,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //console.log(editBlog);
 
-
+    editButton.addEventListener('click', handleBlogEditing);
 
     var editor = new Quill('#editor', {
         modules: { toolbar: toolbarOptions },
@@ -363,10 +359,111 @@ document.addEventListener('DOMContentLoaded', function () {
         let editorContent = editor.root.innerHTML;
         return editorContent;
     }
-
-    function insertTextIntoQuill(text) {
-        const cursorIndex = editor2.getSelection()?.index || 0; // Get cursor position or default to 0
-        editor2.insertText(cursorIndex, text);
+    function getEditedText() {
+        let editorContent = editor2.root.innerHTML;
+        return editorContent;
     }
 
-})
+    const blogButton = document.querySelector('.side nav div:nth-child(4)');
+
+    blogButton.addEventListener('click', () => {
+
+        fetch('/panel/blog')
+            .then(response => response.json())
+            .then(data => {
+                displayCategory(data['data']);
+            })
+    })
+
+
+    function createTable(data) {
+        const tbody = document.createElement('tbody');
+
+        blogs.forEach(blog => {
+            const row = document.createElement('tr');
+
+            // Create and populate table data (td) for each field
+            const idCell = createTableCell(blog.id, 'id');
+            const titleCell = createTableCell(blog.title, 'title');
+            const contentCell = createTableCell(blog.content, 'content');
+            const authorCell = createTableCell(blog.author, 'author');
+            const createDateCell = createTableCell(blog.created_at, 'create-date');
+            const changedDateCell = createTableCell(blog.updated_at, 'changed-date');
+
+            // Append table data to the table row
+            row.appendChild(idCell);
+            row.appendChild(titleCell);
+            row.appendChild(contentCell);
+            row.appendChild(authorCell);
+            row.appendChild(createDateCell);
+            row.appendChild(changedDateCell);
+
+            // Append the row to the table body
+            tbody.appendChild(row);
+        });
+    }
+        function handleBlogCreation(event) {
+            let contentWithTags = getTextWithTags();
+            console.log(contentWithTags); // Output: All text with <p> and <h1> tags
+
+
+            const blogFormTitle = document.querySelector('.blog-creation .blog-form-title');
+
+            const author = document.querySelector('.welcome-name');
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.open('POST', '/panel/blog/createBlog', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    alert('Blog created succesfully');
+                } else {
+                    alert('Error creating Blog');
+                }
+            };
+
+            xhr.send(`title=${encodeURIComponent(blogFormTitle.value)}&content=${encodeURIComponent(contentWithTags)}&author=${encodeURIComponent(author.textContent.trim())}`);
+
+        }
+
+        function handleBlogEditing(event) {
+            let contentWithTags = getEditedText();
+            console.log(contentWithTags); // Output: All text with <p> and <h1> tags
+
+            const blogIdElement = document.querySelector('.blog-form-id');
+            const blogFormTitleElement = document.querySelector('.blog-edit .blog-form-title');
+            const authorElement = document.querySelector('.welcome-name');
+
+            const url = '/panel/blog/editBlog';
+
+            const data = {
+                id: blogIdElement.textContent.trim(),
+                title: blogFormTitleElement.value.trim(),
+                content: contentWithTags,
+                author: authorElement.textContent.trim()
+            };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Blog updated successfully');
+                    } else {
+                        alert('Error updating Blog');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+
+
+    })

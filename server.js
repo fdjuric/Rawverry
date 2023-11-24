@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -970,11 +970,52 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
 
   const db = dbService.getDbServiceInstance();
 
-  const getAccounts = db.getAccountData();
+  const getAccounts = db.getBlogData();
 
   console.log("Have access!")
 
 }) 
+
+app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+const title = req.body.title;
+const content = req.body.content;
+const author = req.body.author;
+
+console.log(title)
+console.log(content)
+console.log(author);
+
+const db = dbService.getDbServiceInstance();
+
+db.createBlog(title, content, author)
+.then(() => {
+  console.log("Successfully created blog!");
+})
+.catch((err) => console.log(err));
+
+
+  
+})
+
+app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const { id, title, content, author } = req.body;
+
+    // Process the received data (perform database updates, etc.)
+    console.log(`Received data: id=${id}, title=${title}, content=${content}, author=${author}`);
+  
+  const db = dbService.getDbServiceInstance();
+  
+  db.editBlog(id, title, content, author)
+  .then(() => {
+    console.log("Successfully Updated blog!");
+  })
+  .catch((err) => console.log(err));
+  
+  
+    
+  })
 
 
 app.get('/panel/newsletter', checkPermission(['Admin', 'Editor']), (req, res) => {

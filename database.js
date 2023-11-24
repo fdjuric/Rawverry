@@ -236,6 +236,46 @@ class dbService {
         }
     }
 
+    async createBlog(title, content, author) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+
+                const query = `INSERT INTO blog (title, content, author) VALUES (?, ?, ?)`;
+
+                db.query(query, [title, content, author], (err, results) => {
+                    if(err) reject(new Error(err.message));
+                    resolve(results);
+                })
+            });
+
+            return response;
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async editBlog(id, title, content, author) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = 'UPDATE blog SET title = ?, content = ?, author = ? WHERE id = ?';
+    
+                db.query(query, [title, content, author, id], (err, results) => {
+                    if (err) {
+                        reject(new Error(err.message));
+                    } else {
+                        resolve(results);
+                    }
+                });
+            });
+    
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    
+
 }
 
 module.exports = dbService;

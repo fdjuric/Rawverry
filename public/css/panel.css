@@ -457,8 +457,12 @@ td div {
     min-height: 500px;
 }
 
-#editor {
+#editor, #editor2 {
     height: 90%;
+}
+
+.blog-form-id {
+    display: none;
 }
 
 .blog {
