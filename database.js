@@ -274,6 +274,24 @@ class dbService {
             console.log(error);
         }
     }
+
+    async getBlogData(){
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT * FROM blog`;
+
+                db.query(query, (err, results) => {
+                    if(err) reject(new Error(err.message));
+
+                    resolve(results);
+                });
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
     
 
 }

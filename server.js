@@ -970,9 +970,14 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
 
   const db = dbService.getDbServiceInstance();
 
-  const getAccounts = db.getBlogData();
+  const blogData = db.getBlogData();
 
-  console.log("Have access!")
+  blogData
+  .then((data) => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err));
 
 }) 
 

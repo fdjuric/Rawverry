@@ -364,22 +364,24 @@ document.addEventListener('DOMContentLoaded', function () {
         return editorContent;
     }
 
-    const blogButton = document.querySelector('.side nav div:nth-child(4)');
-
+    const blogButton = document.querySelector('.blog-btn');
+    console.log("BlogBTN " + blogButton);
     blogButton.addEventListener('click', () => {
 
         fetch('/panel/blog')
             .then(response => response.json())
             .then(data => {
-                displayCategory(data['data']);
+                console.log(data);
+                createTable(data);
             })
     })
 
 
     function createTable(data) {
         const tbody = document.createElement('tbody');
+        const table = document.querySelector('.blog .products-table table');
 
-        blogs.forEach(blog => {
+        data.forEach(blog => {
             const row = document.createElement('tr');
 
             // Create and populate table data (td) for each field
@@ -401,6 +403,20 @@ document.addEventListener('DOMContentLoaded', function () {
             // Append the row to the table body
             tbody.appendChild(row);
         });
+
+        table.appendChild(tbody);
+
+
+    }
+    function createTableCell(value, className) {
+        const cell = document.createElement('td');
+        cell.classList.add(className);
+    
+        const paragraph = document.createElement('p');
+        paragraph.textContent = value;
+    
+        cell.appendChild(paragraph);
+        return cell;
     }
         function handleBlogCreation(event) {
             let contentWithTags = getTextWithTags();
