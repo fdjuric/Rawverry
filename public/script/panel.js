@@ -205,22 +205,31 @@ document.addEventListener('DOMContentLoaded', function () {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
 
-        console.log(fileInput.files)
+        console.log(file.name)
 
-        const form = new FormData();
+        const allowedTypes = ['.jpeg', '.png', '.webp', '.gif'];
 
-        form.append('file', file);
+        const isValidFileType = allowedTypes.some(ext => file.name.endsWith(ext));
 
-        fetch('/change-profile-pic', {
-            method: 'POST',
-            body: form
-        })
-            .then(response => {
-                console.log("File uploaded!")
+        if (isValidFileType) {
+
+            const form = new FormData();
+
+            form.append('file', file);
+
+            fetch('/change-profile-pic', {
+                method: 'POST',
+                body: form
             })
-            .catch(error => {
-                console.log(error);
-            })
+                .then(response => {
+                    console.log("File uploaded!")
+                })
+                .catch(error => {
+                    console.log(error);
+                })
+        }else {
+            alert('File is not an image type!');
+        }
     }
 
     var toolbarOptions = [
@@ -258,54 +267,151 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 100);
     })
 
+    //Blog content table creation
+    function createTable(data) {
+        const tbody = document.createElement('tbody');
+        const table = document.querySelector('.blog .products-table table');
 
-    const editButton = document.querySelector('.edit-button');
+        data.forEach(blog => {
+            const row = document.createElement('tr');
 
-    const blogSettings = document.querySelectorAll('.blog .edit');
+            // Create and populate table data (td) for each field
+            const idCell = createTableCell(blog.id, 'blog-id');
+            const titleCell = createTableCell(blog.title, 'blog-title');
+            const contentCell = createTableCell(blog.content, 'blog-content');
+            const authorCell = createTableCell(blog.author, 'blog-author');
+            const createDateCell = createTableCell(blog.created_at, 'blog-created');
+            const changedDateCell = createTableCell(blog.updated_at, 'blog-updated');
 
-    blogSettings.forEach((parent, index) => {
-        const editBlog = parent.firstElementChild;
+            // Append table data to the table row
+            row.appendChild(idCell);
+            row.appendChild(titleCell);
+            row.appendChild(contentCell);
+            row.appendChild(authorCell);
+            row.appendChild(createDateCell);
+            row.appendChild(changedDateCell);
+
+            // Create and append the SVG icons
+            const settingsEditIcons = createSettingsEditIcons(); // Function to create SVG icons
+            const settingsCell = document.createElement('td');
+            settingsCell.appendChild(settingsEditIcons);
+            row.appendChild(settingsCell);
+
+            // Append the row to the table body
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+
+        //Adding event listeners to settings buttons
+
+        const editButton = document.querySelector('.edit-button');
+
+        const blogSettings = document.querySelectorAll('.blog .edit');
+
+        blogSettings.forEach((parent, index) => {
+            const editBlog = parent.firstElementChild;
+            //console.log(editBlog);
+
+            editBlog.addEventListener('click', () => {
+
+                const blogId = document.querySelectorAll('.blog-id');
+                const blogFormId = document.querySelector('.blog-form-id');
+                const blogTitle = document.querySelectorAll('.blog-title');
+                console.log(blogTitle[index].textContent);
+
+                const blogContent = document.querySelectorAll('.blog-content');
+                console.log(blogContent[index].textContent);
+
+                blogEditWrapper.style.display = "flex";
+                blogEditWrapper.style.opacity = 1;
+
+                const blogFormTitle = document.querySelector('.blog-edit .blog-form-title');
+
+                console.log(blogFormTitle);
+
+                const blogEditor = document.querySelector('.blog-edit .editor-container #editor2');
+
+                console.log(blogEditor);
+
+                blogFormId.textContent = blogId[index].textContent;
+                blogFormTitle.value = blogTitle[index].textContent;
+                //blogEditor.textContent = blogContent[index].textContent;
+
+                // Convert HTML to Quill delta format
+                const delta = editor2.clipboard.convert(blogContent[index].textContent);
+
+                // Insert the delta into the Quill editor
+                editor2.setContents(delta);
+
+                //insertTextIntoQuill(blogContent[index].textContent);
+            })
+        })
+        // const editBlog = blogSettings.querySelectorAll(':first-child');
+
         //console.log(editBlog);
 
-        editBlog.addEventListener('click', () => {
+        editButton.addEventListener('click', handleBlogEditing);
+    }
 
-            const blogId = document.querySelectorAll('.blog-id');
-            const blogFormId = document.querySelector('.blog-form-id');
-            const blogTitle = document.querySelectorAll('.blog-title');
-            console.log(blogTitle[index].textContent);
+    function createSettingsEditIcons() {
+        const svgEdit = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgEdit.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svgEdit.setAttribute("width", "24");
+        svgEdit.setAttribute("height", "25");
+        svgEdit.setAttribute("viewBox", "0 0 24 25");
+        svgEdit.setAttribute("fill", "none");
 
-            const blogContent = document.querySelectorAll('.blog-content');
-            console.log(blogContent[index].textContent);
+        const pathEdit = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathEdit.setAttribute("d", "M16.474 5.90801L18.592 8.02501M17.836 4.04301L12.109 9.77001C11.8131 10.0655 11.6113 10.442 11.529 10.852L11 13.5L13.648 12.97C14.058 12.888 14.434 12.687 14.73 12.391L20.457 6.66401C20.6291 6.49191 20.7656 6.2876 20.8588 6.06275C20.9519 5.83789 20.9998 5.59689 20.9998 5.35351C20.9998 5.11013 20.9519 4.86913 20.8588 4.64427C20.7656 4.41942 20.6291 4.21511 20.457 4.04301C20.2849 3.87091 20.0806 3.7344 19.8557 3.64126C19.6309 3.54812 19.3899 3.50018 19.1465 3.50018C18.9031 3.50018 18.6621 3.54812 18.4373 3.64126C18.2124 3.7344 18.0081 3.87091 17.836 4.04301Z");
+        pathEdit.setAttribute("stroke", "#67A329");
+        pathEdit.setAttribute("stroke-width", "2");
+        pathEdit.setAttribute("stroke-linecap", "round");
+        pathEdit.setAttribute("stroke-linejoin", "round");
 
-            blogEditWrapper.style.display = "flex";
-            blogEditWrapper.style.opacity = 1;
+        const pathEdit1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathEdit1.setAttribute("d", "M19 15.5V18.5C19 19.0304 18.7893 19.5391 18.4142 19.9142C18.0391 20.2893 17.5304 20.5 17 20.5H6C5.46957 20.5 4.96086 20.2893 4.58579 19.9142C4.21071 19.5391 4 19.0304 4 18.5V7.5C4 6.96957 4.21071 6.46086 4.58579 6.08579C4.96086 5.71071 5.46957 5.5 6 5.5H9");
+        pathEdit1.setAttribute("stroke", "#67A329");
+        pathEdit1.setAttribute("stroke-width", "2");
+        pathEdit1.setAttribute("stroke-linecap", "round");
+        pathEdit1.setAttribute("stroke-linejoin", "round");
 
-            const blogFormTitle = document.querySelector('.blog-edit .blog-form-title');
+        svgEdit.appendChild(pathEdit);
+        svgEdit.appendChild(pathEdit1);
 
-            console.log(blogFormTitle);
+        const svgCheck = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgCheck.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svgCheck.setAttribute("width", "24");
+        svgCheck.setAttribute("height", "25");
+        svgCheck.setAttribute("viewBox", "0 0 24 25");
+        svgCheck.setAttribute("fill", "none");
 
-            const blogEditor = document.querySelector('.blog-edit .editor-container #editor2');
+        const pathCheck = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathCheck.setAttribute("d", "M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z");
+        pathCheck.setAttribute("fill", "#67A329");
 
-            console.log(blogEditor);
+        svgCheck.appendChild(pathCheck);
 
-            blogFormId.textContent = blogId[index].textContent;
-            blogFormTitle.value = blogTitle[index].textContent;
-            //blogEditor.textContent = blogContent[index].textContent;
+        const pElement = document.createElement("p");
+        pElement.classList.add("product-settings", "edit");
+        pElement.appendChild(svgEdit);
+        pElement.appendChild(svgCheck);
 
-            // Convert HTML to Quill delta format
-            const delta = editor2.clipboard.convert(blogContent[index].textContent);
+        return pElement;
+    }
 
-            // Insert the delta into the Quill editor
-            editor2.setContents(delta);
 
-            //insertTextIntoQuill(blogContent[index].textContent);
-        })
-    })
-    // const editBlog = blogSettings.querySelectorAll(':first-child');
+    function createTableCell(value, className) {
+        const cell = document.createElement('td');
 
-    //console.log(editBlog);
+        const paragraph = document.createElement('p');
+        paragraph.textContent = value;
+        paragraph.classList.add(className);
 
-    editButton.addEventListener('click', handleBlogEditing);
+        cell.appendChild(paragraph);
+        return cell;
+    }
+
 
     var editor = new Quill('#editor', {
         modules: { toolbar: toolbarOptions },
@@ -376,110 +482,90 @@ document.addEventListener('DOMContentLoaded', function () {
             })
     })
 
+    //Blog Creation
+    function handleBlogCreation(event) {
+        const content = getTextWithTags();
 
-    function createTable(data) {
-        const tbody = document.createElement('tbody');
-        const table = document.querySelector('.blog .products-table table');
+        const blogPicture = document.getElementById("blogPicture");
+        const picture = blogPicture.files[0];
 
-        data.forEach(blog => {
-            const row = document.createElement('tr');
+        const blogFormTitle = document.querySelector('.blog-creation .blog-form-title');
+        const title = blogFormTitle.value;
 
-            // Create and populate table data (td) for each field
-            const idCell = createTableCell(blog.id, 'id');
-            const titleCell = createTableCell(blog.title, 'title');
-            const contentCell = createTableCell(blog.content, 'content');
-            const authorCell = createTableCell(blog.author, 'author');
-            const createDateCell = createTableCell(blog.created_at, 'create-date');
-            const changedDateCell = createTableCell(blog.updated_at, 'changed-date');
+        const author = document.querySelector('.welcome-name');
+        const authorName = author.textContent.trim();
 
-            // Append table data to the table row
-            row.appendChild(idCell);
-            row.appendChild(titleCell);
-            row.appendChild(contentCell);
-            row.appendChild(authorCell);
-            row.appendChild(createDateCell);
-            row.appendChild(changedDateCell);
+        console.log(picture.name);
 
-            // Append the row to the table body
-            tbody.appendChild(row);
-        });
+        const allowedTypes = ['.jpeg', '.png', '.webp', '.gif'];
 
-        table.appendChild(tbody);
+        const isValidFileType = allowedTypes.some(ext => picture.name.endsWith(ext));
 
+        if (isValidFileType) {
 
-    }
-    function createTableCell(value, className) {
-        const cell = document.createElement('td');
-        cell.classList.add(className);
-    
-        const paragraph = document.createElement('p');
-        paragraph.textContent = value;
-    
-        cell.appendChild(paragraph);
-        return cell;
-    }
-        function handleBlogCreation(event) {
-            let contentWithTags = getTextWithTags();
-            console.log(contentWithTags); // Output: All text with <p> and <h1> tags
+            const formData = new FormData(); // Create a FormData object
 
+            formData.append('title', title); // Append title
+            formData.append('content', content); // Append content
+            formData.append('author', authorName); // Append author
+            formData.append('file', picture); // Append picture
 
-            const blogFormTitle = document.querySelector('.blog-creation .blog-form-title');
-
-            const author = document.querySelector('.welcome-name');
-
-            const xhr = new XMLHttpRequest();
-
-            xhr.open('POST', '/panel/blog/createBlog', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    alert('Blog created succesfully');
-                } else {
-                    alert('Error creating Blog');
-                }
-            };
-
-            xhr.send(`title=${encodeURIComponent(blogFormTitle.value)}&content=${encodeURIComponent(contentWithTags)}&author=${encodeURIComponent(author.textContent.trim())}`);
-
-        }
-
-        function handleBlogEditing(event) {
-            let contentWithTags = getEditedText();
-            console.log(contentWithTags); // Output: All text with <p> and <h1> tags
-
-            const blogIdElement = document.querySelector('.blog-form-id');
-            const blogFormTitleElement = document.querySelector('.blog-edit .blog-form-title');
-            const authorElement = document.querySelector('.welcome-name');
-
-            const url = '/panel/blog/editBlog';
-
-            const data = {
-                id: blogIdElement.textContent.trim(),
-                title: blogFormTitleElement.value.trim(),
-                content: contentWithTags,
-                author: authorElement.textContent.trim()
-            };
-
-            fetch(url, {
+            fetch('/panel/blog/createBlog', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+                body: formData // Set the body of the request as FormData
             })
                 .then(response => {
                     if (response.ok) {
-                        alert('Blog updated successfully');
+                        alert('Blog created successfully!');
                     } else {
-                        alert('Error updating Blog');
+                        alert('Error creating Blog!');
                     }
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+
+        } else {
+            alert('The file is not a picture!');
         }
 
 
+    }
 
-    })
+    //Blog Editing
+    function handleBlogEditing(event) {
+        let contentWithTags = getEditedText();
+        console.log(contentWithTags); // Output: All text with <p> and <h1> tags
+
+        const blogIdElement = document.querySelector('.blog-form-id');
+        const blogFormTitleElement = document.querySelector('.blog-edit .blog-form-title');
+        const authorElement = document.querySelector('.welcome-name');
+
+        const url = '/panel/blog/editBlog';
+
+        const data = {
+            id: blogIdElement.textContent.trim(),
+            title: blogFormTitleElement.value.trim(),
+            content: contentWithTags,
+            author: authorElement.textContent.trim()
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Blog updated successfully');
+                } else {
+                    alert('Error updating Blog');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+
+
+})

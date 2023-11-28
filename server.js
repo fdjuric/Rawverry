@@ -105,6 +105,44 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+const profilePicDir = 'public/images/profile';
+const blogPicDir = 'public/images/blog';
+
+const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+// Define storage location and filename for profile picture
+const profilePicStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, profilePicDir); // Save files to the 'images/profile' folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Save file with its original name
+  }
+});
+
+// Define storage location and filename for profile picture
+const blogPicStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, blogPicDir); // Save files to the 'images/profile' folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // Save file with its original name
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  // Check if the uploaded file's MIME type is in the allowedTypes array
+  if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true); // Accept the file
+  } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, WebP, or GIF allowed.'), false); // Reject the file
+  }
+};
+
+
+const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
+const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter});
+
 
 //Inserting the email to the database
 
@@ -826,28 +864,10 @@ app.get('/sendTest', (request, response) => {
 
 });
 
-const profilePicDir = 'public/images/profile';
-
-// Define storage location and filename
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, profilePicDir); // Save files to the 'images/profile' folder
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname); // Save file with its original name
-  }
-});
-
-const upload = multer({ storage: storage });
-
-// Handle file upload POST request
+// Handle Profile picture upload POST request
 app.post('/change-profile-pic', upload.single('file'), (req, res) => {
   
   const db = dbService.getDbServiceInstance();
-
-  console.log("asdfasdfas");
-
-
 
   if(req.file){
     const fileName = profilePicDir.substring('public/'.length) + "/" + req.file.originalname;
@@ -979,27 +999,31 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
   })
   .catch(err => console.log(err));
 
+
 }) 
 
-app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), (req, res) => {
+app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 
 const title = req.body.title;
 const content = req.body.content;
 const author = req.body.author;
+const picture = req.file;
 
-console.log(title)
-console.log(content)
-console.log(author);
+console.log(picture);
+  console.log(title);
+  console.log(content);
+  console.log(author);
 
-const db = dbService.getDbServiceInstance();
+if(picture){
+  const fileName = blogPicDir.substring('public/'.length) + "/" + req.file.originalname;
+  const db = dbService.getDbServiceInstance();
 
-db.createBlog(title, content, author)
+db.createBlog(title, content, author, fileName, req.session.passport.user.picture)
 .then(() => {
   console.log("Successfully created blog!");
 })
 .catch((err) => console.log(err));
-
-
+}
   
 })
 

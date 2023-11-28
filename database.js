@@ -236,13 +236,13 @@ class dbService {
         }
     }
 
-    async createBlog(title, content, author) {
+    async createBlog(title, content, author, picture, author_pic) {
         try {
             const response = await new Promise((resolve, reject) => {
 
-                const query = `INSERT INTO blog (title, content, author) VALUES (?, ?, ?)`;
+                const query = `INSERT INTO blog (title, content, author, picture_path, author_pic) VALUES (?, ?, ?, ?, ?)`;
 
-                db.query(query, [title, content, author], (err, results) => {
+                db.query(query, [title, content, author, picture, author_pic], (err, results) => {
                     if(err) reject(new Error(err.message));
                     resolve(results);
                 })
