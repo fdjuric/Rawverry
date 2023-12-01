@@ -309,6 +309,76 @@
             </div>
 
             <div class="products section">
+
+                <div class="product-form product-creation">
+                    <h2 class="creation-header">Add a Product</h2>
+
+                    <form class="create-product">
+
+                        <input type="file" id="productPicture" name="fileInput">
+
+                        <input class="product-form-title" placeholder="Title"></input>
+                        <input class="product-form-price" placeholder="Price"></input>
+                        <div class="product-size">
+                            <input type="checkbox" name="size" value="50x50cm">
+                            <label for="size">50x50cm</label>
+                            <input type="checkbox" name="size" value="50x50cm">
+                            <label for="size">100x50cm</label>
+                            <input type="checkbox" name="size" value="50x50cm">
+                            <label for="size">100x100cm</label>
+                            <input type="checkbox" name="size" value="50x50cm">
+                            <label for="size">100x150cm</label>
+
+                            <p class="button">Add new size</p>
+                        </div>
+                        <div class="editor-container">
+                            <div id="toolbar">
+                            </div>
+
+                            <div id="editorDescCreate">
+
+                            </div>
+
+                            <div id="toolbar">
+                            </div>
+
+                            <div id="editorDetailsCreate">
+
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="button creation-button">Publish</p>
+                        </div>
+                    </form>
+
+
+                </div>
+
+                <div class="product-form product-edit">
+                    <h2 class="creation-header">Edit the Product</h2>
+
+                    <form class="edit-product">
+
+                        <p class="product-form-id"></p>
+                        <input class="product-form-title"></input>
+
+                        <div class="editor-container">
+                            <div id="toolbar">
+                            </div>
+
+                            <div id="editor2">
+
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="button edit-button">Save Changes</p>
+                        </div>
+                    </form>
+
+                </div>
+
                 <div class="products-wrapper">
                     <div class="products-header">
                         <h2>Products</h2>
@@ -587,21 +657,113 @@
 
                                 </tr>
                             </thead>
+                        </table>
+                    </div>
+
+                </div>
+
+
+
+            </div>
+
+            <div class="newsletter section">
+            </div>
+
+            <div class="manage-accounts section">
+
+                <div class="account-form account-creation">
+                    <h2 class="creation-header">Create an Account</h2>
+
+                    <form class="create-account">
+
+                        <input class="account-form-email"></input>
+                        <div class="editor-container">
+                            <div id="toolbar">
+                            </div>
+
+                            <div id="editor">
+
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="button creation-button">Add Account</p>
+                        </div>
+                    </form>
+
+
+                </div>
+
+                <div class="account-form account-edit">
+                    <h2 class="creation-header">Edit the Account</h2>
+
+                    <form class="edit-account">
+
+                        <p class="account-form-id"></p>
+                        <input class="account-form-username"></input>
+                        <input class="account-form-email"></input>
+                        <div class="editor-container">
+                            <div id="toolbar">
+                            </div>
+
+                            <div id="editor2">
+
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="button edit-button">Save Changes</p>
+                        </div>
+                    </form>
+
+                </div>
+
+
+                <div class="products-wrapper">
+                    <div class="products-header">
+                        <h2>Blog</h2>
+                        <div class="add-product add-blog">
+                            <p class="subheader">Add an Account
+                                <span></span>
+                            </p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"
+                                    fill="none">
+                                    <path
+                                        d="M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z"
+                                        fill="#67A329" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="products-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <p class="subheader"> ID</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Username</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Email</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Joined</p>
+                                    </th>
+                                    <th>
+                                        <p class="subheader">Role</p>
+                                    </th>
+                                </tr>
+                            </thead>
             </table>
         </div>
 
-    </div>
+            </div>
 
-
-
-    </div>
-
-    <div class="newsletter section">
-    </div>
-
-    <div class="manage-accounts section"></div>
-
-    </div>
+        </div>
     </div>
 
 </body>

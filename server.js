@@ -945,6 +945,10 @@ app.get('/panel', checkAuthenticated, (req, res) => {
 
    user = req.session.passport.user;
 
+   if(user == null){
+    res.redirect('/login');
+   }
+
 
    if(user.role === 'Admin'){
     res.render('adminPanel.ejs', {user: user});

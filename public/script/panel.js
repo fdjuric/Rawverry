@@ -423,6 +423,16 @@ document.addEventListener('DOMContentLoaded', function () {
         theme: 'snow'
     });
 
+    var editorDesc = new Quill('#editorDesc', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+    var editorDetails = new Quill('#editorDetails', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
     var Bold = Quill.import('formats/bold');
 
     class CustomBold extends Bold {

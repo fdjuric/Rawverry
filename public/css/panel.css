@@ -326,6 +326,8 @@ td div {
 .products {
     box-sizing: border-box;
     padding-inline: var(--padding-40);
+    display: flex;
+    flex-direction: column;
 }
 
 .products-wrapper{
