@@ -330,6 +330,47 @@ td div {
     flex-direction: column;
 }
 
+.product-form {
+    display: flex;
+    flex-direction: column;
+    padding: var(--padding-40);
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    gap: 20px;
+    transition: all 0.4s ease;
+}
+
+.create-product {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.product-form-title, .product-form-price {
+    max-width: 200px;
+    width: 100%;
+    padding: 10px;
+    outline: var(--gray-accent);
+}
+
+
+.product-size {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+#editorDescCreate, #editorDetailsCreate {
+    max-height: 500px;
+    height: 100%;
+}
+
+
+.form-button {
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
 .products-wrapper{
 
     display: flex;
@@ -457,6 +498,18 @@ td div {
 .editor-container {
 
     min-height: 500px;
+    display: flex;
+    gap: 40px;
+    margin-bottom: 120px;
+}
+
+.editor-wrapper {
+    max-height: 800px;
+    height: 100%;
+}
+
+.editor-wrapper p {
+    margin-bottom: var(--margin-20);
 }
 
 #editor, #editor2 {

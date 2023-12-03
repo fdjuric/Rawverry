@@ -313,36 +313,52 @@
                 <div class="product-form product-creation">
                     <h2 class="creation-header">Add a Product</h2>
 
+
                     <form class="create-product">
 
-                        <input type="file" id="productPicture" name="fileInput">
+                        <input type="file" id="productPicture" name="fileInput" multiple>
 
                         <input class="product-form-title" placeholder="Title"></input>
                         <input class="product-form-price" placeholder="Price"></input>
                         <div class="product-size">
-                            <input type="checkbox" name="size" value="50x50cm">
-                            <label for="size">50x50cm</label>
-                            <input type="checkbox" name="size" value="50x50cm">
-                            <label for="size">100x50cm</label>
-                            <input type="checkbox" name="size" value="50x50cm">
-                            <label for="size">100x100cm</label>
-                            <input type="checkbox" name="size" value="50x50cm">
-                            <label for="size">100x150cm</label>
+                            <div>
+                                <input type="checkbox" name="size" value="50x50cm">
+                                <label for="size">50x50cm</label>
+                            </div>
+                            <div>
+                                <input type="checkbox" name="size" value="50x50cm">
+                                <label for="size">100x50cm</label>
+                            </div>
+                            <div>
+                                <input type="checkbox" name="size" value="50x50cm">
+                                <label for="size">100x100cm</label>
+                            </div>
+                            <div>
+                                <input type="checkbox" name="size" value="50x50cm">
+                                <label for="size">100x150cm</label>
+                            </div>
 
-                            <p class="button">Add new size</p>
+                            <p class="form-button button">Add new size</p>
                         </div>
                         <div class="editor-container">
-                            <div id="toolbar">
+                            <div class="editor-wrapper">
+                                <p class="subheader">Description</p>
+                                <div id="toolbar">
+                                </div>
+
+                                <div id="editorDescCreate">
+
+                                </div>
+
                             </div>
+                            <div class="editor-wrapper">
+                                <p class="subheader">Details</p>
+                                <div id="toolbar">
+                                </div>
 
-                            <div id="editorDescCreate">
+                                <div id="editorDetailsCreate">
 
-                            </div>
-
-                            <div id="toolbar">
-                            </div>
-
-                            <div id="editorDetailsCreate">
+                                </div>
 
                             </div>
                         </div>
@@ -758,13 +774,13 @@
                                     </th>
                                 </tr>
                             </thead>
-            </table>
-        </div>
+                        </table>
+                    </div>
+
+                </div>
 
             </div>
-
         </div>
-    </div>
 
 </body>
 

@@ -423,12 +423,12 @@ document.addEventListener('DOMContentLoaded', function () {
         theme: 'snow'
     });
 
-    var editorDesc = new Quill('#editorDesc', {
+    var editorDesc = new Quill('#editorDescCreate', {
         modules: { toolbar: toolbarOptions },
         theme: 'snow'
     });
 
-    var editorDetails = new Quill('#editorDetails', {
+    var editorDetails = new Quill('#editorDetailsCreate', {
         modules: { toolbar: toolbarOptions },
         theme: 'snow'
     });
