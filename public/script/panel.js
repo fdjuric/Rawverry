@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(error => {
                     console.log(error);
                 })
-        }else {
+        } else {
             alert('File is not an image type!');
         }
     }
@@ -433,6 +433,16 @@ document.addEventListener('DOMContentLoaded', function () {
         theme: 'snow'
     });
 
+    var editorDescEdit = new Quill('#editorDescEdit', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+    var editorDetailsEdit = new Quill('#editorDetailsEdit', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
     var Bold = Quill.import('formats/bold');
 
     class CustomBold extends Bold {
@@ -575,6 +585,57 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', error);
             });
     }
+
+
+    //Products section
+
+    const imgCheckBox = document.querySelectorAll('.img-wrapper div input');
+    const imgDiv = document.querySelectorAll('.img-wrapper div');
+
+    imgDiv.forEach((item, index) => {
+        let isHovering = false;
+        let isChecked = false;
+
+        item.addEventListener('mouseenter', () => {
+            isHovering = true;
+            showCheckbox(index);
+        });
+
+        item.addEventListener('mouseleave', () => {
+            isHovering = false;
+            hideCheckbox(index);
+        });
+
+        imgCheckBox[index].addEventListener('mouseenter', () => {
+            isHovering = true;
+            showCheckbox(index);
+        });
+
+        imgCheckBox[index].addEventListener('click', () => {
+            if (imgCheckBox[index].checked) {
+                isChecked = true; // Set isHovering to true when the checkbox is checked
+            } else {
+                isChecked = false; // Set isHovering to false when the checkbox is unchecked
+            }
+        });
+
+        function showCheckbox(index) {
+            imgCheckBox[index].style.display = 'block';
+            imgCheckBox[index].style.opacity = 1;
+        }
+
+        function hideCheckbox(index) {
+            if (!isHovering) {
+                if(!isChecked){
+                    imgCheckBox[index].style.opacity = 0;
+                setTimeout(() => {
+                    imgCheckBox[index].style.display = 'none';
+                }, 400);
+
+                }
+            }
+        }
+    })
 
 
 
