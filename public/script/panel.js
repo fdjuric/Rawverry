@@ -589,53 +589,189 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //Products section
 
-    const imgCheckBox = document.querySelectorAll('.img-wrapper div input');
-    const imgDiv = document.querySelectorAll('.img-wrapper div');
 
-    imgDiv.forEach((item, index) => {
-        let isHovering = false;
-        let isChecked = false;
+    const productsButton = document.querySelector('.products-btn');
 
-        item.addEventListener('mouseenter', () => {
-            isHovering = true;
-            showCheckbox(index);
-        });
+    productsButton.addEventListener('click', () => {
 
-        item.addEventListener('mouseleave', () => {
-            isHovering = false;
-            hideCheckbox(index);
-        });
 
-        imgCheckBox[index].addEventListener('mouseenter', () => {
-            isHovering = true;
-            showCheckbox(index);
-        });
 
-        imgCheckBox[index].addEventListener('click', () => {
-            if (imgCheckBox[index].checked) {
-                isChecked = true; // Set isHovering to true when the checkbox is checked
-            } else {
-                isChecked = false; // Set isHovering to false when the checkbox is unchecked
-            }
-        });
+        const addProductButton = document.querySelector('.add-a-product');
 
-        function showCheckbox(index) {
-            imgCheckBox[index].style.display = 'block';
-            imgCheckBox[index].style.opacity = 1;
-        }
+        const editProductButton = document.querySelectorAll('.products .products-table .product-settings svg:first-child');
 
-        function hideCheckbox(index) {
-            if (!isHovering) {
-                if(!isChecked){
-                    imgCheckBox[index].style.opacity = 0;
+        console.log(editProductButton);
+
+        addProductButton.addEventListener('click', () => {
+
+            const productCreation = document.querySelector('.product-creation');
+
+            productCreation.style.display = "block";
+            productCreation.style.opacity = 1;
+
+            const closeBtn = document.querySelector('.product-creation .close-btn');
+
+            closeBtn.addEventListener('click', () => {
+                productCreation.style.opacity = 0;
+
                 setTimeout(() => {
-                    imgCheckBox[index].style.display = 'none';
+                    productCreation.style.display = "none";
                 }, 400);
+            })
 
+            const addSize = document.querySelector('.product-creation .add-size');
+
+            const addSizeWrapper = document.querySelector('.add-size-wrapper');
+
+            addSize.addEventListener('click', () => {
+                addSizeWrapper.style.display = "flex";
+                addSizeWrapper.style.opacity = 1;
+
+                const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
+
+                closeBtn.addEventListener('click', () => {
+                    addSizeWrapper.style.opacity = 0;
+
+                    setTimeout(() => {
+                        addSizeWrapper.style.display = "none";
+                    }, 400);
+                })
+            })
+
+            const addCategory = document.querySelector('.product-creation .add-category');
+
+            const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+
+            addCategory.addEventListener('click', () => {
+                addCategoryWrapper.style.display = "flex";
+                addCategoryWrapper.style.opacity = 1;
+
+                const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
+
+                closeBtn.addEventListener('click', () => {
+                    addCategoryWrapper.style.opacity = 0;
+
+                    setTimeout(() => {
+                        addCategoryWrapper.style.display = "none";
+                    }, 400);
+                })
+            })
+
+        })
+
+        editProductButton.forEach((item) => {
+
+            item.addEventListener('click', () => {
+
+                const productEdit = document.querySelector('.product-edit');
+
+                productEdit.style.display = "block";
+                productEdit.style.opacity = 1;
+
+                const closeBtn = document.querySelector('.product-edit .close-btn');
+
+                closeBtn.addEventListener('click', () => {
+                    productEdit.style.opacity = 0;
+
+                    setTimeout(() => {
+                        productEdit.style.display = "none";
+                    }, 400);
+                })
+
+                const addSize = document.querySelector('.product-edit .add-size');
+
+                const addSizeWrapper = document.querySelector('.add-size-wrapper');
+
+                addSize.addEventListener('click', () => {
+                    addSizeWrapper.style.display = "flex";
+                    addSizeWrapper.style.opacity = 1;
+
+                    const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
+
+                    closeBtn.addEventListener('click', () => {
+                        addSizeWrapper.style.opacity = 0;
+
+                        setTimeout(() => {
+                            addSizeWrapper.style.display = "none";
+                        }, 400);
+                    })
+                })
+
+                const addCategory = document.querySelector('.product-edit .add-category');
+
+                const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+
+                addCategory.addEventListener('click', () => {
+                    addCategoryWrapper.style.display = "flex";
+                    addCategoryWrapper.style.opacity = 1;
+
+                    const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
+
+                    closeBtn.addEventListener('click', () => {
+                        addCategoryWrapper.style.opacity = 0;
+
+                        setTimeout(() => {
+                            addCategoryWrapper.style.display = "none";
+                        }, 400);
+                    })
+                })
+
+            })
+
+        })
+
+
+        const imgCheckBox = document.querySelectorAll('.img-wrapper div input');
+        const imgDiv = document.querySelectorAll('.img-wrapper div');
+
+        imgDiv.forEach((item, index) => {
+            let isHovering = false;
+            let isChecked = false;
+
+            item.addEventListener('mouseenter', () => {
+                isHovering = true;
+                showCheckbox(index);
+            });
+
+            item.addEventListener('mouseleave', () => {
+                isHovering = false;
+                hideCheckbox(index);
+            });
+
+            imgCheckBox[index].addEventListener('mouseenter', () => {
+                isHovering = true;
+                showCheckbox(index);
+            });
+
+            imgCheckBox[index].addEventListener('click', () => {
+                if (imgCheckBox[index].checked) {
+                    isChecked = true; // Set isHovering to true when the checkbox is checked
+                } else {
+                    isChecked = false; // Set isHovering to false when the checkbox is unchecked
+                }
+            });
+
+            function showCheckbox(index) {
+                imgCheckBox[index].style.display = 'block';
+                imgCheckBox[index].style.opacity = 1;
+            }
+
+            function hideCheckbox(index) {
+                if (!isHovering) {
+                    if (!isChecked) {
+                        imgCheckBox[index].style.opacity = 0;
+                        setTimeout(() => {
+                            imgCheckBox[index].style.display = 'none';
+                        }, 400);
+
+                    }
                 }
             }
-        }
+        })
+
     })
+
+
 
 
 

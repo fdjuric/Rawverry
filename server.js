@@ -1004,6 +1004,22 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
   .catch(err => console.log(err));
 
 
+})
+
+app.get('/panel/getProductSizes', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const productData = db.getProductSizes();
+
+  productData
+  .then((data) => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err));
+
+
 }) 
 
 app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
