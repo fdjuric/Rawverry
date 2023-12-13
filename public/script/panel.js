@@ -721,8 +721,9 @@ document.addEventListener('DOMContentLoaded', function () {
         })
 
 
-        const imgCheckBox = document.querySelectorAll('.img-wrapper div input');
-        const imgDiv = document.querySelectorAll('.img-wrapper div');
+        const imgCheckBox = document.querySelectorAll('.img-box div input');
+        const imgDiv = document.querySelectorAll('.img-box div');
+        const images = document.querySelectorAll('.img-box div img');
 
         imgDiv.forEach((item, index) => {
             let isHovering = false;
@@ -746,8 +747,10 @@ document.addEventListener('DOMContentLoaded', function () {
             imgCheckBox[index].addEventListener('click', () => {
                 if (imgCheckBox[index].checked) {
                     isChecked = true; // Set isHovering to true when the checkbox is checked
+                    images[index].style.filter = "brightness(50%)";
                 } else {
                     isChecked = false; // Set isHovering to false when the checkbox is unchecked
+                    images[index].style.filter = "brightness(100%)";
                 }
             });
 
