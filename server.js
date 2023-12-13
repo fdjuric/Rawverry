@@ -108,7 +108,20 @@ const transporter = nodemailer.createTransport({
 const profilePicDir = 'public/images/profile';
 const blogPicDir = 'public/images/blog';
 
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
+const fileFilter = (req, file, cb) => {
+  // Extract the file extension from the originalname
+  const fileExtension = file.originalname.split('.').pop().toLowerCase();
+  
+  // Check if the uploaded file's MIME type or extension is in the allowedTypes array
+  if (allowedTypes.includes(file.mimetype) || allowedTypes.includes(`image/${fileExtension}`)) {
+    cb(null, true); // Accept the file
+  } else {
+    cb(new Error('Invalid file type. Only JPEG, PNG, WebP, or GIF allowed.'), false); // Reject the file
+  }
+};
+
 
 // Define storage location and filename for profile picture
 const profilePicStorage = multer.diskStorage({
@@ -129,15 +142,6 @@ const blogPicStorage = multer.diskStorage({
     cb(null, file.originalname); // Save file with its original name
   }
 });
-
-const fileFilter = (req, file, cb) => {
-  // Check if the uploaded file's MIME type is in the allowedTypes array
-  if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true); // Accept the file
-  } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, WebP, or GIF allowed.'), false); // Reject the file
-  }
-};
 
 
 const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
@@ -872,11 +876,31 @@ app.post('/change-profile-pic', upload.single('file'), (req, res) => {
   if(req.file){
     const fileName = profilePicDir.substring('public/'.length) + "/" + req.file.originalname;
 
-    console.log(fileName);
-    console.log(req.session.passport.user.username);
+    console.log("File name:" + fileName);
+    //console.log(req.session.passport.user.username);
+    //console.log(req.session.passport.user.picture);
+
+    const profilePicPath = "public/" + req.session.passport.user.picture;
+    console.log("Profile pic path: " + profilePicPath);
+    fs.unlink(profilePicPath, (err) => {
+      if(err) {
+        console.log("Error deleting file!");
+        return;
+      }
+      console.log("File deleted successfully!");
+    });
+
     db.SetPicturePath(fileName, req.session.passport.user.username)
     .then(() => {
-      console.log("Path Added to Database!")
+      console.log("Path Added to Database!");
+      req.session.passport.user.picture = fileName;
+      if(user.role === 'Admin'){
+        res.render('adminPanel.ejs', {user: user});
+       }else if(user.role === 'Editor'){
+        res.render('editorPanel.ejs', {user: user});
+       }else if(user.role == null){
+        res.redirect('/login');
+       }
     })
     .catch((err) => console.log(err));
   }
@@ -944,6 +968,8 @@ app.get('/logout', (req, res) => {
 app.get('/panel', checkAuthenticated, (req, res) => {
 
    user = req.session.passport.user;
+
+   console.log(req.session.passport.user.picture);
 
    if(user == null){
     res.redirect('/login');
@@ -1145,6 +1171,7 @@ app.post('/forgot-password', (request, response) => {
 app.get('/password-reset/:token', (request, response) => {
 
     const token = request.params.token;
+    console.log(token);
 
     response.render('password-reset', { token });
 

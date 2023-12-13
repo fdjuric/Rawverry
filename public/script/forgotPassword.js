@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         xhr.onload = () => {
             if (xhr.status === 200) {
-                alert('Email sent successfully');
+                console.log("Success!");
             } else {
                 alert('Error sending email');
             }

@@ -133,6 +133,7 @@ nav div:hover {
 .acc-pic {
     width: 60px;
     aspect-ratio: 1/1;
+    object-fit: cover;
 }
 .dashboard {
     display: flex;

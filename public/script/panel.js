@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log(file.name)
 
-        const allowedTypes = ['.jpeg', '.png', '.webp', '.gif'];
+        const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
 
         const isValidFileType = allowedTypes.some(ext => file.name.endsWith(ext));
 
@@ -230,6 +230,11 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             alert('File is not an image type!');
         }
+
+        setTimeout(() => {
+            location.reload();
+        }, 400);
+
     }
 
     var toolbarOptions = [
