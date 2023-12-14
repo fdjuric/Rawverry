@@ -294,6 +294,46 @@ class dbService {
     }
 
 
+    async getProductData(){
+
+        try {
+
+            const response1 = await new Promise((resolve, reject) => {
+                const query = `SELECT * FROM product_sizes`;
+
+                db.query(query, (err, results) => {
+                    if(err) reject(new Error(err.message));
+
+                    resolve(results);
+                    
+                });
+            });
+
+            const response2 = await new Promise((resolve, reject) => {
+                const query = `SELECT * FROM product_category`;
+
+                db.query(query, (err, results) => {
+                    if(err) reject(new Error(err.message));
+
+                    resolve(results);
+                    
+                });
+            });
+
+            const dataArray = {
+                sizes: response1, 
+                categories: response2
+            };
+
+            return dataArray;
+
+
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to fetch product data');
+        }
+    }
+
     async getProductSizes(){
         try {
             const response = await new Promise((resolve, reject) => {
@@ -304,6 +344,58 @@ class dbService {
 
                     resolve(results);
                 });
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async addProductSizes(size){
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `INSERT INTO product_sizes (size_value) VALUES (?)`;
+
+                db.query(query, [size], (err, results) => {
+                    if(err) reject(new Error(err.message));
+                    resolve(results);
+                })
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async getProductCategory(){
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT * FROM product_category`;
+
+                db.query(query, (err, results) => {
+                    if(err) reject(new Error(err.message));
+
+                    resolve(results);
+                });
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async addProductCategory(category){
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `INSERT INTO product_category (category_name) VALUES (?)`;
+
+                db.query(query, [category], (err, results) => {
+                    if(err) reject(new Error(err.message));
+                    resolve(results);
+                })
             });
 
             return response;

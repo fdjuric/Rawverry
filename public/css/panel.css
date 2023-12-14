@@ -483,6 +483,13 @@ td div {
     flex-wrap: wrap;
 }
 
+.product-size-wrapper, .product-category-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .product-category {
     display: flex;
     gap: 20px;

@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic','/panel/products/getProductSizes', '/panel/products/addProductSizes','/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -986,15 +986,91 @@ app.get('/panel', checkAuthenticated, (req, res) => {
 
 })
 
+//Products section
+
 app.get('/panel/products', checkPermission(['Admin', 'Editor']), (req, res) => {
 
   const db = dbService.getDbServiceInstance();
 
-  const getAccounts = db.getAccountData();
+  const getData = db.getProductData();
 
-  console.log("Have access!")
+  getData
+  .then((data) => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err));
+
+
+})
+
+app.get('/panel/products/getProductSizes', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const productData = db.getProductSizes();
+
+  productData
+  .then((data) => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err));
+
+})
+
+app.post('/panel/products/addProductSizes', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const size = req.body.size;
+
+  console.log(size);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.addProductSizes(size)
+  .then(() => {
+    console.log("Successfully added product size!");
+  })
+  .catch((err) => console.log(err));
 
 }) 
+
+app.get('/panel/products/getProductCategory', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const productData = db.getProductCategory();
+
+  productData
+  .then((data) => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err));
+
+}) 
+
+app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const category = req.body.category;
+
+  console.log(category);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.addProductCategory(category)
+  .then(() => {
+    console.log("Successfully added product category!");
+  })
+  .catch((err) => console.log(err));
+
+}) 
+
+
+app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+
+})
 
 app.get('/panel/orders', checkPermission(['Admin', 'Editor']), (req, res) => {
 
@@ -1031,22 +1107,6 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
 
 
 })
-
-app.get('/panel/getProductSizes', checkPermission(['Admin', 'Editor']), (req, res) => {
-
-  const db = dbService.getDbServiceInstance();
-
-  const productData = db.getProductSizes();
-
-  productData
-  .then((data) => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err));
-
-
-}) 
 
 app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 

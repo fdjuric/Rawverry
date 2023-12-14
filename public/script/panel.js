@@ -242,8 +242,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         [{ 'header': 1 }, ['header: 2']],
         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
-        [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+        [{ 'indent': '-1' }, { 'indent': '+1' }],
         [{ 'direction': 'rtl' }],
         [{ 'header': [1, 2, false] }],
         [{ 'align': [] }],
@@ -597,7 +597,62 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const productsButton = document.querySelector('.products-btn');
 
+    let isAdded = false;
+
     productsButton.addEventListener('click', () => {
+
+        if (!isAdded) {
+            fetch('/panel/products')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.sizes);
+                    console.log(data.categories);
+
+                    console.log("HELLO");
+                    const sizeWrapper = document.querySelectorAll('.product-size-wrapper');
+                    sizeWrapper.forEach((wrapper) => {
+                        data.sizes.forEach((item) => {
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.name = 'size';
+                            input.value = item.size_value;
+                            const label = document.createElement('label');
+                            label.textContent = item.size_value;
+                            label.setAttribute("for", "size");
+                            const div = document.createElement('div');
+
+                            div.appendChild(input);
+                            div.appendChild(label);
+
+                            wrapper.appendChild(div);
+                        })
+                    });
+
+                    const categoryWrapper = document.querySelectorAll('.product-category-wrapper');
+                    categoryWrapper.forEach((wrapper) => {
+                        data.categories.forEach((item) => {
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.name = 'category';
+                            input.value = item.category_name;
+                            const label = document.createElement('label');
+                            label.textContent = item.category_name;
+                            label.setAttribute("for", "category");
+                            const div = document.createElement('div');
+
+                            div.appendChild(input);
+                            div.appendChild(label);
+
+                            wrapper.appendChild(div);
+                        })
+
+                    })
+                })
+
+                isAdded = true;
+        }
+
+
 
 
 
@@ -641,6 +696,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         addSizeWrapper.style.display = "none";
                     }, 400);
                 })
+
+                const submitBtn = document.querySelector('.add-size-wrapper .button');
+
+                submitBtn.addEventListener('click', addSizeHandler)
             })
 
             const addCategory = document.querySelector('.product-creation .add-category');
@@ -660,6 +719,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         addCategoryWrapper.style.display = "none";
                     }, 400);
                 })
+
+                const submitBtn = document.querySelector('.add-category-wrapper .button');
+
+                submitBtn.addEventListener('click', addCategoryHandler);
             })
 
         })
@@ -779,6 +842,131 @@ document.addEventListener('DOMContentLoaded', function () {
 
     })
 
+    function addSizeHandler(event) {
+
+        const sizeValue = document.querySelector('.product-size-value');
+
+        const url = '/panel/products/addProductSizes';
+
+        const data = {
+            size: sizeValue.value.trim()
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                const status = document.querySelector('.status-size');
+                if (response.ok) {
+                    status.textContent = "Successfully added size!";
+                    status.classList.add('in-stock');
+                    status.classList.remove('out-of-stock');
+                } else {
+                    status.textContent = "Error adding  size!";
+                    status.classList.remove('in-stock');
+                    status.classList.add('out-of-stock');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'size';
+        input.value = sizeValue.value;
+        const label = document.createElement('label');
+        label.textContent = sizeValue.value;
+        label.setAttribute("for", "size");
+        const div = document.createElement('div');
+
+        const inputWrapper = document.querySelector('.product-size-wrapper');
+
+        div.appendChild(input);
+        div.appendChild(label);
+
+        inputWrapper.appendChild(div);
+
+        const addSizeWrapper = document.querySelector('.add-size-wrapper');
+
+        setTimeout(() => {
+
+            addSizeWrapper.style.opacity = 0;
+
+            setTimeout(() => {
+                addSizeWrapper.style.display = "none";
+            }, 400);
+
+        }, 800);
+
+    }
+
+    function addCategoryHandler(event) {
+
+        const categoryValue = document.querySelector('.product-category-value');
+
+        const url = '/panel/products/addProductCategory';
+
+        const data = {
+            category: categoryValue.value.trim()
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                const status = document.querySelector('.status-category');
+                if (response.ok) {
+                    status.textContent = "Successfully added category!";
+                    status.classList.add('in-stock');
+                    status.classList.remove('out-of-stock');
+                } else {
+                    status.textContent = "Error adding  category!";
+                    status.classList.remove('in-stock');
+                    status.classList.add('out-of-stock');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'category';
+        input.value = categoryValue.value;
+        const label = document.createElement('label');
+        label.textContent = categoryValue.value;
+        label.setAttribute("for", "category");
+        const div = document.createElement('div');
+
+        const inputWrapper = document.querySelector('.product-category-wrapper');
+
+        div.appendChild(input);
+        div.appendChild(label);
+
+        inputWrapper.appendChild(div);
+
+        const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+
+        setTimeout(() => {
+
+            addCategoryWrapper.style.opacity = 0;
+
+            setTimeout(() => {
+                addCategoryWrapper.style.display = "none";
+            }, 400);
+
+        }, 800);
+
+    }
 
 
 
