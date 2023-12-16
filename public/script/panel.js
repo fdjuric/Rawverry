@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const blogTitle = document.querySelector('.blog-title');
 
 
-    const createButton = document.querySelector('.creation-button');
+    const createButton = document.querySelector('.blog-creation .creation-button');
 
     createButton.addEventListener('click', handleBlogCreation);
 
@@ -428,26 +428,6 @@ document.addEventListener('DOMContentLoaded', function () {
         theme: 'snow'
     });
 
-    var editorDesc = new Quill('#editorDescCreate', {
-        modules: { toolbar: toolbarOptions },
-        theme: 'snow'
-    });
-
-    var editorDetails = new Quill('#editorDetailsCreate', {
-        modules: { toolbar: toolbarOptions },
-        theme: 'snow'
-    });
-
-    var editorDescEdit = new Quill('#editorDescEdit', {
-        modules: { toolbar: toolbarOptions },
-        theme: 'snow'
-    });
-
-    var editorDetailsEdit = new Quill('#editorDetailsEdit', {
-        modules: { toolbar: toolbarOptions },
-        theme: 'snow'
-    });
-
     var Bold = Quill.import('formats/bold');
 
     class CustomBold extends Bold {
@@ -490,6 +470,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let editorContent = editor.root.innerHTML;
         return editorContent;
     }
+
     function getEditedText() {
         let editorContent = editor2.root.innerHTML;
         return editorContent;
@@ -520,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const author = document.querySelector('.welcome-name');
         const authorName = author.textContent.trim();
 
-        console.log(picture.name);
+       // console.log(picture.name);
 
         const allowedTypes = ['.jpeg', '.png', '.webp', '.gif'];
 
@@ -595,6 +576,28 @@ document.addEventListener('DOMContentLoaded', function () {
     //Products section
 
 
+    var editorDesc = new Quill('#editorDescCreate', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+    var editorDetails = new Quill('#editorDetailsCreate', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+    var editorDescEdit = new Quill('#editorDescEdit', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+    var editorDetailsEdit = new Quill('#editorDetailsEdit', {
+        modules: { toolbar: toolbarOptions },
+        theme: 'snow'
+    });
+
+
+
     const productsButton = document.querySelector('.products-btn');
 
     let isAdded = false;
@@ -649,12 +652,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     })
                 })
 
-                isAdded = true;
+            isAdded = true;
         }
-
-
-
-
 
         const addProductButton = document.querySelector('.add-a-product');
 
@@ -724,6 +723,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 submitBtn.addEventListener('click', addCategoryHandler);
             })
+
+
+            const createProductBtn = document.querySelector('.product-creation .creation-button');
+
+            createProductBtn.addEventListener('click', handleProductCreation);
 
         })
 
@@ -841,6 +845,122 @@ document.addEventListener('DOMContentLoaded', function () {
         })
 
     })
+
+
+    function getText(textEditor) {
+        let editorContent = textEditor.root.innerHTML;
+        return editorContent;
+    }
+
+    function handleProductCreation(event) {
+
+        const productPicture = document.getElementById("productPicture");
+        const picture = productPicture.files;
+
+        const pictureArray = [];
+        for (let i = 0; i < picture.length; i++) {
+            const file = picture[i];
+            pictureArray.push({ name: file.name });
+            // Optionally, you can access other file properties like file.type, file.size, etc.
+        }
+
+        const productFormTitle = document.querySelector('.product-creation .product-form-title');
+        const title = productFormTitle.value;
+
+        console.log(title);
+
+
+        const productFormPrice = document.querySelector('.product-creation .product-form-price');
+        const price = productFormPrice.value;
+
+        console.log(price);
+
+        const productSize = document.querySelectorAll('.product-creation .product-size-wrapper div input');
+
+        let sizeArray = [];
+
+        productSize.forEach((item) => {
+
+            if (item.checked) {
+                sizeArray.push(item.value);
+            }
+
+        })
+
+        console.log(sizeArray);
+
+        const productCategory = document.querySelectorAll('.product-creation .product-category-wrapper div input');
+
+        let categoryArray = [];
+
+        productCategory.forEach((item) => {
+
+            if (item.checked) {
+                categoryArray.push(item.value);
+            }
+
+        })
+
+        console.log(categoryArray);
+
+        const description = getText(editorDesc);
+        const details = getText(editorDetails);
+
+        console.log(description);
+        console.log(details);
+
+
+        // picture.forEach((item) => {
+
+        console.log(picture);
+
+        // })
+
+        const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
+
+        const areAllValidFiles = pictureArray.every(item => {
+            return allowedTypes.some(ext => item.name.toLowerCase().endsWith(ext));
+        });
+
+        if (areAllValidFiles) {
+
+            const formData = new FormData(); // Create a FormData object
+
+            formData.append('title', title);
+            formData.append('price', price);
+            for (let i = 0; i < sizeArray.length; i++) {
+                const size = sizeArray[i];
+                formData.append('size', size); // Append each file to the FormData object
+            }
+            for (let i = 0; i < categoryArray.length; i++) {
+                const category = categoryArray[i];
+                formData.append('category', category); // Append each file to the FormData object
+            }
+            formData.append('description', description);
+            formData.append('details', details);
+            for (let i = 0; i < picture.length; i++) {
+                const file = picture[i];
+                formData.append('file', file); // Append each file to the FormData object
+            }
+
+            fetch('/panel/products/addProduct', {
+                method: 'POST',
+                body: formData // Set the body of the request as FormData
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Product created successfully!');
+                    } else {
+                        alert('Error creating product!');
+                    }
+                })
+
+        } else {
+            alert('The file is not a picture!');
+        }
+
+
+    }
 
     function addSizeHandler(event) {
 

@@ -1,12 +1,12 @@
 if (process.env.NODE_ENV !== 'production') {
-    require("dotenv").config();
+  require("dotenv").config();
 }
 
 const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic','/panel/products/getProductSizes', '/panel/products/addProductSizes','/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -21,7 +21,7 @@ const session = require('express-session');
 
 const multer = require('multer');
 
-const {checkPermission} = require('./middlewares.js')
+const { checkPermission } = require('./middlewares.js')
 
 var user;
 
@@ -36,15 +36,15 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(flash());
 app.use(session({
-    //store: new redisStore({ client: redisClient }),
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        secure: false, //set true on production so it goes trough https
-        httpOnly: true, //if true prevents client side JS from reading the cookie
-        maxAge: 180 * 24 * 60 * 60 * 1000
-    }
+  //store: new redisStore({ client: redisClient }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: false, //set true on production so it goes trough https
+    httpOnly: true, //if true prevents client side JS from reading the cookie
+    maxAge: 180 * 24 * 60 * 60 * 1000
+  }
 }));
 
 app.use(passport.initialize())
@@ -54,35 +54,35 @@ const initializePassport = require('./passport-config')
 initializePassport(passport, getUserByUsername)
 
 app.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    next();
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
 })
 
 app.use((req, res, next) => {
-    const urlPath = req.path;
+  const urlPath = req.path;
 
-    if (urlPath === '/' || urlPath === '') {
-        // For the root path, proceed to the next middleware/route handler
-        return next();
-    }else if (urlPath.includes('/index')) {
-        res.redirect('/');
-    } else if (validHTMLPaths.includes(urlPath)) {
-        res.sendFile(`${__dirname}/public${urlPath}.html`);
-    } else if (validFetchPaths.includes(urlPath)) {
-        next();
-    } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/')) {
-        const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
-        console.log(newPath);
+  if (urlPath === '/' || urlPath === '') {
+    // For the root path, proceed to the next middleware/route handler
+    return next();
+  } else if (urlPath.includes('/index')) {
+    res.redirect('/');
+  } else if (validHTMLPaths.includes(urlPath)) {
+    res.sendFile(`${__dirname}/public${urlPath}.html`);
+  } else if (validFetchPaths.includes(urlPath)) {
+    next();
+  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/')) {
+    const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
+    console.log(newPath);
 
-        if (newPath) {
-            // Redirect to the URL without the common prefixes and with the valid HTML path
-            res.redirect(newPath);
-        } else {
-            next();
-        }
+    if (newPath) {
+      // Redirect to the URL without the common prefixes and with the valid HTML path
+      res.redirect(newPath);
     } else {
-        res.render('404notfound');
+      next();
     }
+  } else {
+    res.render('404notfound');
+  }
 
 
 });
@@ -98,11 +98,11 @@ app.use((req, res, next) => {
 //Setting up credentials for the email
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_NAME,
-        pass: process.env.EMAIL_PASS,
-    },
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_NAME,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 const profilePicDir = 'public/images/profile';
@@ -113,7 +113,7 @@ const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'ima
 const fileFilter = (req, file, cb) => {
   // Extract the file extension from the originalname
   const fileExtension = file.originalname.split('.').pop().toLowerCase();
-  
+
   // Check if the uploaded file's MIME type or extension is in the allowedTypes array
   if (allowedTypes.includes(file.mimetype) || allowedTypes.includes(`image/${fileExtension}`)) {
     cb(null, true); // Accept the file
@@ -143,137 +143,155 @@ const blogPicStorage = multer.diskStorage({
   }
 });
 
+// Define storage location and filename for product pictures
+const productPicStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      const productTitle = req.body.title; // Assuming 'title' is the product title field in the form
+      const productFolderPath = path.join(__dirname, 'public', 'images', 'products', productTitle);
+
+      // Create the directory if it doesn't exist
+      fs.mkdirSync(productFolderPath, { recursive: true });
+
+      cb(null, productFolderPath); // Save files to the 'public/images/products/{productTitle}' folder
+  },
+  filename: function (req, file, cb) {
+      cb(null, file.originalname); // Save file with its original name
+  }
+});
+
+
 
 const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
-const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter});
+const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
+const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter});
 
 
 //Inserting the email to the database
 
 app.post('/insertNewsletter', (request, response) => {
-    const db = dbService.getDbServiceInstance();
-    var email = request.body.emailData;
-    console.log("Email from server" + email);
+  const db = dbService.getDbServiceInstance();
+  var email = request.body.emailData;
+  console.log("Email from server" + email);
 
-    if (email) {
+  if (email) {
 
-        //create random token then send the link to the email
-        const tokenLength = 128;
-        const tokenValue = generateRandomToken(tokenLength);
-        //on opening the link go into db.insertNewsletter with the email
-        db.insertNewsletter(email, tokenValue)
-            .then((emailExists) => {
-                console.log(emailExists);
-                if (emailExists) {
-                    console.log('Email already exists!');
-                    var newsletterStatus = request.body.newsletterStatusData;
-                    console.log(newsletterStatus);
-                    newsletterStatus = "Email already exists!";
-                    console.log("New: " + newsletterStatus);
-                    response.json({ success: false, message: newsletterStatus });
-                } else {
-                    const mailOptions = {
-                        from: process.env.EMAIL_NAME,
-                        to: email,
-                        subject: 'Confirm Your Subscription',
-                        text: `Click on the following link to confirm your subscription: http://localhost:3001/confirm/${tokenValue},
+    //create random token then send the link to the email
+    const tokenLength = 128;
+    const tokenValue = generateRandomToken(tokenLength);
+    //on opening the link go into db.insertNewsletter with the email
+    db.insertNewsletter(email, tokenValue)
+      .then((emailExists) => {
+        console.log(emailExists);
+        if (emailExists) {
+          console.log('Email already exists!');
+          var newsletterStatus = request.body.newsletterStatusData;
+          console.log(newsletterStatus);
+          newsletterStatus = "Email already exists!";
+          console.log("New: " + newsletterStatus);
+          response.json({ success: false, message: newsletterStatus });
+        } else {
+          const mailOptions = {
+            from: process.env.EMAIL_NAME,
+            to: email,
+            subject: 'Confirm Your Subscription',
+            text: `Click on the following link to confirm your subscription: http://localhost:3001/confirm/${tokenValue},
                     else if you want to unsubscribe click on the following link: http://localhost:3001/unsubscribe/${tokenValue}`,
-                    };
+          };
 
-                    transporter.sendMail(mailOptions, (error, info) => {
-                        if (error) {
-                            console.log(error);
-                            res.status(500).send('Failed to send confirmation email.');
-                        } else {
-                            console.log('Email sent: ' + info.response);
-                            res.send('Check your email for a confirmation link.');
-                        }
-                    });
-                    response.json({ success: true, message: newsletterStatus });
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-                response.json({ success: false });
-            });
-    } else {
-        response.status(400).json({ success: false, message: "Invalid request" });
-    }
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log(error);
+              res.status(500).send('Failed to send confirmation email.');
+            } else {
+              console.log('Email sent: ' + info.response);
+              res.send('Check your email for a confirmation link.');
+            }
+          });
+          response.json({ success: true, message: newsletterStatus });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        response.json({ success: false });
+      });
+  } else {
+    response.status(400).json({ success: false, message: "Invalid request" });
+  }
 });
 
 //Confirming the email for the newsletter
 
 app.get('/confirm/:token', (request, response) => {
 
-    const db = dbService.getDbServiceInstance();
-    const token = request.params.token;
+  const db = dbService.getDbServiceInstance();
+  const token = request.params.token;
 
-    if (token) {
-        db.confirmNewsletter(token)
-            .then(() => {
-                response.render('confirm');
-                console.log('Subscribed successfully!')
-            })
-            .catch((error) => {
-                console.error(error);
-                response.json({ success: false });
-            })
-    }
+  if (token) {
+    db.confirmNewsletter(token)
+      .then(() => {
+        response.render('confirm');
+        console.log('Subscribed successfully!')
+      })
+      .catch((error) => {
+        console.error(error);
+        response.json({ success: false });
+      })
+  }
 })
 
 
 //Unsubscribing from the newsletter
 app.get('/unsubscribe/:token', (request, response) => {
-    const db = dbService.getDbServiceInstance();
-    const token = request.params.token;
-    console.log(token);
-    if (token) {
-        db.unsubscribeNewsletter(token)
-            .then(() => {
-                response.render('unsubscribe');
-            })
-            .catch((error) => {
-                console.error(error);
-                response.json({ success: false });
-            })
-    }
+  const db = dbService.getDbServiceInstance();
+  const token = request.params.token;
+  console.log(token);
+  if (token) {
+    db.unsubscribeNewsletter(token)
+      .then(() => {
+        response.render('unsubscribe');
+      })
+      .catch((error) => {
+        console.error(error);
+        response.json({ success: false });
+      })
+  }
 })
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/sendEmail', (request, response) => {
-    const { name, email, message } = request.body;
+  const { name, email, message } = request.body;
 
-    const mailOptions = {
-        from: `${email}`,
-        to: `${process.env.Email_NAME}`,
-        subject: `New message from ${name}`,
-        text: `From: ${name} (${email})\n\nMessage: ${message}`
-    };
+  const mailOptions = {
+    from: `${email}`,
+    to: `${process.env.Email_NAME}`,
+    subject: `New message from ${name}`,
+    text: `From: ${name} (${email})\n\nMessage: ${message}`
+  };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log(error);
-            response.status(500).send("Error sending email");
-        } else {
-            console.log(info);
-            response.status(200).send("Email sent successfully");
-        }
-    });
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+      response.status(500).send("Error sending email");
+    } else {
+      console.log(info);
+      response.status(200).send("Email sent successfully");
+    }
+  });
 
 });
 
 
 app.get('/sendTest', (request, response) => {
-   // const { name, email, message } = request.body;
+  // const { name, email, message } = request.body;
 
-    const mailOptions = {
-        from: `${process.env.Email_NAME}`,
-        to: `${process.env.Email_NAME}`,
-        subject: `New message from Chupi`,
-        //text: `From: ${name} (${email})\n\nMessage: ${message}`
-        html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  const mailOptions = {
+    from: `${process.env.Email_NAME}`,
+    to: `${process.env.Email_NAME}`,
+    subject: `New message from Chupi`,
+    //text: `From: ${name} (${email})\n\nMessage: ${message}`
+    html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="und">
          <head>
           <meta charset="UTF-8">
@@ -854,26 +872,26 @@ app.get('/sendTest', (request, response) => {
           </div>
          </body>
         </html>`
-    };
+  };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log(error);
-            response.status(500).send("Error sending email");
-        } else {
-            console.log(info);
-            response.status(200).send("Email sent successfully");
-        }
-    });
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+      response.status(500).send("Error sending email");
+    } else {
+      console.log(info);
+      response.status(200).send("Email sent successfully");
+    }
+  });
 
 });
 
 // Handle Profile picture upload POST request
 app.post('/change-profile-pic', upload.single('file'), (req, res) => {
-  
+
   const db = dbService.getDbServiceInstance();
 
-  if(req.file){
+  if (req.file) {
     const fileName = profilePicDir.substring('public/'.length) + "/" + req.file.originalname;
 
     console.log("File name:" + fileName);
@@ -883,7 +901,7 @@ app.post('/change-profile-pic', upload.single('file'), (req, res) => {
     const profilePicPath = "public/" + req.session.passport.user.picture;
     console.log("Profile pic path: " + profilePicPath);
     fs.unlink(profilePicPath, (err) => {
-      if(err) {
+      if (err) {
         console.log("Error deleting file!");
         return;
       }
@@ -891,66 +909,66 @@ app.post('/change-profile-pic', upload.single('file'), (req, res) => {
     });
 
     db.SetPicturePath(fileName, req.session.passport.user.username)
-    .then(() => {
-      console.log("Path Added to Database!");
-      req.session.passport.user.picture = fileName;
-      if(user.role === 'Admin'){
-        res.render('adminPanel.ejs', {user: user});
-       }else if(user.role === 'Editor'){
-        res.render('editorPanel.ejs', {user: user});
-       }else if(user.role == null){
-        res.redirect('/login');
-       }
-    })
-    .catch((err) => console.log(err));
+      .then(() => {
+        console.log("Path Added to Database!");
+        req.session.passport.user.picture = fileName;
+        if (user.role === 'Admin') {
+          res.render('adminPanel.ejs', { user: user });
+        } else if (user.role === 'Editor') {
+          res.render('editorPanel.ejs', { user: user });
+        } else if (user.role == null) {
+          res.redirect('/login');
+        }
+      })
+      .catch((err) => console.log(err));
   }
 });
 
 
 app.post('/register', async (request, response) => {
 
-    try {
-        const hashedPassword = await bcrypt.hash(request.body.password, 10);
-        const db = dbService.getDbServiceInstance();
-        if (request.body.username && hashedPassword && request.body.email != null) {
+  try {
+    const hashedPassword = await bcrypt.hash(request.body.password, 10);
+    const db = dbService.getDbServiceInstance();
+    if (request.body.username && hashedPassword && request.body.email != null) {
 
-            let isEmail = validateEmail(request.body.email);
+      let isEmail = validateEmail(request.body.email);
 
-            if (isEmail) {
-                const tokenLength = 128;
-                const tokenValue = generateRandomToken(tokenLength);
+      if (isEmail) {
+        const tokenLength = 128;
+        const tokenValue = generateRandomToken(tokenLength);
 
-                db.registerUser(request.body.username, hashedPassword, request.body.email, tokenValue)
-                    .then(() => {
-                        response.redirect('/login');
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        response.json({ success: false });
-                    })
-            } else {
-                console.log("Wrong email!");
-            }
-        } else {
-            response.status(400).json({ success: false, message: "Invalid request" });
-        }
-    } catch {
-        response.redirect('/register')
+        db.registerUser(request.body.username, hashedPassword, request.body.email, tokenValue)
+          .then(() => {
+            response.redirect('/login');
+          })
+          .catch((error) => {
+            console.log(error);
+            response.json({ success: false });
+          })
+      } else {
+        console.log("Wrong email!");
+      }
+    } else {
+      response.status(400).json({ success: false, message: "Invalid request" });
     }
+  } catch {
+    response.redirect('/register')
+  }
 })
 
 app.get('/register', (req, res) => {
-    res.render('register.ejs')
+  res.render('register.ejs')
 })
 
 app.get('/login', (req, res) => {
-    res.render('login.ejs')
+  res.render('login.ejs')
 })
 
 app.post('/login', passport.authenticate('local', {
-    successRedirect: '/panel',
-    failureRedirect: '/login',
-    failureFlash: true
+  successRedirect: '/panel',
+  failureRedirect: '/login',
+  failureFlash: true
 }))
 
 app.get('/logout', (req, res) => {
@@ -967,22 +985,22 @@ app.get('/logout', (req, res) => {
 
 app.get('/panel', checkAuthenticated, (req, res) => {
 
-   user = req.session.passport.user;
+  user = req.session.passport.user;
 
-   console.log(req.session.passport.user.picture);
+  console.log(req.session.passport.user.picture);
 
-   if(user == null){
+  if (user == null) {
     res.redirect('/login');
-   }
+  }
 
 
-   if(user.role === 'Admin'){
-    res.render('adminPanel.ejs', {user: user});
-   }else if(user.role === 'Editor'){
-    res.render('editorPanel.ejs', {user: user});
-   }else if(user.role == null){
+  if (user.role === 'Admin') {
+    res.render('adminPanel.ejs', { user: user });
+  } else if (user.role === 'Editor') {
+    res.render('editorPanel.ejs', { user: user });
+  } else if (user.role == null) {
     res.redirect('/login');
-   }
+  }
 
 })
 
@@ -995,11 +1013,11 @@ app.get('/panel/products', checkPermission(['Admin', 'Editor']), (req, res) => {
   const getData = db.getProductData();
 
   getData
-  .then((data) => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err));
+    .then((data) => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err));
 
 
 })
@@ -1011,11 +1029,11 @@ app.get('/panel/products/getProductSizes', checkPermission(['Admin', 'Editor']),
   const productData = db.getProductSizes();
 
   productData
-  .then((data) => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err));
+    .then((data) => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err));
 
 })
 
@@ -1028,12 +1046,12 @@ app.post('/panel/products/addProductSizes', checkPermission(['Admin', 'Editor'])
   const db = dbService.getDbServiceInstance();
 
   db.addProductSizes(size)
-  .then(() => {
-    console.log("Successfully added product size!");
-  })
-  .catch((err) => console.log(err));
+    .then(() => {
+      console.log("Successfully added product size!");
+    })
+    .catch((err) => console.log(err));
 
-}) 
+})
 
 app.get('/panel/products/getProductCategory', checkPermission(['Admin', 'Editor']), (req, res) => {
 
@@ -1042,13 +1060,13 @@ app.get('/panel/products/getProductCategory', checkPermission(['Admin', 'Editor'
   const productData = db.getProductCategory();
 
   productData
-  .then((data) => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err));
+    .then((data) => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err));
 
-}) 
+})
 
 app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor']), (req, res) => {
 
@@ -1059,16 +1077,35 @@ app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor
   const db = dbService.getDbServiceInstance();
 
   db.addProductCategory(category)
-  .then(() => {
-    console.log("Successfully added product category!");
+    .then(() => {
+      console.log("Successfully added product category!");
+    })
+    .catch((err) => console.log(err));
+
+})
+
+
+app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
+
+  const { title, price, size, category, description, details } = req.body;
+
+  const files = req.files;
+  console.log(title, price, size, category, description, details);
+  console.log(files);
+
+  const productPicDir = "public/images/products";
+
+  const fileNames = files.map(item => productPicDir.substring('public/'.length) + "/" + title + "/" + item.originalname); 
+
+  console.log(fileNames);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.addProduct(title, price, description, details, size, category, fileNames)
+  .then((data) => {
+    console.log("SUCCESS!");
   })
-  .catch((err) => console.log(err));
-
-}) 
-
-
-app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), (req, res) => {
-
+  .catch(err => console.log(err));
 
 })
 
@@ -1080,7 +1117,7 @@ app.get('/panel/orders', checkPermission(['Admin', 'Editor']), (req, res) => {
 
   console.log("Have access!")
 
-}) 
+})
 
 app.get('/panel/transactions', checkPermission(['Admin']), (req, res) => {
 
@@ -1090,7 +1127,7 @@ app.get('/panel/transactions', checkPermission(['Admin']), (req, res) => {
 
   console.log("Have access!")
 
-}) 
+})
 
 app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
 
@@ -1099,58 +1136,58 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
   const blogData = db.getBlogData();
 
   blogData
-  .then((data) => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err));
+    .then((data) => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err));
 
 
 })
 
 app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 
-const title = req.body.title;
-const content = req.body.content;
-const author = req.body.author;
-const picture = req.file;
+  const title = req.body.title;
+  const content = req.body.content;
+  const author = req.body.author;
+  const picture = req.file;
 
-console.log(picture);
+  console.log(picture);
   console.log(title);
   console.log(content);
   console.log(author);
 
-if(picture){
-  const fileName = blogPicDir.substring('public/'.length) + "/" + req.file.originalname;
-  const db = dbService.getDbServiceInstance();
+  if (picture) {
+    const fileName = blogPicDir.substring('public/'.length) + "/" + req.file.originalname;
+    const db = dbService.getDbServiceInstance();
 
-db.createBlog(title, content, author, fileName, req.session.passport.user.picture)
-.then(() => {
-  console.log("Successfully created blog!");
-})
-.catch((err) => console.log(err));
-}
-  
+    db.createBlog(title, content, author, fileName, req.session.passport.user.picture)
+      .then(() => {
+        console.log("Successfully created blog!");
+      })
+      .catch((err) => console.log(err));
+  }
+
 })
 
 app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), (req, res) => {
 
   const { id, title, content, author } = req.body;
 
-    // Process the received data (perform database updates, etc.)
-    console.log(`Received data: id=${id}, title=${title}, content=${content}, author=${author}`);
-  
+  // Process the received data (perform database updates, etc.)
+  console.log(`Received data: id=${id}, title=${title}, content=${content}, author=${author}`);
+
   const db = dbService.getDbServiceInstance();
-  
+
   db.editBlog(id, title, content, author)
-  .then(() => {
-    console.log("Successfully Updated blog!");
-  })
-  .catch((err) => console.log(err));
-  
-  
-    
-  })
+    .then(() => {
+      console.log("Successfully Updated blog!");
+    })
+    .catch((err) => console.log(err));
+
+
+
+})
 
 
 app.get('/panel/newsletter', checkPermission(['Admin', 'Editor']), (req, res) => {
@@ -1161,7 +1198,7 @@ app.get('/panel/newsletter', checkPermission(['Admin', 'Editor']), (req, res) =>
 
   console.log("Have access!")
 
-}) 
+})
 
 app.get('/panel/manage-accounts', checkPermission('Admin'), (req, res) => {
 
@@ -1170,129 +1207,129 @@ app.get('/panel/manage-accounts', checkPermission('Admin'), (req, res) => {
   const getAccounts = db.getAccountData();
 
   getAccounts
-  .then(data => {
+    .then(data => {
 
-    console.log(data);
-  })
+      console.log(data);
+    })
 
-}) 
+})
 
 
 
 app.get('/forgot-password', (req, res) => {
-    res.render('forgot-password.ejs');
+  res.render('forgot-password.ejs');
 })
 
 app.get('/products', (req, res) => {
-    res.render('products.ejs');
+  res.render('products.ejs');
 })
 
 
 app.post('/forgot-password', (request, response) => {
-    const { email } = request.body;
+  const { email } = request.body;
 
-    const db = dbService.getDbServiceInstance();
+  const db = dbService.getDbServiceInstance();
 
-    const checkEmail = db.getAccountEmail(email);
-    checkEmail
-        .then(data => {
+  const checkEmail = db.getAccountEmail(email);
+  checkEmail
+    .then(data => {
 
-            const tokenLength = 128;
-            const tokenValue = generateRandomToken(tokenLength);
+      const tokenLength = 128;
+      const tokenValue = generateRandomToken(tokenLength);
 
-            db.changeAccountToken(tokenValue, data.user_email)
-                .then(() => {
+      db.changeAccountToken(tokenValue, data.user_email)
+        .then(() => {
 
-                    const mailOptions = {
-                        from: process.env.EMAIL_NAME,
-                        to: data.user_email,
-                        subject: 'Reset Your Password',
-                        text: `Click on the following link to reset your password: http://25.48.211.38:3001/password-reset/${tokenValue},
+          const mailOptions = {
+            from: process.env.EMAIL_NAME,
+            to: data.user_email,
+            subject: 'Reset Your Password',
+            text: `Click on the following link to reset your password: http://25.48.211.38:3001/password-reset/${tokenValue},
                     NOTE: If you did not request a password reset ignore this email.`,
-                    };
+          };
 
-                    transporter.sendMail(mailOptions, (error, info) => {
-                        if (error) {
-                            console.log(error);
-                            response.status(500).send("Error sending email");
-                        } else {
-                            console.log(info);
-                            response.status(200).send("Email sent successfully");
-                        }
-                    });
-
-                })
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log(error);
+              response.status(500).send("Error sending email");
+            } else {
+              console.log(info);
+              response.status(200).send("Email sent successfully");
+            }
+          });
 
         })
-        .catch(err => console.log(err));
+
+    })
+    .catch(err => console.log(err));
 
 });
 
 app.get('/password-reset/:token', (request, response) => {
 
-    const token = request.params.token;
-    console.log(token);
+  const token = request.params.token;
+  console.log(token);
 
-    response.render('password-reset', { token });
+  response.render('password-reset', { token });
 
 })
 
 app.post('/password-reset/:token', async (request, response) => {
 
-    // try {
+  // try {
 
-    if (request.body.password != null) {
-        const hashedPassword = await bcrypt.hash(request.body.password, 10);
+  if (request.body.password != null) {
+    const hashedPassword = await bcrypt.hash(request.body.password, 10);
 
-        const db = dbService.getDbServiceInstance();
-        if (hashedPassword && request.params.token != null) {
+    const db = dbService.getDbServiceInstance();
+    if (hashedPassword && request.params.token != null) {
 
-            db.changePassword(request.params.token, hashedPassword)
-                .then(() => {
-                    console.log("Password changed successfully!");
-                })
-                .catch((error) => {
-                    console.log(error);
-                    response.json({ success: false });
-                })
-        } else {
-            response.status(400).json({ success: false, message: "Invalid request" });
-        }
+      db.changePassword(request.params.token, hashedPassword)
+        .then(() => {
+          console.log("Password changed successfully!");
+        })
+        .catch((error) => {
+          console.log(error);
+          response.json({ success: false });
+        })
+    } else {
+      response.status(400).json({ success: false, message: "Invalid request" });
     }
-    //  } catch(error) {
-    //     console.log(error);
+  }
+  //  } catch(error) {
+  //     console.log(error);
 
-    // }
+  // }
 
 });
 
 
 
 function checkAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
+  if (req.isAuthenticated()) {
 
-       //req.session.user = req.user;
+    //req.session.user = req.user;
 
-     // console.log("HIIIII");
-     /* console.log (req.user);
-      console.log(req.session.user);
-      console.log(req.user.id);
-      console.log("This is username: " + req.session.username);
-      console.log("This is id: " + req.session.user.id); */
+    // console.log("HIIIII");
+    /* console.log (req.user);
+     console.log(req.session.user);
+     console.log(req.user.id);
+     console.log("This is username: " + req.session.username);
+     console.log("This is id: " + req.session.user.id); */
 
-      //console.log(user.user_name);
+    //console.log(user.user_name);
 
-        return next();
-    } else
-        res.redirect('/login');
+    return next();
+  } else
+    res.redirect('/login');
 
 }
 
 function getUserByUsername(username) {
-    const db = dbService.getDbServiceInstance()
-    console.log(db.getUser(username))
+  const db = dbService.getDbServiceInstance()
+  console.log(db.getUser(username))
 
-    return db.getUser(username)
+  return db.getUser(username)
 }
 
 /*function getUserById(username){
@@ -1307,27 +1344,27 @@ function getUserByUsername(username) {
 //Opens the server on the port 3001
 
 app.listen('3001', () => {
-    console.log('Server started on port 3001');
+  console.log('Server started on port 3001');
 });
 
 //Generates an unique token
 
 function generateRandomToken(length) {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let token = '';
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let token = '';
 
-    for (let i = 0; i < length; i++) {
-        const randomIndex = crypto.randomInt(charset.length);
-        token += charset.charAt(randomIndex);
-    }
+  for (let i = 0; i < length; i++) {
+    const randomIndex = crypto.randomInt(charset.length);
+    token += charset.charAt(randomIndex);
+  }
 
-    return token;
+  return token;
 }
 
 
 //Checking if the email format is correct
 function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    return emailRegex.test(email);
+  return emailRegex.test(email);
 }
