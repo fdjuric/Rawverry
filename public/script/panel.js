@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Create and append the SVG icons
             const settingsEditIcons = createSettingsEditIcons(); // Function to create SVG icons
+
             const settingsCell = document.createElement('td');
             settingsCell.appendChild(settingsEditIcons);
             row.appendChild(settingsCell);
@@ -410,7 +411,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const cell = document.createElement('td');
 
         const paragraph = document.createElement('p');
-        paragraph.textContent = value;
+        if (value == null) {
+            paragraph.textContent = 0;
+        } else {
+            paragraph.textContent = value;
+        }
         paragraph.classList.add(className);
 
         cell.appendChild(paragraph);
@@ -501,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const author = document.querySelector('.welcome-name');
         const authorName = author.textContent.trim();
 
-       // console.log(picture.name);
+        // console.log(picture.name);
 
         const allowedTypes = ['.jpeg', '.png', '.webp', '.gif'];
 
@@ -605,6 +610,58 @@ document.addEventListener('DOMContentLoaded', function () {
     productsButton.addEventListener('click', () => {
 
         if (!isAdded) {
+            fetch('/panel/products/getProducts')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.createElement('tbody');
+                    const table = document.querySelector('.products .products-table table');
+                    let temp;
+                    data.forEach(product => {
+                        const row = document.createElement('tr');
+
+
+                        if (temp != product.product_id) {
+                            // Create and populate table data (td) for each field
+                            const idCell = createTableCell(product.product_id, 'product-id');
+                            const titleCellWrapper = document.createElement('td');
+                            titleCellWrapper.classList.add("product-name-gap");
+                            const titlePicCell = document.createElement('td');
+                            const titlePic = document.createElement('img');
+                            titlePic.src = product.image_url;
+                            titlePic.style.width = "50px";
+                            titlePic.style.height = "50px";
+                            const titleCell = createTableCell(product.product_name, 'product-name');
+                            const priceCell = createTableCell(product.product_price, 'product-price');
+                            const amountCell = createTableCell(product.product_amount_bought_total, 'product-amount');
+                            const reducedCell = createTableCell(product.product_price_reduced, 'product-reduced');
+                            const inStockCell = createTableCell(product.in_stock, 'product-in-stock');
+
+                            // Append table data to the table row
+                            titlePicCell.appendChild(titlePic);
+                            titleCellWrapper.appendChild(titlePicCell);
+                            titleCellWrapper.appendChild(titleCell);
+                            row.appendChild(idCell);
+                            row.appendChild(titleCellWrapper);
+                            row.appendChild(priceCell);
+                            row.appendChild(amountCell);
+                            row.appendChild(reducedCell);
+                            row.appendChild(inStockCell);
+
+                            // Create and append the SVG icons
+                            const settingsEditIcons = createSettingsEditIcons(); // Function to create SVG icons
+                            const settingsCell = document.createElement('td');
+                            settingsCell.appendChild(settingsEditIcons);
+                            row.appendChild(settingsCell);
+
+                            // Append the row to the table body
+                            tbody.appendChild(row);
+
+                            temp = product.product_id;
+                        } else return;
+                    });
+
+                    table.appendChild(tbody);
+                })
             fetch('/panel/products')
                 .then(response => response.json())
                 .then(data => {
@@ -649,6 +706,69 @@ document.addEventListener('DOMContentLoaded', function () {
                             wrapper.appendChild(div);
                         })
 
+                    })
+
+                    const removeProductButton = document.querySelectorAll('.products .products-table .product-settings svg:nth-child(2)');
+                    
+                    removeProductButton.forEach((item, index) => {
+
+                        item.addEventListener('click', () => {
+            
+                            const productRemove = document.querySelector('.remove-product-wrapper');
+            
+                            productRemove.style.display = "block";
+                            productRemove.style.opacity = 1;
+            
+                            const removeButton = document.querySelector('.remove-product-wrapper .remove-button');
+            
+                            const cancelButton = document.querySelector('.remove-product-wrapper .button');
+            
+                            const productId = document.querySelectorAll('.products .products-table table tbody .product-id');
+            
+                            const removeProductId = productId[index];
+            
+                            removeButton.addEventListener('click', () => {
+            
+                                fetch(`/panel/products/removeProduct/${removeProductId}`)
+                                    .then(() => {
+                                        windows.reload();
+                                    })
+                                    .catch(() => {
+                                        console.log("Failed!");
+                                    })
+            
+                            })
+            
+                            cancelButton.addEventListener('click', () => {
+                                productRemove.style.opacity = 0;
+            
+                                setTimeout(() => {
+                                    productRemove.style.display = "none";
+                                }, 400);
+                            })
+            
+            
+                            const addCategory = document.querySelector('.product-edit .add-category');
+            
+                            const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+            
+                            addCategory.addEventListener('click', () => {
+                                addCategoryWrapper.style.display = "flex";
+                                addCategoryWrapper.style.opacity = 1;
+            
+                                const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
+            
+                                closeBtn.addEventListener('click', () => {
+                                    addCategoryWrapper.style.opacity = 0;
+            
+                                    setTimeout(() => {
+                                        addCategoryWrapper.style.display = "none";
+                                    }, 400);
+                                })
+                            })
+            
+                        })
+            
                     })
                 })
 
@@ -791,6 +911,8 @@ document.addEventListener('DOMContentLoaded', function () {
             })
 
         })
+
+    
 
 
         const imgCheckBox = document.querySelectorAll('.img-box div input');

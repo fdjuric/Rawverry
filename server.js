@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -70,7 +70,7 @@ app.use((req, res, next) => {
     res.sendFile(`${__dirname}/public${urlPath}.html`);
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/')) {
+  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/' || urlPath.startsWith('/panel/products/removeProduct/'))) {
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
 
@@ -165,7 +165,8 @@ const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter});
 
-
+const db = dbService.getDbServiceInstance();
+db.createBackup();
 //Inserting the email to the database
 
 app.post('/insertNewsletter', (request, response) => {
@@ -1085,6 +1086,22 @@ app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor
 })
 
 
+app.get('/panel/products/getProducts', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const productData = db.getProducts();
+
+  productData
+    .then((data) => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err));
+
+})
+
+
 app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
   const { title, price, size, category, description, details } = req.body;
@@ -1092,6 +1109,8 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
   const files = req.files;
   console.log(title, price, size, category, description, details);
   console.log(files);
+
+  console.log(Array.isArray(category));
 
   const productPicDir = "public/images/products";
 
@@ -1107,6 +1126,21 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
   })
   .catch(err => console.log(err));
 
+})
+
+app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), (req,res) => {
+
+  const productId = req.params.id;
+
+  console.log(productId + " Product id");
+
+  const db = dbService.getDbServiceInstance();
+
+  db.removeProduct(productId)
+  .then(() => {
+    console.log("Successfully deleted product: " + productId);
+  })
+  .catch(err => console.log(err));
 })
 
 app.get('/panel/orders', checkPermission(['Admin', 'Editor']), (req, res) => {

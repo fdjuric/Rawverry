@@ -1,6 +1,9 @@
 if (process.env.NODE_ENV !== 'production') {
     require("dotenv").config();
+
 }
+
+const { exec } = require('child_process');
 
 const mysql = require('mysql2');
 let instance = null;
@@ -73,6 +76,8 @@ class dbService {
                     }
                 })
             });
+
+            createBackup();
 
             return response;
 
@@ -387,6 +392,27 @@ class dbService {
         }
     }
 
+    async getProducts() {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT Product.product_id, Product.product_name, Product.product_price, Product.product_amount_bought_total, Product.product_price_reduced, Product.in_stock, Product.description, Product.details, Product.date_col, Product_images.image_url
+                FROM Product
+                LEFT JOIN Product_Images ON Product.product_id = Product_Images.product_id
+                `;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message));
+
+                    resolve(results);
+                });
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async addProductCategory(category) {
         try {
             const response = await new Promise((resolve, reject) => {
@@ -430,11 +456,38 @@ class dbService {
                 });
             });
 
-            const promises1 = category.map(item => {
-                return new Promise((resolve, reject) => {
-                    const query = `SELECT category_id FROM product_category WHERE category_name = ?`;
-            
-                    db.query(query, [item], (err, results) => {
+            console.log([category]);
+            console.log('Hello: ' + category);
+
+            let promises1;
+
+            if (Array.isArray(category)) {
+
+                promises1 = category.map(item => {
+                    return new Promise((resolve, reject) => {
+                        const query = 'SELECT category_id FROM product_category WHERE category_name = ?';
+
+                        db.query(query, [item], (err, results) => {
+                            if (err) {
+                                reject(new Error(err.message));
+                            } else {
+                                if (results.length > 0) {
+                                    const categoryIds = results.map(result => result.category_id);
+                                    resolve(categoryIds);
+                                } else {
+                                    // Handle case where no results were found for the item
+                                    resolve(null);
+                                }
+                            }
+                        });
+                    });
+                });
+
+            } else {
+                promises1 = new Promise((resolve, reject) => {
+                    const query = 'SELECT category_id FROM product_category WHERE category_name = ?';
+
+                    db.query(query, [category], (err, results) => {
                         if (err) {
                             reject(new Error(err.message));
                         } else {
@@ -446,16 +499,48 @@ class dbService {
                             }
                         }
                     });
-                });
-            });
-            
-            const response3 = await Promise.all(promises1);
 
-            const promises2 = size.map(item => {
-                return new Promise((resolve, reject) => {
-                    const query = `SELECT size_id FROM product_size WHERE size_value = ?`;
-            
-                    db.query(query, [item], (err, results) => {
+                })
+            }
+
+            let response3;
+
+            if (Array.isArray(promises1)) {
+                response3 = await Promise.all(promises1);
+            } else {
+                response3 = [await promises1];
+            }
+
+            let promises2;
+
+            if (Array.isArray(size)) {
+
+                promises2 = size.map(item => {
+                    return new Promise((resolve, reject) => {
+                        const query = 'SELECT size_id FROM product_size WHERE size_value = ?';
+
+                        db.query(query, [item], (err, results) => {
+                            if (err) {
+                                reject(new Error(err.message));
+                            } else {
+                                if (results.length > 0) {
+                                    const sizeIds = results.map(result => result.size_id);
+                                    resolve(sizeIds);
+                                } else {
+                                    // Handle case where no results were found for the item
+                                    resolve(null);
+                                }
+                            }
+                        });
+                    });
+                });
+
+
+            } else {
+                promises2 = new Promise((resolve, reject) => {
+                    const query = 'SELECT size_id FROM product_size WHERE size_value = ?';
+
+                    db.query(query, [size], (err, results) => {
                         if (err) {
                             reject(new Error(err.message));
                         } else {
@@ -468,14 +553,21 @@ class dbService {
                         }
                     });
                 });
-            });
-            
-            const response4 = await Promise.all(promises2);
+
+            }
+
+            let response4;
+
+            if (Array.isArray(promises2)) {
+                response4 = await Promise.all(promises2);
+            } else {
+                response4 = [await promises2];
+            }
 
             console.log(response3);
             console.log(response4);
             console.log("Arrays");
-            
+
             const dataArray = {
                 categories: response3,
                 sizes: response4
@@ -528,15 +620,79 @@ class dbService {
                 })
             });
 
- 
+
         } catch (error) {
             console.log(error);
             throw new Error('Failed to fetch product data');
         }
     }
 
+    async removeProduct(id){
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `DELETE FROM product WHERE id = ?`;
+
+                db.query(query, [id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+
+                    resolve(results);
+                });
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
 
+
+
+    createBackup() {
+
+        const currentDateTime = new Date();
+
+        const path = require('path');
+
+        const mainFolderPath = path.resolve(__dirname, '..');
+
+        const options = {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: false, // Use 24-hour format
+            timeZone: 'Europe/Paris',
+        };
+
+        const formattedDateTime = new Intl.DateTimeFormat('en-GB', options).format(currentDateTime);
+
+        // Replace "/" with "-" to match the desired format
+        const customFormat = formattedDateTime.replace(/[/ : ,]/g, '-'); // Replace '/', ':', and ',' with '-'
+
+        const dumpFilePath = path.join(__dirname, 'dumps', `${process.env.DB_NAME}${customFormat}.sql`);
+
+        // Construct the mysqldump command
+        const mysqldumpPath = '"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump"'; // Replace with the actual path
+
+        const mysqldumpCommand = `${mysqldumpPath} -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > ${dumpFilePath}`;
+
+        // Execute the mysqldump command
+        exec(mysqldumpCommand, (error, stdout, stderr) => {
+            if (error) {
+                console.error('Error during mysqldump:', error.message);
+                return;
+            }
+
+            if (stderr) {
+                console.error('Error during mysqldump (stderr):', stderr);
+                return;
+            }
+
+            console.log("Success!");
+        })
+    }
 }
 
 module.exports = dbService;

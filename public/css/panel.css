@@ -368,7 +368,7 @@ td div {
 
 }
 
-.add-size-wrapper, .add-category-wrapper {
+.add-size-wrapper, .add-category-wrapper, .remove-product-wrapper {
     display: none;
     flex-direction: column;
     gap: 40px;
@@ -631,6 +631,16 @@ td div {
 .product-settings svg:last-child:hover path{
     fill: var(--primary-color);
     
+}
+
+.product-name-gap {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.product-name-gap img {
+    object-fit: cover;
 }
 
 .editor-container {
