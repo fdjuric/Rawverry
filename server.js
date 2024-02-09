@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -70,7 +70,7 @@ app.use((req, res, next) => {
     res.sendFile(`${__dirname}/public${urlPath}.html`);
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/' || urlPath.startsWith('/panel/products/removeProduct/'))) {
+  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/')) {
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
 
@@ -82,7 +82,7 @@ app.use((req, res, next) => {
     }
   } else {
     res.render('404notfound');
-  }
+  } 
 
 
 });
@@ -146,16 +146,16 @@ const blogPicStorage = multer.diskStorage({
 // Define storage location and filename for product pictures
 const productPicStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-      const productTitle = req.body.title; // Assuming 'title' is the product title field in the form
-      const productFolderPath = path.join(__dirname, 'public', 'images', 'products', productTitle);
+    const productTitle = req.body.title; // Assuming 'title' is the product title field in the form
+    const productFolderPath = path.join(__dirname, 'public', 'images', 'products', productTitle);
 
-      // Create the directory if it doesn't exist
-      fs.mkdirSync(productFolderPath, { recursive: true });
+    // Create the directory if it doesn't exist
+    fs.mkdirSync(productFolderPath, { recursive: true });
 
-      cb(null, productFolderPath); // Save files to the 'public/images/products/{productTitle}' folder
+    cb(null, productFolderPath); // Save files to the 'public/images/products/{productTitle}' folder
   },
   filename: function (req, file, cb) {
-      cb(null, file.originalname); // Save file with its original name
+    cb(null, file.originalname); // Save file with its original name
   }
 });
 
@@ -163,7 +163,7 @@ const productPicStorage = multer.diskStorage({
 
 const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
-const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter});
+const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 
 const db = dbService.getDbServiceInstance();
 db.createBackup();
@@ -1101,6 +1101,28 @@ app.get('/panel/products/getProducts', checkPermission(['Admin', 'Editor']), (re
 
 })
 
+app.get('/panel/products/getProduct/:id', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const productId = req.params.id;
+
+  console.log("ProductIDD: " + productId);
+  const db = dbService.getDbServiceInstance();
+  const productData = db.getSpecificProduct(productId);
+  
+  productData
+  .then((data) => {
+    console.log(data);
+    const product = data[0][0];
+    const productImages = data[1][0];
+    const productCategory = data[2][0];
+    const productSize = data[3][0];
+
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err));
+})
+
 
 app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
@@ -1114,21 +1136,21 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
 
   const productPicDir = "public/images/products";
 
-  const fileNames = files.map(item => productPicDir.substring('public/'.length) + "/" + title + "/" + item.originalname); 
+  const fileNames = files.map(item => productPicDir.substring('public/'.length) + "/" + title + "/" + item.originalname);
 
   console.log(fileNames);
 
   const db = dbService.getDbServiceInstance();
 
   db.addProduct(title, price, description, details, size, category, fileNames)
-  .then((data) => {
-    console.log("SUCCESS!");
-  })
-  .catch(err => console.log(err));
+    .then((data) => {
+      console.log("SUCCESS!");
+    })
+    .catch(err => console.log(err));
 
 })
 
-app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), (req,res) => {
+app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), async (req, res) => {
 
   const productId = req.params.id;
 
@@ -1137,10 +1159,23 @@ app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), (req,re
   const db = dbService.getDbServiceInstance();
 
   db.removeProduct(productId)
-  .then(() => {
-    console.log("Successfully deleted product: " + productId);
-  })
-  .catch(err => console.log(err));
+    .then((data) => {
+      const productPicDir = `public/images/products/${data[0].product_name}`;
+
+      console.log(data[0].product_name);
+
+      fs.rm(productPicDir, { recursive: true }, (err) => {
+        if (err) {
+          console.error(`Error deleting folder: ${err.message}`);
+        } else {
+          console.log('Folder deleted successfully');
+        }
+      })
+
+      console.log("Successfully deleted product: " + productId);
+
+    })
+    .catch(err => console.log(err));
 })
 
 app.get('/panel/orders', checkPermission(['Admin', 'Editor']), (req, res) => {

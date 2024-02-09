@@ -624,22 +624,24 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Create and populate table data (td) for each field
                             const idCell = createTableCell(product.product_id, 'product-id');
                             const titleCellWrapper = document.createElement('td');
-                            titleCellWrapper.classList.add("product-name-gap");
-                            const titlePicCell = document.createElement('td');
+                            const titleCellWrapperDiv = document.createElement('div');
                             const titlePic = document.createElement('img');
                             titlePic.src = product.image_url;
                             titlePic.style.width = "50px";
                             titlePic.style.height = "50px";
-                            const titleCell = createTableCell(product.product_name, 'product-name');
+                            const titleCell = document.createElement('p');
+                            titleCell.classList.add('product-name');
+                            titleCell.textContent = product.product_name;
                             const priceCell = createTableCell(product.product_price, 'product-price');
                             const amountCell = createTableCell(product.product_amount_bought_total, 'product-amount');
                             const reducedCell = createTableCell(product.product_price_reduced, 'product-reduced');
                             const inStockCell = createTableCell(product.in_stock, 'product-in-stock');
 
                             // Append table data to the table row
-                            titlePicCell.appendChild(titlePic);
-                            titleCellWrapper.appendChild(titlePicCell);
-                            titleCellWrapper.appendChild(titleCell);
+
+                            titleCellWrapperDiv.appendChild(titlePic);
+                            titleCellWrapperDiv.appendChild(titleCell);
+                            titleCellWrapper.appendChild(titleCellWrapperDiv);
                             row.appendChild(idCell);
                             row.appendChild(titleCellWrapper);
                             row.appendChild(priceCell);
@@ -709,67 +711,162 @@ document.addEventListener('DOMContentLoaded', function () {
                     })
 
                     const removeProductButton = document.querySelectorAll('.products .products-table .product-settings svg:nth-child(2)');
-                    
+
                     removeProductButton.forEach((item, index) => {
 
                         item.addEventListener('click', () => {
-            
+
                             const productRemove = document.querySelector('.remove-product-wrapper');
-            
+
                             productRemove.style.display = "block";
                             productRemove.style.opacity = 1;
-            
+
                             const removeButton = document.querySelector('.remove-product-wrapper .remove-button');
-            
+
                             const cancelButton = document.querySelector('.remove-product-wrapper .button');
-            
+
                             const productId = document.querySelectorAll('.products .products-table table tbody .product-id');
-            
-                            const removeProductId = productId[index];
-            
+
+                            const removeProductId = productId[index].textContent;
+
+                            console.log(removeProductId);
+
                             removeButton.addEventListener('click', () => {
-            
+
                                 fetch(`/panel/products/removeProduct/${removeProductId}`)
                                     .then(() => {
-                                        windows.reload();
+
+                                        console.log(removeProductId);
+                                        windows.location.reload();
                                     })
                                     .catch(() => {
                                         console.log("Failed!");
                                     })
-            
+
                             })
-            
+
                             cancelButton.addEventListener('click', () => {
                                 productRemove.style.opacity = 0;
-            
+
                                 setTimeout(() => {
                                     productRemove.style.display = "none";
                                 }, 400);
                             })
-            
-            
+
+
                             const addCategory = document.querySelector('.product-edit .add-category');
-            
+
                             const addCategoryWrapper = document.querySelector('.add-category-wrapper');
-            
+
                             addCategory.addEventListener('click', () => {
                                 addCategoryWrapper.style.display = "flex";
                                 addCategoryWrapper.style.opacity = 1;
-            
+
                                 const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
-            
+
                                 closeBtn.addEventListener('click', () => {
                                     addCategoryWrapper.style.opacity = 0;
-            
+
                                     setTimeout(() => {
                                         addCategoryWrapper.style.display = "none";
                                     }, 400);
                                 })
                             })
-            
+
                         })
-            
+
                     })
+
+                    //Edit Product Button Creation with EventListeners
+
+                    const editProductButton = document.querySelectorAll('.products .products-table .product-settings svg:first-child');
+
+                    editProductButton.forEach((item, index) => {
+
+                        item.addEventListener('click', () => {
+
+                            const productEdit = document.querySelector('.product-edit');
+
+                            productEdit.style.display = "block";
+                            productEdit.style.opacity = 1;
+
+                            const closeBtn = document.querySelector('.product-edit .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+                                productEdit.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    productEdit.style.display = "none";
+                                }, 400);
+                            })
+
+                            const addSize = document.querySelector('.product-edit .add-size');
+
+                            const addSizeWrapper = document.querySelector('.add-size-wrapper');
+
+                            addSize.addEventListener('click', () => {
+                                addSizeWrapper.style.display = "flex";
+                                addSizeWrapper.style.opacity = 1;
+
+                                const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
+
+                                closeBtn.addEventListener('click', () => {
+                                    addSizeWrapper.style.opacity = 0;
+
+                                    setTimeout(() => {
+                                        addSizeWrapper.style.display = "none";
+                                    }, 400);
+                                })
+
+                                const submitBtn = document.querySelector('.add-size-wrapper .button');
+
+                                submitBtn.addEventListener('click', addSizeHandler)
+                            })
+
+                            const addCategory = document.querySelector('.product-edit .add-category');
+
+                            const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+
+                            addCategory.addEventListener('click', () => {
+                                addCategoryWrapper.style.display = "flex";
+                                addCategoryWrapper.style.opacity = 1;
+
+                                const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
+
+                                closeBtn.addEventListener('click', () => {
+                                    addCategoryWrapper.style.opacity = 0;
+
+                                    setTimeout(() => {
+                                        addCategoryWrapper.style.display = "none";
+                                    }, 400);
+                                })
+
+                                const submitBtn = document.querySelector('.add-category-wrapper .button');
+
+                                submitBtn.addEventListener('click', addCategoryHandler);
+                            })
+
+                            //Adding Data into Fields
+
+                            const productId = document.querySelectorAll('.products .products-table table tbody .product-id');
+
+                            const editProductId = productId[index].textContent;
+
+                            fetch(`/panel/products/getProduct/${editProductId}`)
+                                .then((data) => {
+
+                                    console.log(data);
+
+                                })
+
+                            const editTitle = document.querySelector('.product-form-title');
+                            const editPrice = document.querySelector('.product-form-price');
+
+
+                        })
+
+                    })
+
                 })
 
             isAdded = true;
@@ -777,9 +874,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const addProductButton = document.querySelector('.add-a-product');
 
-        const editProductButton = document.querySelectorAll('.products .products-table .product-settings svg:first-child');
 
-        console.log(editProductButton);
 
         addProductButton.addEventListener('click', () => {
 
@@ -851,68 +946,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         })
 
-        editProductButton.forEach((item) => {
 
-            item.addEventListener('click', () => {
-
-                const productEdit = document.querySelector('.product-edit');
-
-                productEdit.style.display = "block";
-                productEdit.style.opacity = 1;
-
-                const closeBtn = document.querySelector('.product-edit .close-btn');
-
-                closeBtn.addEventListener('click', () => {
-                    productEdit.style.opacity = 0;
-
-                    setTimeout(() => {
-                        productEdit.style.display = "none";
-                    }, 400);
-                })
-
-                const addSize = document.querySelector('.product-edit .add-size');
-
-                const addSizeWrapper = document.querySelector('.add-size-wrapper');
-
-                addSize.addEventListener('click', () => {
-                    addSizeWrapper.style.display = "flex";
-                    addSizeWrapper.style.opacity = 1;
-
-                    const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
-
-                    closeBtn.addEventListener('click', () => {
-                        addSizeWrapper.style.opacity = 0;
-
-                        setTimeout(() => {
-                            addSizeWrapper.style.display = "none";
-                        }, 400);
-                    })
-                })
-
-                const addCategory = document.querySelector('.product-edit .add-category');
-
-                const addCategoryWrapper = document.querySelector('.add-category-wrapper');
-
-                addCategory.addEventListener('click', () => {
-                    addCategoryWrapper.style.display = "flex";
-                    addCategoryWrapper.style.opacity = 1;
-
-                    const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
-
-                    closeBtn.addEventListener('click', () => {
-                        addCategoryWrapper.style.opacity = 0;
-
-                        setTimeout(() => {
-                            addCategoryWrapper.style.display = "none";
-                        }, 400);
-                    })
-                })
-
-            })
-
-        })
-
-    
 
 
         const imgCheckBox = document.querySelectorAll('.img-box div input');
@@ -1072,6 +1106,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => {
                     if (response.ok) {
                         alert('Product created successfully!');
+                        window.location.reload();
                     } else {
                         alert('Error creating product!');
                     }
@@ -1117,21 +1152,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', error);
             });
 
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.name = 'size';
-        input.value = sizeValue.value;
-        const label = document.createElement('label');
-        label.textContent = sizeValue.value;
-        label.setAttribute("for", "size");
-        const div = document.createElement('div');
+        const inputWrapper = document.querySelectorAll('.product-size-wrapper');
 
-        const inputWrapper = document.querySelector('.product-size-wrapper');
+        inputWrapper.forEach((item) => {
 
-        div.appendChild(input);
-        div.appendChild(label);
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.name = 'size';
+            input.value = sizeValue.value;
+            const label = document.createElement('label');
+            label.textContent = sizeValue.value;
+            label.setAttribute("for", "size");
+            const div = document.createElement('div');
+            div.appendChild(input);
+            div.appendChild(label);
+            item.appendChild(div);
+        })
 
-        inputWrapper.appendChild(div);
 
         const addSizeWrapper = document.querySelector('.add-size-wrapper');
 
@@ -1180,21 +1217,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', error);
             });
 
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.name = 'category';
-        input.value = categoryValue.value;
-        const label = document.createElement('label');
-        label.textContent = categoryValue.value;
-        label.setAttribute("for", "category");
-        const div = document.createElement('div');
 
-        const inputWrapper = document.querySelector('.product-category-wrapper');
+        const inputWrapper = document.querySelectorAll('.product-category-wrapper');
 
-        div.appendChild(input);
-        div.appendChild(label);
+        inputWrapper.forEach((item) => {
 
-        inputWrapper.appendChild(div);
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.name = 'category';
+            input.value = categoryValue.value;
+            const label = document.createElement('label');
+            label.textContent = categoryValue.value;
+            label.setAttribute("for", "category");
+            const div = document.createElement('div');
+            div.appendChild(input);
+            div.appendChild(label);
+            item.appendChild(div);
+        })
 
         const addCategoryWrapper = document.querySelector('.add-category-wrapper');
 
