@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -1108,19 +1108,26 @@ app.get('/panel/products/getProduct/:id', checkPermission(['Admin', 'Editor']), 
   console.log("ProductIDD: " + productId);
   const db = dbService.getDbServiceInstance();
   const productData = db.getSpecificProduct(productId);
-  
-  productData
-  .then((data) => {
-    console.log(data);
-    const product = data[0][0];
-    const productImages = data[1][0];
-    const productCategory = data[2][0];
-    const productSize = data[3][0];
 
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err));
+  productData
+    .then((data) => {
+      console.log(data);
+      const product = data[0][0];
+      const productImages = data[1][0];
+      const productCategory = data[2][0];
+      const productSize = data[3][0];
+
+      const productArray = [];
+
+      productArray.push(product);
+      productArray.push(productImages);
+      productArray.push(productCategory);
+      productArray.push(productSize);
+
+      console.log(productArray[0].product_id);
+      res.json(productArray);
+    })
+    .catch(err => console.log(err));
 })
 
 
@@ -1148,6 +1155,15 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
     })
     .catch(err => console.log(err));
 
+})
+
+app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
+
+  const {id, oldTitle, title, price, sizes, categories, description, details} = req.body;
+
+  console.log(`${id},${oldTitle},${title},${price},${sizes},${categories},${description},${details},`);
+
+  
 })
 
 app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), async (req, res) => {

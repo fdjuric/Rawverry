@@ -853,14 +853,102 @@ document.addEventListener('DOMContentLoaded', function () {
                             const editProductId = productId[index].textContent;
 
                             fetch(`/panel/products/getProduct/${editProductId}`)
+                                .then(response => response.json())
                                 .then((data) => {
-
                                     console.log(data);
 
-                                })
+                                    const editTitle = document.querySelector('.edit-product .product-form-title');
+                                    const editPrice = document.querySelector('.edit-product .product-form-price');
+                                    const editSizes = document.querySelectorAll('.edit-product .product-size-wrapper div input');
+                                    const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input');
 
-                            const editTitle = document.querySelector('.product-form-title');
-                            const editPrice = document.querySelector('.product-form-price');
+                                    editTitle.value = data[0].product_name;
+                                    editPrice.value = data[0].product_price;
+
+                                    editSizes.forEach(input => {
+                                        if (data[3].size_value.includes(input.value)) {
+                                            input.checked = true;
+                                        }
+                                    })
+
+                                    editCategories.forEach(input => {
+                                        if (data[2].category_name.includes(input.value)) {
+                                            input.checked = true;
+                                        }
+                                    })
+
+                                    let sizeArray = [];
+
+                                    editSizes.forEach((item) => {
+
+                                        if (item.checked) {
+                                            sizeArray.push(item.value);
+                                        }
+
+                                    })
+
+                                    let categoryArray = [];
+
+                                    editCategories.forEach((item) => {
+
+                                        if (item.checked) {
+                                            categoryArray.push(item.value);
+                                        }
+
+                                    })
+
+                                    editorDescEdit.root.innerHTML = data[0].description;
+                                    editorDetailsEdit.root.innerHTML = data[0].details;
+
+                                    const confirmEditButton = document.querySelector('.edit-product .edit-button');
+
+                                    confirmEditButton.addEventListener('click', () => {
+
+                                        const productId = data[0].product_id;
+                                        const oldTitle = data[0].product_name;
+
+                                        const productPicture = document.getElementById('productPictureEdit');
+                                        const picture = productPicture.files;
+
+                                        const formData = new FormData();
+
+                                        formData.append('id', productId);
+                                        formData.append('oldTitle', oldTitle);
+                                        formData.append('title', editTitle.value);
+                                        formData.append('price', editPrice.value);
+
+
+                                        sizeArray.forEach(size => {
+                                            formData.append('sizes', size);
+                                        });
+
+
+                                        categoryArray.forEach(category => {
+                                            formData.append('categories', category);
+                                        });
+
+                                        formData.append('description', editorDescEdit.root.innerHTML);
+                                        formData.append('details', editorDetailsEdit.root.innerHTML);
+
+                                        console.log(formData);
+
+                                        fetch('/panel/products/editProduct', {
+                                            method: 'POST',
+                                            body: formData,
+                                        })
+                                            .then(response => {
+                                                if (response.ok) {
+                                                    alert('Product edited successfully!');
+                                                } else {
+                                                    alert('Error editing product!');
+                                                }
+                                            })
+                                            .catch(err => console.log(err));
+                                    });
+                                })
+                                .catch(err => console.log(err));
+
+
 
 
                         })
