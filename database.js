@@ -431,12 +431,12 @@ class dbService {
     }
 
     async getSpecificProduct(id) {
-        try{
+        try {
             const response = await new Promise((resolve, reject) => {
                 const query = `SELECT * FROM product WHERE product_id = ?`;
 
                 db.query(query, [id], (err, results) => {
-                    if(err) reject(new Error(err.message));
+                    if (err) reject(new Error(err.message));
                     resolve(results);
                 })
             })
@@ -445,7 +445,7 @@ class dbService {
                 const query = `SELECT * FROM product_images WHERE product_id = ?`;
 
                 db.query(query, [id], (err, results) => {
-                    if(err) reject(new Error(err.message));
+                    if (err) reject(new Error(err.message));
                     resolve(results);
                 })
             })
@@ -458,7 +458,7 @@ class dbService {
                 `;
 
                 db.query(query, [id], (err, results) => {
-                    if(err) reject(new Error(err.message));
+                    if (err) reject(new Error(err.message));
                     resolve(results);
                 })
             })
@@ -470,7 +470,7 @@ class dbService {
                 WHERE product_size_link.product_id = ?;`;
 
                 db.query(query, [id], (err, results) => {
-                    if(err) reject(new Error(err.message));
+                    if (err) reject(new Error(err.message));
                     resolve(results);
                 })
             })
@@ -481,10 +481,10 @@ class dbService {
             AllData.push(response1);
             AllData.push(response2);
             AllData.push(response3);
-            
+
 
             return AllData;
-        }catch(error) {
+        } catch (error) {
             console.log(error);
         }
     }
@@ -686,15 +686,186 @@ class dbService {
         }
     }
 
-    async removeProduct(id){
+    async editProduct(id, title, price, oldSizes, sizes, oldCategories, categories, description, details, images) {
+        try {
+
+            const response1 = await new Promise((resolve, reject) => {
+                const query = `UPDATE product
+                SET product_name = ?, product_price = ?, description = ?, details = ?
+                WHERE product_id = ?`;
+
+                db.query(query, [title, price, description, details, id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+
+                    resolve(results);
+
+                });
+            });
+
+
+
+            const response2 = await new Promise((resolve, reject) => {
+
+
+                const sizesArray = [];
+                const oldSizesArray = [];
+
+                const categoriesArray = [];
+                const oldCategoriesArray = [];
+
+                sizesArray.push(sizes);
+                oldSizesArray.push(oldSizes);
+
+                categoriesArray.push(categories);
+                oldCategoriesArray.push(oldCategories);
+
+                const sizesRemoved = oldSizesArray.filter(size => !sizesArray.includes(size));
+                const sizesAdded = sizesArray.filter(value => !oldSizesArray.includes(value));
+
+                console.log(Array.isArray(sizesArray));
+                console.log(Array.isArray(oldSizesArray));
+                console.log(sizesRemoved + " Sizes Removed");
+                console.log(sizesAdded + " Sizes Added");
+
+                const categoriesRemoved = oldCategoriesArray.filter(category => !categoriesArray.includes(category));
+                const categoriesAdded = categoriesArray.filter(value => !oldCategoriesArray.includes(value));
+
+                console.log(Array.isArray(categoriesArray));
+                console.log(Array.isArray(oldCategoriesArray));
+                console.log(categoriesRemoved + " Categories Removed");
+                console.log(categoriesAdded + " Categories Added");
+
+
+                if (sizesAdded !== null) {
+
+                    sizesAdded.forEach(item => {
+
+                        const query = `SELECT size_id FROM product_size WHERE size_value = ?`;
+                        const query1 = `INSERT INTO product_size_link (product_id, size_id) VALUES (?, ?)`
+
+                        let sizeId;
+
+                        db.query(query, [item], (err, results) => {
+                            if (err) reject(new Error(err.message))
+
+                            sizeId = results;
+                            console.log("Size id: " + sizeId);
+                        })
+                        db.query(query1, [id, sizeId], (err, results) => {
+                            if (err) reject(new Error(err.message))
+                            console.log("Successfuly added: " + item);
+                        })
+
+                    })
+                }
+
+                if (sizesRemoved !== null) {
+
+                    sizesRemoved.forEach(item => {
+
+                        const query = `SELECT size_id FROM product_size WHERE size_value = ?`
+                        const query1 = `DELETE FROM product_size_link WHERE product_id = ? AND size_id = ?`
+
+                        let sizeId;
+
+                        db.query(query, [item], (err, results) => {
+                            if (err) reject(new Error(err.message))
+
+                            sizeId = results;
+                            console.log("Size id: " + sizeId);
+                        })
+                        db.query(query1, [id, sizeId], (err, results) => {
+                            if (err) reject(new Error(err.message))
+                            console.log("Successfuly removed: " + item);
+                        })
+
+                    })
+                }
+
+                if (categoriesAdded !== null) {
+
+                    categoriesAdded.forEach(item => {
+
+                        const query = `SELECT category_id FROM product_category WHERE category_name = ?`
+                        const query1 = `INSERT INTO product_category_link (product_id, category_id) VALUES (?, ?)`
+
+                        let categoryId;
+
+                        db.query(query, [item], (err, results) => {
+                            if (err) reject(new Error(err.message))
+
+                            categoryId = results;
+                            console.log("Category id: " + sizeId);
+                        })
+                        db.query(query1, [id, categoryId], (err, results) => {
+                            if (err) reject(new Error(err.message))
+                            console.log("Successfuly added: " + item);
+                        })
+
+                    })
+                }
+
+                if (categoriesRemoved !== null) {
+
+                    categoriesRemoved.forEach(item => {
+
+                        const query = `SELECT category_id FROM product_category WHERE category_name = ?`
+                        const query1 = `DELETE FROM product_category_link WHERE product_id = ? AND category_id = ?`
+
+                        let categoryId;
+
+                        db.query(query, [item], (err, results) => {
+                            if (err) reject(new Error(err.message))
+
+                            categoryId = results;
+                            console.log("Category id: " + sizeId);
+                        })
+                        db.query(query1, [id, categoryId], (err, results) => {
+                            if (err) reject(new Error(err.message))
+                            console.log("Successfuly removed: " + item);
+                        })
+
+                    })
+                }
+
+                const query = `SELECT product_id FROM product WHERE product_name = ?`;
+
+                db.query(query, [title], (err, results) => {
+                    if (err) reject(new Error(err.message));
+
+                    console.log("Product id: " + results[0].product_id);
+                    resolve(results[0].product_id);
+
+                });
+
+                const query3 = `INSERT INTO product_images (product_id, image_url) VALUES (?, ?)`;
+
+                images.forEach(item => {
+
+                    db.query(query3, [id, item], (err, results) => {
+                        if (err) reject(new Error(err.message))
+                        console.log("Successfully added: " + item);
+                    })
+
+                })
+
+            });
+
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to fetch product data');
+        }
+    }
+
+    async removeProduct(id) {
         try {
 
             const response1 = await new Promise((resolve, reject) => {
                 const query = `DELETE FROM product_images WHERE product_id = ?`
 
-                db.query(query, [id], (err,results) => {
+                db.query(query, [id], (err, results) => {
 
-                    if(err) reject(new Error(err.message));
+                    if (err) reject(new Error(err.message));
 
                     resolve(results);
                 })
@@ -703,9 +874,9 @@ class dbService {
             const response2 = await new Promise((resolve, reject) => {
                 const query = `DELETE FROM product_category_link WHERE product_id = ?`
 
-                db.query(query, [id], (err,results) => {
+                db.query(query, [id], (err, results) => {
 
-                    if(err) reject(new Error(err.message));
+                    if (err) reject(new Error(err.message));
 
                     resolve(results);
                 })
@@ -714,9 +885,9 @@ class dbService {
             const response3 = await new Promise((resolve, reject) => {
                 const query = `DELETE FROM product_size_link WHERE product_id = ?`
 
-                db.query(query, [id], (err,results) => {
+                db.query(query, [id], (err, results) => {
 
-                    if(err) reject(new Error(err.message));
+                    if (err) reject(new Error(err.message));
 
                     resolve(results);
                 })

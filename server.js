@@ -82,7 +82,7 @@ app.use((req, res, next) => {
     }
   } else {
     res.render('404notfound');
-  } 
+  }
 
 
 });
@@ -147,6 +147,7 @@ const blogPicStorage = multer.diskStorage({
 const productPicStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     const productTitle = req.body.title; // Assuming 'title' is the product title field in the form
+    console.log(productTitle);
     const productFolderPath = path.join(__dirname, 'public', 'images', 'products', productTitle);
 
     // Create the directory if it doesn't exist
@@ -1114,9 +1115,15 @@ app.get('/panel/products/getProduct/:id', checkPermission(['Admin', 'Editor']), 
       console.log(data);
       const product = data[0][0];
       const productImages = data[1][0];
-      const productCategory = data[2][0];
-      const productSize = data[3][0];
+      const productCategory = [];
+      const productSize = [];
+      for(i=0; i<data[3].length;i++){
+        productSize.push(data[3][i]);
+      }
 
+      for(i=0; i<data[2].length;i++){
+        productCategory.push(data[2][i]);
+      }
       const productArray = [];
 
       productArray.push(product);
@@ -1157,13 +1164,41 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
 
 })
 
-app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
+app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
-  const {id, oldTitle, title, price, sizes, categories, description, details} = req.body;
+  const { id, newTitle, title, price, oldSizes, sizes, oldCategories, categories, description, details } = req.body;
 
-  console.log(`${id},${oldTitle},${title},${price},${sizes},${categories},${description},${details},`);
+  const files = req.files;
+  console.log(`${id},${newTitle},${title},${price},${oldSizes}+, ${sizes},${categories},${description},${details},`);
+  console.log(files);
 
+  const productPicDir = "public/images/products";
+
+  const fileNames = files.map(item => productPicDir.substring('public/'.length) + "/" + title + "/" + item.originalname);
+
+  console.log(fileNames);
+
+  const db = dbService.getDbServiceInstance();
+  db.editProduct(id, newTitle, price, oldSizes, sizes, oldCategories, categories, description, details, fileNames)
+  .then(() => {
+    console.log("Successfully edited product: " + title);
+    
+    if (title !== newTitle) {
+
+      const productPicDirOld = `public/images/products/${title}`;
+      const productPicDirNew = `public/images/products/${newTitle}`;
   
+      fs.rename(productPicDirOld, productPicDirNew, (err) => {
+        if (err) {
+          console.error(`Error renaming folder: ${err.message}`);
+        } else {
+          console.log('Folder renamed successfully');
+        }
+      })
+    }
+  })
+  .catch(err => console.log(err)) 
+ 
 })
 
 app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), async (req, res) => {

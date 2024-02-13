@@ -865,37 +865,26 @@ document.addEventListener('DOMContentLoaded', function () {
                                     editTitle.value = data[0].product_name;
                                     editPrice.value = data[0].product_price;
 
+                                    const sizeValueArray = data[3].map(item => item.size_value)
+                                    console.log(sizeValueArray);
+                                    console.log(Array.isArray(sizeValueArray));
+
+                                    const categoryValueArray = data[2].map(item => item.category_name);
+                                    console.log(categoryValueArray);
+                                    console.log(Array.isArray(categoryValueArray));
+
                                     editSizes.forEach(input => {
-                                        if (data[3].size_value.includes(input.value)) {
+                                        if (sizeValueArray.includes(input.value)) {
                                             input.checked = true;
                                         }
                                     })
 
                                     editCategories.forEach(input => {
-                                        if (data[2].category_name.includes(input.value)) {
+                                        if (categoryValueArray.includes(input.value)) {
                                             input.checked = true;
                                         }
                                     })
 
-                                    let sizeArray = [];
-
-                                    editSizes.forEach((item) => {
-
-                                        if (item.checked) {
-                                            sizeArray.push(item.value);
-                                        }
-
-                                    })
-
-                                    let categoryArray = [];
-
-                                    editCategories.forEach((item) => {
-
-                                        if (item.checked) {
-                                            categoryArray.push(item.value);
-                                        }
-
-                                    })
 
                                     editorDescEdit.root.innerHTML = data[0].description;
                                     editorDetailsEdit.root.innerHTML = data[0].details;
@@ -907,25 +896,67 @@ document.addEventListener('DOMContentLoaded', function () {
                                         const productId = data[0].product_id;
                                         const oldTitle = data[0].product_name;
 
+                                        let sizeArray = [];
+
+                                        editSizes.forEach((item) => {
+
+                                            if (item.checked) {
+                                                sizeArray.push(item.value);
+                                            }
+
+                                        })
+
+
+                                        let categoryArray = [];
+
+                                        editCategories.forEach((item) => {
+
+                                            if (item.checked) {
+                                                categoryArray.push(item.value);
+                                            }
+
+                                        })
+
                                         const productPicture = document.getElementById('productPictureEdit');
                                         const picture = productPicture.files;
 
+                                        const pictureArray = [];
+                                        for (let i = 0; i < picture.length; i++) {
+                                            const file = picture[i];
+                                            pictureArray.push({ name: file.name });
+                                            // Optionally, you can access other file properties like file.type, file.size, etc.
+                                        }
+
                                         const formData = new FormData();
 
+                                        formData.append('title', oldTitle);
+                                        formData.append('newTitle', editTitle.value);
+
                                         formData.append('id', productId);
-                                        formData.append('oldTitle', oldTitle);
-                                        formData.append('title', editTitle.value);
+                                        for (let i = 0; i < picture.length; i++) {
+                                            const file = picture[i];
+                                            formData.append('file', file); // Append each file to the FormData object
+                                        }
+
                                         formData.append('price', editPrice.value);
 
 
-                                        sizeArray.forEach(size => {
-                                            formData.append('sizes', size);
-                                        });
+                                        sizeValueArray.forEach(item => {
+                                            formData.append('oldSizes', item)
+                                        })
+                                        
+                                        sizeArray.forEach(item => {
+                                            formData.append('sizes', item);
+                                        })
 
-
-                                        categoryArray.forEach(category => {
-                                            formData.append('categories', category);
-                                        });
+                                        categoryValueArray.forEach(item => {
+                                            formData.append('oldCategories', item)
+                                        })
+                                        
+                                        console.log(sizeArray);
+                                        categoryArray.forEach(item => {
+                                            formData.append('categories', item);
+                                        })
 
                                         formData.append('description', editorDescEdit.root.innerHTML);
                                         formData.append('details', editorDetailsEdit.root.innerHTML);
