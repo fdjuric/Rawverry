@@ -897,23 +897,25 @@ app.post('/change-profile-pic', upload.single('file'), (req, res) => {
     const fileName = profilePicDir.substring('public/'.length) + "/" + req.file.originalname;
 
     console.log("File name:" + fileName);
-    //console.log(req.session.passport.user.username);
-    //console.log(req.session.passport.user.picture);
+    console.log(req.session.passport.user.username);
+    console.log(req.session.passport.user.picture);
 
-    const profilePicPath = "public/" + req.session.passport.user.picture;
-    console.log("Profile pic path: " + profilePicPath);
-    fs.unlink(profilePicPath, (err) => {
-      if (err) {
-        console.log("Error deleting file!");
-        return;
-      }
-      console.log("File deleted successfully!");
-    });
+        const profilePicPath = "public/" + req.session.passport.user.picture;
+        console.log("Profile pic path: " + profilePicPath);
+        fs.unlink(profilePicPath, (err) => {
+          if (err) {
+            console.log("Error deleting file!");
+            return;
+          }
+          console.log("File deleted successfully!");
+        });
+
+        req.session.passport.user.picture = fileName;
 
     db.SetPicturePath(fileName, req.session.passport.user.username)
       .then(() => {
         console.log("Path Added to Database!");
-        req.session.passport.user.picture = fileName;
+
         if (user.role === 'Admin') {
           res.render('adminPanel.ejs', { user: user });
         } else if (user.role === 'Editor') {
@@ -1114,15 +1116,19 @@ app.get('/panel/products/getProduct/:id', checkPermission(['Admin', 'Editor']), 
     .then((data) => {
       console.log(data);
       const product = data[0][0];
-      const productImages = data[1][0];
+      const productImages = [];
       const productCategory = [];
       const productSize = [];
-      for(i=0; i<data[3].length;i++){
+      for (i = 0; i < data[3].length; i++) {
         productSize.push(data[3][i]);
       }
 
-      for(i=0; i<data[2].length;i++){
+      for (i = 0; i < data[2].length; i++) {
         productCategory.push(data[2][i]);
+      }
+
+      for (i = 0; i < data[1].length; i++) {
+        productImages.push(data[1][i]);
       }
       const productArray = [];
 
@@ -1166,7 +1172,7 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
 
 app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
-  const { id, newTitle, title, price, oldSizes, sizes, oldCategories, categories, description, details } = req.body;
+  const { id, newTitle, title, removePics, price, oldSizes, sizes, oldCategories, categories, description, details } = req.body;
 
   const files = req.files;
   console.log(`${id},${newTitle},${title},${price},${oldSizes}+, ${sizes},${categories},${description},${details},`);
@@ -1174,31 +1180,63 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
 
   const productPicDir = "public/images/products";
 
+  const removePicsArray = [];
+  if (!Array.isArray(removePics)) {
+    removePicsArray.push(removePics);
+  } else if (Array.isArray(removePics)) {
+    removePics.forEach(item => {
+      removePicsArray.push(item);
+    })
+  }
+
+  console.log(removePicsArray);
+
   const fileNames = files.map(item => productPicDir.substring('public/'.length) + "/" + title + "/" + item.originalname);
 
   console.log(fileNames);
 
-  const db = dbService.getDbServiceInstance();
-  db.editProduct(id, newTitle, price, oldSizes, sizes, oldCategories, categories, description, details, fileNames)
-  .then(() => {
-    console.log("Successfully edited product: " + title);
-    
-    if (title !== newTitle) {
 
-      const productPicDirOld = `public/images/products/${title}`;
-      const productPicDirNew = `public/images/products/${newTitle}`;
-  
-      fs.rename(productPicDirOld, productPicDirNew, (err) => {
-        if (err) {
-          console.error(`Error renaming folder: ${err.message}`);
-        } else {
-          console.log('Folder renamed successfully');
-        }
-      })
-    }
-  })
-  .catch(err => console.log(err)) 
- 
+  const db = dbService.getDbServiceInstance();
+  db.editProduct(id, newTitle, removePicsArray, price, oldSizes, sizes, oldCategories, categories, description, details, fileNames)
+    .then(() => {
+      console.log("Successfully edited product: " + newTitle);
+
+      if (title !== newTitle) {
+
+        const productPicDirOld = `public/images/products/${title}`;
+        const productPicDirNew = `public/images/products/${newTitle}`;
+
+        fs.rename(productPicDirOld, productPicDirNew, (err) => {
+          if (err) {
+            console.error(`Error renaming folder: ${err.message}`);
+          } else {
+            console.log('Folder renamed successfully');
+          }
+        })
+      }
+
+      if (removePicsArray != null) {
+
+        removePicsArray.forEach(item => {
+
+          const productPicDir = `public/${item}`;
+
+          fs.unlink(productPicDir, (err) => {
+            if (err) {
+              console.error(`Error deleting file: ${err.message}`);
+            } else {
+              console.log('File deleted successfully');
+            }
+          })
+
+        })
+      }
+
+      res.status(200).json("Success!");
+
+    })
+    .catch(err => console.log(err))
+
 })
 
 app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), async (req, res) => {

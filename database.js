@@ -686,7 +686,7 @@ class dbService {
         }
     }
 
-    async editProduct(id, title, price, oldSizes, sizes, oldCategories, categories, description, details, images) {
+    async editProduct(id, title, removePics, price, oldSizes, sizes, oldCategories, categories, description, details, images) {
         try {
 
             const response1 = await new Promise((resolve, reject) => {
@@ -713,11 +713,11 @@ class dbService {
                 const categoriesArray = [];
                 const oldCategoriesArray = [];
 
-                sizesArray.push(sizes);
-                oldSizesArray.push(oldSizes);
+                sizesArray.push(...sizes);
+                oldSizesArray.push(...oldSizes);
 
-                categoriesArray.push(categories);
-                oldCategoriesArray.push(oldCategories);
+                categoriesArray.push(...categories);
+                oldCategoriesArray.push(...oldCategories);
 
                 const sizesRemoved = oldSizesArray.filter(size => !sizesArray.includes(size));
                 const sizesAdded = sizesArray.filter(value => !oldSizesArray.includes(value));
@@ -738,118 +738,236 @@ class dbService {
 
                 if (sizesAdded !== null) {
 
-                    sizesAdded.forEach(item => {
 
-                        const query = `SELECT size_id FROM product_size WHERE size_value = ?`;
-                        const query1 = `INSERT INTO product_size_link (product_id, size_id) VALUES (?, ?)`
+                    sizesAdded.forEach(async (item) => {
 
-                        let sizeId;
+                        console.log("Test " + item);
+                        try {
+                            const query = `SELECT size_id FROM product_size WHERE size_value = ?`;
+                            const query1 = `INSERT INTO product_size_link (product_id, size_id) VALUES (?, ?)`;
 
-                        db.query(query, [item], (err, results) => {
-                            if (err) reject(new Error(err.message))
+                            // Wrap the db.query operation in a promise
+                            const sizeId = await new Promise((resolve, reject) => {
+                                db.query(query, [item], (err, results) => {
+                                    if (err) reject(new Error(err.message));
+                                    resolve(results[0].size_id);
+                                });
+                            });
 
-                            sizeId = results;
-                            console.log("Size id: " + sizeId);
-                        })
-                        db.query(query1, [id, sizeId], (err, results) => {
-                            if (err) reject(new Error(err.message))
-                            console.log("Successfuly added: " + item);
-                        })
+                            console.log(sizeId + "SizesAddedId");
 
-                    })
+                            // Now that sizeId is resolved, you can proceed with the next query
+                            await new Promise((resolve, reject) => {
+                                db.query(query1, [id, sizeId], (err, results) => {
+                                    if (err) reject(new Error(err.message));
+                                    console.log("Successfully added: " + item);
+                                    resolve();
+                                });
+                            });
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    });
+
                 }
 
                 if (sizesRemoved !== null) {
 
-                    sizesRemoved.forEach(item => {
+                    sizesRemoved.forEach(async (item) => {
 
-                        const query = `SELECT size_id FROM product_size WHERE size_value = ?`
-                        const query1 = `DELETE FROM product_size_link WHERE product_id = ? AND size_id = ?`
+                        try {
 
-                        let sizeId;
+                            const query = `SELECT size_id FROM product_size WHERE size_value = ?`
+                            const query1 = `DELETE FROM product_size_link WHERE product_id = ? AND size_id = ?`
 
-                        db.query(query, [item], (err, results) => {
-                            if (err) reject(new Error(err.message))
 
-                            sizeId = results;
-                            console.log("Size id: " + sizeId);
-                        })
-                        db.query(query1, [id, sizeId], (err, results) => {
-                            if (err) reject(new Error(err.message))
-                            console.log("Successfuly removed: " + item);
-                        })
+                            const sizeId = await new Promise((resolve, reject) => {
+                                db.query(query, [item], (err, results) => {
+                                    if (err) reject(new Error(err.message))
+
+                                    resolve(results[0].size_id);
+                                });
+
+                            })
+
+                            console.log(sizeId + "Sizes removedID");
+
+                            await new Promise((resolve, reject) => {
+                                db.query(query1, [id, sizeId], (err, results) => {
+                                    if (err) reject(new Error(err.message))
+                                    console.log("Successfuly removed: " + item);
+                                    resolve();
+                                })
+                            })
+
+                        } catch (error) {
+                            console.error(error);
+                        }
 
                     })
                 }
 
                 if (categoriesAdded !== null) {
 
-                    categoriesAdded.forEach(item => {
+                    categoriesAdded.forEach(async (item) => {
+                        try {
+                            const query = `SELECT category_id FROM product_category WHERE category_name = ?`;
+                            const query1 = `INSERT INTO product_category_link (product_id, category_id) VALUES (?, ?)`;
 
-                        const query = `SELECT category_id FROM product_category WHERE category_name = ?`
-                        const query1 = `INSERT INTO product_category_link (product_id, category_id) VALUES (?, ?)`
+                            // Wrap the db.query operation in a promise
+                            const CategoryId = await new Promise((resolve, reject) => {
+                                db.query(query, [item], (err, results) => {
+                                    if (err) reject(new Error(err.message));
+                                    resolve(results[0].category_id);
+                                });
+                            });
 
-                        let categoryId;
+                            console.log(CategoryId + "CategoriesAddedId");
 
-                        db.query(query, [item], (err, results) => {
-                            if (err) reject(new Error(err.message))
-
-                            categoryId = results;
-                            console.log("Category id: " + sizeId);
-                        })
-                        db.query(query1, [id, categoryId], (err, results) => {
-                            if (err) reject(new Error(err.message))
-                            console.log("Successfuly added: " + item);
-                        })
-
-                    })
+                            // Now that sizeId is resolved, you can proceed with the next query
+                            await new Promise((resolve, reject) => {
+                                db.query(query1, [id, CategoryId], (err, results) => {
+                                    if (err) reject(new Error(err.message));
+                                    console.log("Successfully added: " + item);
+                                    resolve();
+                                });
+                            });
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    });
                 }
 
                 if (categoriesRemoved !== null) {
 
-                    categoriesRemoved.forEach(item => {
 
-                        const query = `SELECT category_id FROM product_category WHERE category_name = ?`
-                        const query1 = `DELETE FROM product_category_link WHERE product_id = ? AND category_id = ?`
 
-                        let categoryId;
+                    categoriesRemoved.forEach(async (item) => {
+                        try {
+                            const query = `SELECT category_id FROM product_category WHERE category_name = ?`
+                            const query1 = `DELETE FROM product_category_link WHERE product_id = ? AND category_id = ?`
 
-                        db.query(query, [item], (err, results) => {
+
+                            // Wrap the db.query operation in a promise
+                            const CategoryId = await new Promise((resolve, reject) => {
+                                db.query(query, [item], (err, results) => {
+                                    if (err) reject(new Error(err.message));
+                                    resolve(results[0].category_id);
+                                });
+                            });
+
+                            console.log(CategoryId + "CategoriesRemovedId");
+
+                            // Now that sizeId is resolved, you can proceed with the next query
+                            await new Promise((resolve, reject) => {
+                                db.query(query1, [id, CategoryId], (err, results) => {
+                                    if (err) reject(new Error(err.message));
+                                    console.log("Successfully added: " + item);
+                                    resolve();
+                                });
+                            });
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    });
+
+                }
+
+                const removePicsArray = [];
+                if (!Array.isArray(removePics)) {
+                    removePicsArray.push(removePics);
+                } else if (Array.isArray(removePics)) {
+                    removePics.forEach(item => {
+                        removePicsArray.push(item);
+                    })
+                }
+                console.log("Remove PICSSSS: " + removePicsArray);
+
+                if (removePicsArray != null) {
+
+                    removePicsArray.forEach(item => {
+                        try {
+
+                            const removeUrl = item.substring("/".length);
+                            const query = `DELETE FROM product_images WHERE image_url = ? AND product_id = ?`
+
+                            // Wrap the db.query operation in a promise
+                            db.query(query, [removeUrl, id], (err, results) => {
+                                if (err) reject(new Error(err.message));
+                                resolve();
+                            });
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    });
+                }
+
+                if (images != null) {
+                    images.forEach(item => {
+
+                        const query = `INSERT INTO product_images (product_id, image_url) VALUES (?, ?)`
+
+                        db.query(query, [id, item], (err, results) => {
                             if (err) reject(new Error(err.message))
-
-                            categoryId = results;
-                            console.log("Category id: " + sizeId);
-                        })
-                        db.query(query1, [id, categoryId], (err, results) => {
-                            if (err) reject(new Error(err.message))
-                            console.log("Successfuly removed: " + item);
+                            console.log("Successfully added: " + item);
                         })
 
                     })
                 }
 
-                const query = `SELECT product_id FROM product WHERE product_name = ?`;
-
-                db.query(query, [title], (err, results) => {
-                    if (err) reject(new Error(err.message));
-
-                    console.log("Product id: " + results[0].product_id);
-                    resolve(results[0].product_id);
-
-                });
-
-                const query3 = `INSERT INTO product_images (product_id, image_url) VALUES (?, ?)`;
-
-                images.forEach(item => {
-
-                    db.query(query3, [id, item], (err, results) => {
-                        if (err) reject(new Error(err.message))
-                        console.log("Successfully added: " + item);
-                    })
-
-                })
+                resolve();
 
             });
+
+            const renameImageSrc = await new Promise((resolve, reject) => {
+                try {
+
+                    const query = `SELECT image_url FROM product_images WHERE product_id = ?`;
+
+                    db.query(query, [id], (err, results) => {
+                        if (err) reject(new Error(err.message))
+
+                        resolve(results);
+                    })
+                } catch (error) {
+                    console.error(error);
+                }
+            })
+
+            //console.log(renameImageSrc[0].image_url);
+
+            const renameImageArray = [];
+
+            renameImageSrc.forEach(item => {
+                renameImageArray.push(item.image_url);
+            })
+
+            new Promise((resolve, reject) => {
+                try {
+
+                    renameImageArray.forEach(item => {
+                        const query = `UPDATE product_images SET image_url = ? WHERE product_id = ? AND image_url = ?`;
+
+                        const imageUrl = "images/products/" + title + "/" + item.split('/').pop();
+
+                        console.log(imageUrl);
+
+
+                        db.query(query, [imageUrl, id, item], (err, results) => {
+                            if (err) reject(new Error(err.message))
+
+                            console.log("Changed Picture Path to: " + imageUrl);
+                            resolve();
+                        })
+                    })
+                } catch (error) {
+                    console.error(error);
+                }
+            })
+
+            return true;
+
+            //console.log(response2);
 
         } catch (error) {
             console.log(error);

@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log(file.name)
 
-        const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
+        const allowedTypes = ['.jpeg', '.jpg', '.JPG', '.png', '.webp', '.gif'];
 
         const isValidFileType = allowedTypes.some(ext => file.name.endsWith(ext));
 
@@ -223,6 +223,10 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => {
                     console.log("File uploaded!")
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 400);
                 })
                 .catch(error => {
                     console.log(error);
@@ -230,10 +234,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             alert('File is not an image type!');
         }
-
-        setTimeout(() => {
-            location.reload();
-        }, 400);
 
     }
 
@@ -797,6 +797,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 setTimeout(() => {
                                     productEdit.style.display = "none";
+
+                                    const editSizes = document.querySelectorAll('.edit-product .product-size-wrapper div input');
+                                    const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input')
+
+                                    editSizes.forEach(input => {
+
+                                        input.checked = false;
+
+                                    })
+
+                                    editCategories.forEach(input => {
+
+                                        input.checked = false;
+
+                                    })
+
+                                    const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
+
+                                    while (productPictures.firstChild) {
+                                        productPictures.removeChild(productPictures.firstChild);
+                                    }
                                 }, 400);
                             })
 
@@ -873,6 +894,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                     console.log(categoryValueArray);
                                     console.log(Array.isArray(categoryValueArray));
 
+
+                                    const imagePath = data[1].map(item => item.image_url);
+
+                                    console.log(imagePath);
+
                                     editSizes.forEach(input => {
                                         if (sizeValueArray.includes(input.value)) {
                                             input.checked = true;
@@ -888,6 +914,79 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                     editorDescEdit.root.innerHTML = data[0].description;
                                     editorDetailsEdit.root.innerHTML = data[0].details;
+
+                                    const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
+
+                                    imagePath.forEach((item, index) => {
+
+                                        const div = document.createElement('div');
+                                        const checkbox = document.createElement('input');
+                                        checkbox.type = "checkbox";
+                                        checkbox.name = "image";
+                                        checkbox.value = index;
+                                        checkbox.style.display = "none";
+                                        checkbox.style.opacity = "0";
+                                        const image = document.createElement('img');
+                                        image.width = "100";
+                                        image.height = "100";
+                                        image.src = item;
+
+                                        div.appendChild(checkbox);
+                                        div.appendChild(image);
+                                        productPictures.appendChild(div);
+
+                                    })
+
+                                    const imgCheckBox = document.querySelectorAll('.img-box div input');
+                                    const imgDiv = document.querySelectorAll('.img-box div');
+                                    const images = document.querySelectorAll('.img-box div img');
+
+                                    imgDiv.forEach((item, index) => {
+                                        let isHovering = false;
+                                        let isChecked = false;
+
+                                        item.addEventListener('mouseenter', () => {
+                                            isHovering = true;
+                                            showCheckbox(index);
+                                        });
+
+                                        item.addEventListener('mouseleave', () => {
+                                            isHovering = false;
+                                            hideCheckbox(index);
+                                        });
+
+                                        imgCheckBox[index].addEventListener('mouseenter', () => {
+                                            isHovering = true;
+                                            showCheckbox(index);
+                                        });
+
+                                        imgCheckBox[index].addEventListener('click', () => {
+                                            if (imgCheckBox[index].checked) {
+                                                isChecked = true; // Set isHovering to true when the checkbox is checked
+                                                images[index].style.filter = "brightness(50%)";
+                                            } else {
+                                                isChecked = false; // Set isHovering to false when the checkbox is unchecked
+                                                images[index].style.filter = "brightness(100%)";
+                                            }
+                                        });
+
+                                        function showCheckbox(index) {
+                                            imgCheckBox[index].style.display = 'block';
+                                            imgCheckBox[index].style.opacity = 1;
+                                        }
+
+                                        function hideCheckbox(index) {
+                                            if (!isHovering) {
+                                                if (!isChecked) {
+                                                    imgCheckBox[index].style.opacity = 0;
+                                                    setTimeout(() => {
+                                                        imgCheckBox[index].style.display = 'none';
+                                                    }, 400);
+
+                                                }
+                                            }
+                                        }
+                                    })
 
                                     const confirmEditButton = document.querySelector('.edit-product .edit-button');
 
@@ -917,6 +1016,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                         })
 
+                                        const removeImagesCheckbox = document.querySelectorAll('.edit-product .img-wrapper .img-box div input');
+                                        const removeImages = document.querySelectorAll('.edit-product .img-wrapper .img-box div img');
+
+                                        const removeImagesArray = [];
+
+                                        removeImagesCheckbox.forEach((item, index) => {
+
+                                            if (item.checked) {
+
+                                                const imageUrl = removeImages[index].src;
+
+                                                const newUrl = new URL(imageUrl);
+                                                removeImagesArray.push(newUrl.pathname);
+
+                                            }
+                                        })
+
+                                        console.log(removeImagesArray);
+
                                         const productPicture = document.getElementById('productPictureEdit');
                                         const picture = productPicture.files;
 
@@ -938,13 +1056,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                             formData.append('file', file); // Append each file to the FormData object
                                         }
 
+                                        for (let i = 0; i < removeImagesArray.length; i++) {
+                                            formData.append('removePics', removeImagesArray[i]);
+                                        }
+
                                         formData.append('price', editPrice.value);
 
 
                                         sizeValueArray.forEach(item => {
                                             formData.append('oldSizes', item)
                                         })
-                                        
+
                                         sizeArray.forEach(item => {
                                             formData.append('sizes', item);
                                         })
@@ -952,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         categoryValueArray.forEach(item => {
                                             formData.append('oldCategories', item)
                                         })
-                                        
+
                                         console.log(sizeArray);
                                         categoryArray.forEach(item => {
                                             formData.append('categories', item);
@@ -970,6 +1092,34 @@ document.addEventListener('DOMContentLoaded', function () {
                                             .then(response => {
                                                 if (response.ok) {
                                                     alert('Product edited successfully!');
+
+                                                    productEdit.style.opacity = 0;
+
+                                                    setTimeout(() => {
+                                                        productEdit.style.display = "none";
+
+                                                        const editSizes = document.querySelectorAll('.edit-product .product-size-wrapper div input');
+                                                        const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input')
+
+                                                        editSizes.forEach(input => {
+
+                                                            input.checked = false;
+
+                                                        })
+
+                                                        editCategories.forEach(input => {
+
+                                                            input.checked = false;
+
+                                                        })
+
+                                                        const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
+
+                                                        while (productPictures.firstChild) {
+                                                            productPictures.removeChild(productPictures.firstChild);
+                                                        }
+                                                    }, 400);
+
                                                 } else {
                                                     alert('Error editing product!');
                                                 }
@@ -1065,59 +1215,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         })
 
-
-
-
-        const imgCheckBox = document.querySelectorAll('.img-box div input');
-        const imgDiv = document.querySelectorAll('.img-box div');
-        const images = document.querySelectorAll('.img-box div img');
-
-        imgDiv.forEach((item, index) => {
-            let isHovering = false;
-            let isChecked = false;
-
-            item.addEventListener('mouseenter', () => {
-                isHovering = true;
-                showCheckbox(index);
-            });
-
-            item.addEventListener('mouseleave', () => {
-                isHovering = false;
-                hideCheckbox(index);
-            });
-
-            imgCheckBox[index].addEventListener('mouseenter', () => {
-                isHovering = true;
-                showCheckbox(index);
-            });
-
-            imgCheckBox[index].addEventListener('click', () => {
-                if (imgCheckBox[index].checked) {
-                    isChecked = true; // Set isHovering to true when the checkbox is checked
-                    images[index].style.filter = "brightness(50%)";
-                } else {
-                    isChecked = false; // Set isHovering to false when the checkbox is unchecked
-                    images[index].style.filter = "brightness(100%)";
-                }
-            });
-
-            function showCheckbox(index) {
-                imgCheckBox[index].style.display = 'block';
-                imgCheckBox[index].style.opacity = 1;
-            }
-
-            function hideCheckbox(index) {
-                if (!isHovering) {
-                    if (!isChecked) {
-                        imgCheckBox[index].style.opacity = 0;
-                        setTimeout(() => {
-                            imgCheckBox[index].style.display = 'none';
-                        }, 400);
-
-                    }
-                }
-            }
-        })
 
     })
 
