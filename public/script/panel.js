@@ -671,24 +671,107 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.log(data.categories);
 
                     console.log("HELLO");
-                    const sizeWrapper = document.querySelectorAll('.product-size-wrapper');
+                    const sizeWrapper = document.querySelectorAll('.product-form-price-wrapper .product-size-wrapper');
                     sizeWrapper.forEach((wrapper) => {
+
+                        const select = document.createElement('select');
+                        select.name = "size";
+                        select.classList.add('product-size');
+
                         data.sizes.forEach((item) => {
-                            const input = document.createElement('input');
-                            input.type = 'checkbox';
-                            input.name = 'size';
-                            input.value = item.size_value;
-                            const label = document.createElement('label');
-                            label.textContent = item.size_value;
-                            label.setAttribute("for", "size");
-                            const div = document.createElement('div');
 
-                            div.appendChild(input);
-                            div.appendChild(label);
-
-                            wrapper.appendChild(div);
+                            const option = document.createElement('option');
+                            option.setAttribute('value', item.size_value);
+                            option.textContent = item.size_value;
+                            select.appendChild(option);
                         })
+
+                        const option = document.createElement('option');
+                        option.setAttribute('value', 'remove-size');
+                        option.textContent = 'Remove a size';
+
+                        select.appendChild(option);
+                        const option1 = document.createElement('option');
+                        option1.setAttribute('value', 'add-size');
+                        option1.textContent = 'Add a size';
+
+                        select.appendChild(option1);
+                        wrapper.appendChild(select);
+
                     });
+
+                    const sizeSelector = document.querySelectorAll('.product-form-price-wrapper .product-size-wrapper .product-size');
+
+                    const addSizeWrapper = document.querySelector('.add-size-wrapper');
+                    const removeSizeWrapper = document.querySelector('.remove-size-wrapper')
+
+                    console.log(sizeSelector);
+                    sizeSelector.forEach((selector) => {
+
+                        console.log(selector);
+
+                        selector.addEventListener('change', () => {
+
+                            if (selector.value === 'add-size') {
+
+                                selector.selectedIndex = 0;
+                                addSizeWrapper.style.display = "flex";
+                                addSizeWrapper.style.opacity = 1;
+
+                                const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
+
+                                closeBtn.addEventListener('click', () => {
+                                    addSizeWrapper.style.opacity = 0;
+
+                                    setTimeout(() => {
+                                        addSizeWrapper.style.display = "none";
+                                    }, 400);
+                                })
+
+                                const submitBtn = document.querySelector('.add-size-wrapper .button');
+
+                                submitBtn.addEventListener('click', addSizeHandler);
+                            } else if (selector.value === 'remove-size') {
+                                const removeSizeInputs = document.querySelector('.remove-size-inputs');
+                                data.sizes.forEach((item) => {
+                                    const input = document.createElement('input');
+                                    input.type = 'checkbox';
+                                    input.name = 'size';
+                                    input.value = item.size_value;
+                                    const label = document.createElement('label');
+                                    label.textContent = item.size_value;
+                                    label.setAttribute("for", "size");
+                                    const div = document.createElement('div');
+
+                                    div.appendChild(input);
+                                    div.appendChild(label);
+
+                                    removeSizeInputs.appendChild(div);
+                                })
+
+                                selector.selectedIndex = 0;
+                                removeSizeWrapper.style.display = "flex";
+                                removeSizeWrapper.style.opacity = 1;
+
+                                const closeBtn = document.querySelector('.remove-size-wrapper .close-btn');
+
+                                closeBtn.addEventListener('click', () => {
+                                    removeSizeWrapper.style.opacity = 0;
+
+                                    setTimeout(() => {
+                                        removeSizeWrapper.style.display = "none";
+                                        while (removeSizeInputs.firstChild) {
+                                            removeSizeInputs.removeChild(removeSizeInputs.firstChild);
+                                        }
+                                    }, 400);
+                                })
+
+                                const submitBtn = document.querySelector('.remove-size-wrapper .button');
+
+                                submitBtn.addEventListener('click', removeSizeHandler);
+                            }
+                        })
+                    })
 
                     const categoryWrapper = document.querySelectorAll('.product-category-wrapper');
                     categoryWrapper.forEach((wrapper) => {
@@ -823,26 +906,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             const addSize = document.querySelector('.product-edit .add-size');
 
-                            const addSizeWrapper = document.querySelector('.add-size-wrapper');
-
                             addSize.addEventListener('click', () => {
-                                addSizeWrapper.style.display = "flex";
-                                addSizeWrapper.style.opacity = 1;
-
-                                const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
-
-                                closeBtn.addEventListener('click', () => {
-                                    addSizeWrapper.style.opacity = 0;
-
-                                    setTimeout(() => {
-                                        addSizeWrapper.style.display = "none";
-                                    }, 400);
-                                })
-
-                                const submitBtn = document.querySelector('.add-size-wrapper .button');
-
-                                submitBtn.addEventListener('click', addSizeHandler)
-                            })
+                                addPriceSizeHandlerEdit(data);
+                            });
 
                             const addCategory = document.querySelector('.product-edit .add-category');
 
@@ -1136,84 +1202,74 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     })
 
+                    const addProductButton = document.querySelector('.add-a-product');
+
+
+
+                    addProductButton.addEventListener('click', () => {
+
+                        const productCreation = document.querySelector('.product-creation');
+
+                        productCreation.style.display = "block";
+                        productCreation.style.opacity = 1;
+
+                        const closeBtn = document.querySelector('.product-creation .close-btn');
+
+                        closeBtn.addEventListener('click', () => {
+                            productCreation.style.opacity = 0;
+
+                            setTimeout(() => {
+                                productCreation.style.display = "none";
+                            }, 400);
+                        })
+
+                        const addSizeCreate = document.querySelector('.product-creation .add-size');
+
+                        const addSizeWrapper = document.querySelector('.add-size-wrapper');
+
+                        console.log(addSizeCreate);
+
+                        addSizeCreate.addEventListener('click', () => {
+                            console.log(data);
+                            addPriceSizeHandlerCreate(data);
+                        })
+
+                        const addCategory = document.querySelector('.product-creation .add-category');
+
+                        const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+
+                        addCategory.addEventListener('click', () => {
+                            addCategoryWrapper.style.display = "flex";
+                            addCategoryWrapper.style.opacity = 1;
+
+                            const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+                                addCategoryWrapper.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    addCategoryWrapper.style.display = "none";
+                                }, 400);
+                            })
+
+                            const submitBtn = document.querySelector('.add-category-wrapper .button');
+
+                            submitBtn.addEventListener('click', addCategoryHandler);
+                        })
+
+
+                        const createProductBtn = document.querySelector('.product-creation .creation-button');
+
+                        createProductBtn.addEventListener('click', handleProductCreation);
+
+                    })
+
                 })
 
             isAdded = true;
         }
 
-        const addProductButton = document.querySelector('.add-a-product');
 
-
-
-        addProductButton.addEventListener('click', () => {
-
-            const productCreation = document.querySelector('.product-creation');
-
-            productCreation.style.display = "block";
-            productCreation.style.opacity = 1;
-
-            const closeBtn = document.querySelector('.product-creation .close-btn');
-
-            closeBtn.addEventListener('click', () => {
-                productCreation.style.opacity = 0;
-
-                setTimeout(() => {
-                    productCreation.style.display = "none";
-                }, 400);
-            })
-
-            const addSize = document.querySelector('.product-creation .add-size');
-
-            const addSizeWrapper = document.querySelector('.add-size-wrapper');
-
-            addSize.addEventListener('click', () => {
-                addSizeWrapper.style.display = "flex";
-                addSizeWrapper.style.opacity = 1;
-
-                const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
-
-                closeBtn.addEventListener('click', () => {
-                    addSizeWrapper.style.opacity = 0;
-
-                    setTimeout(() => {
-                        addSizeWrapper.style.display = "none";
-                    }, 400);
-                })
-
-                const submitBtn = document.querySelector('.add-size-wrapper .button');
-
-                submitBtn.addEventListener('click', addSizeHandler)
-            })
-
-            const addCategory = document.querySelector('.product-creation .add-category');
-
-            const addCategoryWrapper = document.querySelector('.add-category-wrapper');
-
-            addCategory.addEventListener('click', () => {
-                addCategoryWrapper.style.display = "flex";
-                addCategoryWrapper.style.opacity = 1;
-
-                const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
-
-                closeBtn.addEventListener('click', () => {
-                    addCategoryWrapper.style.opacity = 0;
-
-                    setTimeout(() => {
-                        addCategoryWrapper.style.display = "none";
-                    }, 400);
-                })
-
-                const submitBtn = document.querySelector('.add-category-wrapper .button');
-
-                submitBtn.addEventListener('click', addCategoryHandler);
-            })
-
-
-            const createProductBtn = document.querySelector('.product-creation .creation-button');
-
-            createProductBtn.addEventListener('click', handleProductCreation);
-
-        })
 
 
     })
@@ -1335,6 +1391,144 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
+    function addPriceSizeHandlerEdit(data) {
+        const productPriceWrapper = document.querySelector('.product-edit .product-form-price-wrapper');
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('product-form-price-row');
+
+        const input = document.createElement('input');
+        input.classList.add('product-form-price');
+        input.placeholder = "ex. 399.99";
+
+        const sizeWrapper = document.createElement('div');
+        sizeWrapper.classList.add('product-size-wrapper');
+
+        const select = document.createElement('select');
+        select.name = "size";
+        select.classList.add('product-size');
+
+        data.sizes.forEach((item) => {
+
+            const option = document.createElement('option');
+            option.setAttribute('value', item.size_value);
+            option.textContent = item.size_value;
+            select.appendChild(option);
+        })
+
+        const option = document.createElement('option');
+        option.setAttribute('value', 'remove-size');
+        option.textContent = 'Remove a size';
+
+        select.appendChild(option);
+        const option1 = document.createElement('option');
+        option1.setAttribute('value', 'add-size');
+        option1.textContent = 'Add a size';
+
+        select.appendChild(option1);
+        sizeWrapper.appendChild(select);
+
+        const sizeDiv = document.createElement('div');
+        sizeDiv.classList.add('add-product');
+        sizeDiv.classList.add('add-size');
+
+        const div = document.createElement('div');
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svg.setAttribute("width", "20");
+        svg.setAttribute("height", "20");
+        svg.setAttribute("viewBox", "0 0 20 20");
+        svg.setAttribute("fill", "none");
+
+        // Create path element
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z");
+        path.setAttribute("fill", "#67A329");
+
+        // Append path to SVG
+        svg.appendChild(path);
+
+        div.appendChild(svg);
+        sizeDiv.appendChild(div);
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(sizeWrapper);
+        wrapper.appendChild(sizeDiv);
+        productPriceWrapper.appendChild(wrapper);
+
+        sizeDiv.addEventListener('click', () => {
+            addPriceSizeHandler(data);
+        });
+    }
+
+    function addPriceSizeHandlerCreate(data) {
+        const productPriceWrapper = document.querySelector('.product-creation .product-form-price-wrapper');
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('product-form-price-row');
+
+        const input = document.createElement('input');
+        input.classList.add('product-form-price');
+        input.placeholder = "ex. 399.99";
+
+        const sizeWrapper = document.createElement('div');
+        sizeWrapper.classList.add('product-size-wrapper');
+
+        const select = document.createElement('select');
+        select.name = "size";
+        select.classList.add('product-size');
+
+        data.sizes.forEach((item) => {
+
+            const option = document.createElement('option');
+            option.setAttribute('value', item.size_value);
+            option.textContent = item.size_value;
+            select.appendChild(option);
+        })
+
+        const option = document.createElement('option');
+        option.setAttribute('value', 'remove-size');
+        option.textContent = 'Remove a size';
+
+        select.appendChild(option);
+        const option1 = document.createElement('option');
+        option1.setAttribute('value', 'add-size');
+        option1.textContent = 'Add a size';
+
+        select.appendChild(option1);
+        sizeWrapper.appendChild(select);
+
+        const sizeDiv = document.createElement('div');
+        sizeDiv.classList.add('add-product');
+        sizeDiv.classList.add('add-size');
+
+        const div = document.createElement('div');
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svg.setAttribute("width", "20");
+        svg.setAttribute("height", "20");
+        svg.setAttribute("viewBox", "0 0 20 20");
+        svg.setAttribute("fill", "none");
+
+        // Create path element
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z");
+        path.setAttribute("fill", "#67A329");
+
+        // Append path to SVG
+        svg.appendChild(path);
+
+        div.appendChild(svg);
+        sizeDiv.appendChild(div);
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(sizeWrapper);
+        wrapper.appendChild(sizeDiv);
+        productPriceWrapper.appendChild(wrapper);
+
+        sizeDiv.addEventListener('click', () => {
+            addPriceSizeHandlerCreate(data);
+        });
+    }
+
     function addSizeHandler(event) {
 
         const sizeValue = document.querySelector('.product-size-value');
@@ -1368,22 +1562,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', error);
             });
 
-        const inputWrapper = document.querySelectorAll('.product-size-wrapper');
+        select = document.querySelectorAll('.product-size-wrapper .product-size');
 
-        inputWrapper.forEach((item) => {
+        select.forEach((item) => {
 
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.name = 'size';
-            input.value = sizeValue.value;
-            const label = document.createElement('label');
-            label.textContent = sizeValue.value;
-            label.setAttribute("for", "size");
-            const div = document.createElement('div');
-            div.appendChild(input);
-            div.appendChild(label);
-            item.appendChild(div);
+            const option = document.createElement('option');
+            option.setAttribute('value', data.size);
+            option.textContent = data.size;
+            item.appendChild(option);
+
+            const optionToRemove = Array.from(item.options).find((option) => option.value === 'remove-size');
+            const optionToRemove1 = Array.from(item.options).find((option) => option.value === 'add-size');
+
+            item.removeChild(optionToRemove);
+            item.removeChild(optionToRemove1);
+
+            const option1 = document.createElement('option');
+            option1.setAttribute('value', 'remove-size');
+            option1.textContent = 'Remove a size';
+            item.appendChild(option1);
+
+            const option2 = document.createElement('option');
+            option2.setAttribute('value', 'add-size');
+            option2.textContent = 'Add a size';
+            item.appendChild(option2);
+
+
         })
+
 
 
         const addSizeWrapper = document.querySelector('.add-size-wrapper');
@@ -1398,6 +1604,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }, 800);
 
+    }
+
+    function removeSizeHandler(event) {
+
+        const sizes = document.querySelectorAll('.remove-size-inputs div input');
+
+        const removeSizes = [];
+
+        sizes.forEach((item) => {
+            if (item.checked) {
+                removeSizes.push(item.value)
+            }
+        })
+
+        const formData = new FormData();
+
+        for (i = 0; i < removeSizes.length; i++) {
+            console.log(removeSizes[i]);
+            formData.append('sizes', removeSizes[i]);
+        }
+
+        console.log(formData);
+
+        fetch('/panel/products/removeSizes', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                formData.delete('sizes');
+                const status = document.querySelector('.remove-size-wrapper .status-size');
+                if (response.ok) {
+                    status.textContent = "Successfully removed!";
+                    status.classList.add('in-stock');
+                    status.classList.remove('out-of-stock');
+                } else {
+                    status.textContent = "Error removing sizes!";
+                    status.classList.remove('in-stock');
+                    status.classList.add('out-of-stock');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
 
     function addCategoryHandler(event) {

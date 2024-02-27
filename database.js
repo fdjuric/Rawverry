@@ -374,6 +374,77 @@ class dbService {
         }
     }
 
+    async removeProductSizes(sizes) {
+        try {
+            const sizesArray = [];
+
+            if(Array.isArray(sizes)){
+                sizesArray.push(...sizes);
+            }else {
+                sizesArray.push(sizes);
+            }
+
+            console.log(sizesArray);
+
+            const queryProductIds = `SELECT product_id FROM product`;
+
+            const productIds = new Promise((resolve, reject) => {
+
+                db.query(queryProductIds, (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                })
+
+            })
+
+            const id = await productIds;
+            const productId = id.map(ids => ids.product_id);
+            console.log(productId);
+
+            await Promise.all(sizesArray.map(async (size) => {
+                try {
+                    const querySizeIds = `SELECT size_id FROM product_size WHERE size_value = ?`;
+                    const queryRemoveProductSize = `DELETE FROM product_size_link WHERE product_id = ? AND size_id = ?`;
+                    const queryRemoveSize = `DELETE FROM product_size WHERE size_id = ?`;
+
+                    const sizeId = await new Promise((resolve, reject) => {
+                        db.query(querySizeIds, [size], (err, results) => {
+                            if (err) reject(new Error(err.message));
+                            resolve(results[0].size_id);
+                        });
+                    });
+
+                    console.log(sizeId);
+
+                    const removeProductSizePromises = productId.map((item) => {
+                        return new Promise((resolve, reject) => {
+                            db.query(queryRemoveProductSize, [item, sizeId], (err, results) => {
+                                if (err) reject(new Error(err.message));
+                                console.log("Successfully removed size: " + sizeId + " from product: " + item);
+                                resolve();
+                            });
+                        });
+                    });
+
+                    await Promise.all(removeProductSizePromises);
+
+                    await new Promise((resolve, reject) => {
+                        db.query(queryRemoveSize, [sizeId], (err, results) => {
+                            if (err) reject(new Error(err.message))
+                            console.log("Successfully removed size: " + sizeId);
+                            resolve();
+                        });
+                    });
+
+                } catch (error) {
+                    console.error(error);
+                }
+            }))
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     async getProductCategory() {
         try {
             const response = await new Promise((resolve, reject) => {
