@@ -378,9 +378,9 @@ class dbService {
         try {
             const sizesArray = [];
 
-            if(Array.isArray(sizes)){
+            if (Array.isArray(sizes)) {
                 sizesArray.push(...sizes);
-            }else {
+            } else {
                 sizesArray.push(sizes);
             }
 
@@ -466,9 +466,10 @@ class dbService {
     async getProducts() {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = `SELECT Product.product_id, Product.product_name, Product.product_price, Product.product_amount_bought_total, Product.product_price_reduced, Product.in_stock, Product.description, Product.details, Product.date_col, Product_images.image_url
+                const query = `SELECT Product.product_id, Product.product_name, Product_size_link.product_price, Product.product_amount_bought_total, Product_size_link.product_price_reduced, Product.in_stock, Product.description, Product.details, Product.date_col, Product_images.image_url
                 FROM Product
                 LEFT JOIN Product_Images ON Product.product_id = Product_Images.product_id
+                LEFT JOIN Product_size_link ON Product.product_id = Product_size_link.product_id
                 `;
 
                 db.query(query, (err, results) => {
@@ -560,196 +561,200 @@ class dbService {
         }
     }
 
-    async addProduct(title, price, description, details, size, category, images) {
+    async addProduct(title, price, description, details, category, images) {
         try {
 
-            const response1 = await new Promise((resolve, reject) => {
-                const query = `INSERT INTO product (product_name, product_price, description, details) VALUES (?, ?, ?, ?)`;
+            console.log(price);
+            console.log(price[0].price);
+            console.log(price[0].priceReduced);
 
-                db.query(query, [title, price, description, details], (err, results) => {
-                    if (err) reject(new Error(err.message));
-
-                    resolve(results);
-
-                });
-            });
-
-            const response2 = await new Promise((resolve, reject) => {
-                const query = `SELECT product_id FROM product WHERE product_name = ?`;
-
-                db.query(query, [title], (err, results) => {
-                    if (err) reject(new Error(err.message));
-
-                    console.log("Product id: " + results[0].product_id);
-                    resolve(results[0].product_id);
-
-                });
-            });
-
-            console.log([category]);
-            console.log('Hello: ' + category);
-
-            let promises1;
-
-            if (Array.isArray(category)) {
-
-                promises1 = category.map(item => {
-                    return new Promise((resolve, reject) => {
-                        const query = 'SELECT category_id FROM product_category WHERE category_name = ?';
-
-                        db.query(query, [item], (err, results) => {
-                            if (err) {
-                                reject(new Error(err.message));
-                            } else {
-                                if (results.length > 0) {
-                                    const categoryIds = results.map(result => result.category_id);
-                                    resolve(categoryIds);
-                                } else {
-                                    // Handle case where no results were found for the item
-                                    resolve(null);
-                                }
-                            }
-                        });
-                    });
-                });
-
-            } else {
-                promises1 = new Promise((resolve, reject) => {
-                    const query = 'SELECT category_id FROM product_category WHERE category_name = ?';
-
-                    db.query(query, [category], (err, results) => {
-                        if (err) {
-                            reject(new Error(err.message));
-                        } else {
-                            if (results.length > 0) {
-                                resolve(results[0].category_id);
-                            } else {
-                                // Handle case where no results were found for the item
-                                resolve(null);
-                            }
-                        }
-                    });
-
-                })
-            }
-
-            let response3;
-
-            if (Array.isArray(promises1)) {
-                response3 = await Promise.all(promises1);
-            } else {
-                response3 = [await promises1];
-            }
-
-            let promises2;
-
-            if (Array.isArray(size)) {
-
-                promises2 = size.map(item => {
-                    return new Promise((resolve, reject) => {
-                        const query = 'SELECT size_id FROM product_size WHERE size_value = ?';
-
-                        db.query(query, [item], (err, results) => {
-                            if (err) {
-                                reject(new Error(err.message));
-                            } else {
-                                if (results.length > 0) {
-                                    const sizeIds = results.map(result => result.size_id);
-                                    resolve(sizeIds);
-                                } else {
-                                    // Handle case where no results were found for the item
-                                    resolve(null);
-                                }
-                            }
-                        });
-                    });
-                });
-
-
-            } else {
-                promises2 = new Promise((resolve, reject) => {
-                    const query = 'SELECT size_id FROM product_size WHERE size_value = ?';
-
-                    db.query(query, [size], (err, results) => {
-                        if (err) {
-                            reject(new Error(err.message));
-                        } else {
-                            if (results.length > 0) {
-                                resolve(results[0].size_id);
-                            } else {
-                                // Handle case where no results were found for the item
-                                resolve(null);
-                            }
-                        }
-                    });
-                });
-
-            }
-
-            let response4;
-
-            if (Array.isArray(promises2)) {
-                response4 = await Promise.all(promises2);
-            } else {
-                response4 = [await promises2];
-            }
-
-            console.log(response3);
-            console.log(response4);
-            console.log("Arrays");
-
-            const dataArray = {
-                categories: response3,
-                sizes: response4
-            };
-
-            const response5 = await new Promise((resolve, reject) => {
-                const query1 = `INSERT INTO product_category_link (product_id, category_id) VALUES (?, ?)`;
-                const query2 = `INSERT INTO product_size_link (product_id, size_id) VALUES (?, ?)`;
-                const query3 = `INSERT INTO product_images (product_id, image_url) VALUES (?, ?)`;
-
-                const categoryArray = dataArray.categories;
-                const sizeArray = dataArray.sizes;
-
-                console.log("TEXT: ");
-                console.log(categoryArray);
-                console.log(sizeArray);
-                console.log(response2);
-
-                dataArray.categories.forEach((item) => {
-
-                    db.query(query1, [response2, item], (err, results) => {
-                        if (err) reject(new Error(err.message));
-
-                        resolve(results);
-
-                    });
-
-                })
-
-                dataArray.sizes.forEach((item) => {
-
-                    db.query(query2, [response2, item], (err, results) => {
-                        if (err) reject(new Error(err.message));
-
-                        resolve(results);
-
-                    });
-
-                })
-
-                images.forEach((item) => {
-
-                    db.query(query3, [response2, item], (err, results) => {
-                        if (err) reject(new Error(err.message));
-
-                        resolve(results);
-
-                    });
-
-                })
-            });
-
+             const response1 = await new Promise((resolve, reject) => {
+                 const query = `INSERT INTO product (product_name, product_amount_bought_total, description, details) VALUES (?, ?, ?, ?)`;
+ 
+                 db.query(query, [title, 0, description, details], (err, results) => {
+                     if (err) reject(new Error(err.message));
+ 
+                     resolve(results);
+ 
+                 });
+             });
+ 
+             const response2 = await new Promise((resolve, reject) => {
+                 const query = `SELECT product_id FROM product WHERE product_name = ?`;
+ 
+                 db.query(query, [title], (err, results) => {
+                     if (err) reject(new Error(err.message));
+ 
+                     console.log("Product id: " + results[0].product_id);
+                     resolve(results[0].product_id);
+ 
+                 });
+             });
+ 
+             console.log([category]);
+             console.log('Hello: ' + category);
+ 
+             let promises1;
+ 
+             if (Array.isArray(category)) {
+ 
+                 promises1 = category.map(item => {
+                     return new Promise((resolve, reject) => {
+                         const query = 'SELECT category_id FROM product_category WHERE category_name = ?';
+ 
+                         db.query(query, [item], (err, results) => {
+                             if (err) {
+                                 reject(new Error(err.message));
+                             } else {
+                                 if (results.length > 0) {
+                                     const categoryIds = results.map(result => result.category_id);
+                                     resolve(categoryIds);
+                                 } else {
+                                     // Handle case where no results were found for the item
+                                     resolve(null);
+                                 }
+                             }
+                         });
+                     });
+                 });
+ 
+             } else {
+                 promises1 = new Promise((resolve, reject) => {
+                     const query = 'SELECT category_id FROM product_category WHERE category_name = ?';
+ 
+                     db.query(query, [category], (err, results) => {
+                         if (err) {
+                             reject(new Error(err.message));
+                         } else {
+                             if (results.length > 0) {
+                                 resolve(results[0].category_id);
+                             } else {
+                                 // Handle case where no results were found for the item
+                                 resolve(null);
+                             }
+                         }
+                     });
+ 
+                 })
+             }
+ 
+             let response3;
+ 
+             if (Array.isArray(promises1)) {
+                 response3 = await Promise.all(promises1);
+             } else {
+                 response3 = [await promises1];
+             }
+ 
+             let promises2;
+ 
+             if (Array.isArray(price)) {
+ 
+                 promises2 = price.map(item => {
+                     return new Promise((resolve, reject) => {
+                         const query = 'SELECT size_id FROM product_size WHERE size_value = ?';
+ 
+                         db.query(query, [item.size], (err, results) => {
+                             if (err) {
+                                 reject(new Error(err.message));
+                             } else {
+                                 if (results.length > 0) {
+                                     const sizeIds = results.map(result => result.size_id);
+                                     resolve(sizeIds);
+                                 } else {
+                                     // Handle case where no results were found for the item
+                                     resolve(null);
+                                 }
+                             }
+                         });
+                     });
+                 });
+ 
+ 
+             } else {
+                 promises2 = new Promise((resolve, reject) => {
+                     const query = 'SELECT size_id FROM product_size WHERE size_value = ?';
+ 
+                     db.query(query, [price.size], (err, results) => {
+                         if (err) {
+                             reject(new Error(err.message));
+                         } else {
+                             if (results.length > 0) {
+                                 resolve(results[0].size_id);
+                             } else {
+                                 // Handle case where no results were found for the item
+                                 resolve(null);
+                             }
+                         }
+                     });
+                 });
+ 
+             }
+ 
+             let response4;
+ 
+             if (Array.isArray(promises2)) {
+                 response4 = await Promise.all(promises2);
+             } else {
+                 response4 = [await promises2];
+             }
+ 
+             console.log(response3);
+             console.log(response4);
+             console.log("Arrays");
+ 
+             const dataArray = {
+                 categories: response3,
+                 sizes: response4
+             };
+ 
+             const response5 = await new Promise((resolve, reject) => {
+                 const query1 = `INSERT INTO product_category_link (product_id, category_id) VALUES (?, ?)`;
+                 const query2 = `INSERT INTO product_size_link (product_id, size_id, product_price, product_price_reduced) VALUES (?, ?, ?, ?)`;
+                 const query3 = `INSERT INTO product_images (product_id, image_url) VALUES (?, ?)`;
+ 
+                 const categoryArray = dataArray.categories;
+                 const sizeArray = dataArray.sizes;
+ 
+                 console.log("TEXT: ");
+                 console.log(categoryArray);
+                 console.log(sizeArray);
+                 console.log(response2);
+ 
+                 dataArray.categories.forEach((item) => {
+ 
+                     db.query(query1, [response2, item], (err, results) => {
+                         if (err) reject(new Error(err.message));
+ 
+                         resolve(results);
+ 
+                     });
+ 
+                 })
+ 
+                 dataArray.sizes.forEach((item, index) => {
+ 
+                     db.query(query2, [response2, item, price[index].price, price[index].priceReduced], (err, results) => {
+                         if (err) reject(new Error(err.message));
+ 
+                         resolve(results);
+ 
+                     });
+ 
+                 })
+ 
+                 images.forEach((item) => {
+ 
+                     db.query(query3, [response2, item], (err, results) => {
+                         if (err) reject(new Error(err.message));
+ 
+                         resolve(results);
+ 
+                     });
+ 
+                 })
+             });
+ 
 
         } catch (error) {
             console.log(error);

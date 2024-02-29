@@ -1161,11 +1161,13 @@ app.get('/panel/products/getProduct/:id', checkPermission(['Admin', 'Editor']), 
 
 app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
-  const { title, price, size, category, description, details } = req.body;
+  const { title, price, category, description, details } = req.body;
 
   const files = req.files;
-  console.log(title, price, size, category, description, details);
+  console.log(title, price, category, description, details);
   console.log(files);
+
+  const priceData = price.map(jsonString => JSON.parse(jsonString));
 
   console.log(Array.isArray(category));
 
@@ -1177,7 +1179,7 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
 
   const db = dbService.getDbServiceInstance();
 
-  db.addProduct(title, price, description, details, size, category, fileNames)
+  db.addProduct(title, priceData, description, details, category, fileNames)
     .then((data) => {
       console.log("SUCCESS!");
     })

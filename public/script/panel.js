@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let prevSection = 0;
 
+    const removePrices = [];
+
     const navElement = document.querySelectorAll('nav div');
     const navSvg = document.querySelectorAll('nav div svg path');
     const navText = document.querySelectorAll('nav div p');
@@ -671,34 +673,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.log(data.categories);
 
                     console.log("HELLO");
-                    const sizeWrapper = document.querySelectorAll('.product-form-price-wrapper .product-size-wrapper');
-                    sizeWrapper.forEach((wrapper) => {
+                    const sizeWrapper = document.querySelector('.product-creation .product-form-price-wrapper .product-size-wrapper');
 
-                        const select = document.createElement('select');
-                        select.name = "size";
-                        select.classList.add('product-size');
+                    const select = document.createElement('select');
+                    select.name = "size";
+                    select.classList.add('product-size');
 
-                        data.sizes.forEach((item) => {
-
-                            const option = document.createElement('option');
-                            option.setAttribute('value', item.size_value);
-                            option.textContent = item.size_value;
-                            select.appendChild(option);
-                        })
+                    data.sizes.forEach((item) => {
 
                         const option = document.createElement('option');
-                        option.setAttribute('value', 'remove-size');
-                        option.textContent = 'Remove a size';
-
+                        option.setAttribute('value', item.size_value);
+                        option.textContent = item.size_value;
                         select.appendChild(option);
-                        const option1 = document.createElement('option');
-                        option1.setAttribute('value', 'add-size');
-                        option1.textContent = 'Add a size';
+                    })
 
-                        select.appendChild(option1);
-                        wrapper.appendChild(select);
+                    const option = document.createElement('option');
+                    option.setAttribute('value', 'remove-size');
+                    option.textContent = 'Remove a size';
 
-                    });
+                    select.appendChild(option);
+                    const option1 = document.createElement('option');
+                    option1.setAttribute('value', 'add-size');
+                    option1.textContent = 'Add a size';
+
+                    select.appendChild(option1);
+                    sizeWrapper.appendChild(select);
+
 
                     const sizeSelector = document.querySelectorAll('.product-form-price-wrapper .product-size-wrapper .product-size');
 
@@ -881,20 +881,19 @@ document.addEventListener('DOMContentLoaded', function () {
                                 setTimeout(() => {
                                     productEdit.style.display = "none";
 
-                                    const editSizes = document.querySelectorAll('.edit-product .product-size-wrapper div input');
-                                    const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input')
 
-                                    editSizes.forEach(input => {
-
-                                        input.checked = false;
-
-                                    })
+                                    const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input');
 
                                     editCategories.forEach(input => {
 
                                         input.checked = false;
 
                                     })
+
+                                    const priceRows = document.querySelectorAll('.product-edit .product-form-price-row');
+                                    for (let i = 0; i < priceRows.length; i++) {
+                                        priceRows[i].remove();
+                                    }
 
                                     const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
 
@@ -903,12 +902,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                     }
                                 }, 400);
                             })
-
-                            const addSize = document.querySelector('.product-edit .add-size');
-
-                            addSize.addEventListener('click', () => {
-                                addPriceSizeHandlerEdit(data);
-                            });
 
                             const addCategory = document.querySelector('.product-edit .add-category');
 
@@ -941,35 +934,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             fetch(`/panel/products/getProduct/${editProductId}`)
                                 .then(response => response.json())
-                                .then((data) => {
-                                    console.log(data);
+                                .then((dat) => {
+                                    console.log(dat);
 
                                     const editTitle = document.querySelector('.edit-product .product-form-title');
-                                    const editPrice = document.querySelector('.edit-product .product-form-price');
-                                    const editSizes = document.querySelectorAll('.edit-product .product-size-wrapper div input');
                                     const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input');
 
-                                    editTitle.value = data[0].product_name;
-                                    editPrice.value = data[0].product_price;
+                                    editTitle.value = dat[0].product_name;
 
-                                    const sizeValueArray = data[3].map(item => item.size_value)
+                                    const sizeValueArray = dat[3].map(item => ({
+                                        product_price: item.product_price,
+                                        product_price_reduced: item.product_price_reduced,
+                                        size_value: item.size_value
+                                    }));
                                     console.log(sizeValueArray);
                                     console.log(Array.isArray(sizeValueArray));
 
-                                    const categoryValueArray = data[2].map(item => item.category_name);
+                                    sizeValueArray.forEach((item) => {
+                                        addPriceSizeHandlerEdit(data, item);
+                                    })
+
+                                    const categoryValueArray = dat[2].map(item => item.category_name);
                                     console.log(categoryValueArray);
                                     console.log(Array.isArray(categoryValueArray));
 
 
-                                    const imagePath = data[1].map(item => item.image_url);
+                                    const imagePath = dat[1].map(item => item.image_url);
 
                                     console.log(imagePath);
-
-                                    editSizes.forEach(input => {
-                                        if (sizeValueArray.includes(input.value)) {
-                                            input.checked = true;
-                                        }
-                                    })
 
                                     editCategories.forEach(input => {
                                         if (categoryValueArray.includes(input.value)) {
@@ -978,8 +970,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                     })
 
 
-                                    editorDescEdit.root.innerHTML = data[0].description;
-                                    editorDetailsEdit.root.innerHTML = data[0].details;
+                                    editorDescEdit.root.innerHTML = dat[0].description;
+                                    editorDetailsEdit.root.innerHTML = dat[0].details;
 
                                     const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
 
@@ -1061,16 +1053,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         const productId = data[0].product_id;
                                         const oldTitle = data[0].product_name;
 
-                                        let sizeArray = [];
-
-                                        editSizes.forEach((item) => {
-
-                                            if (item.checked) {
-                                                sizeArray.push(item.value);
-                                            }
-
-                                        })
-
+                                        console.log(removePrices);
 
                                         let categoryArray = [];
 
@@ -1126,11 +1109,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                             formData.append('removePics', removeImagesArray[i]);
                                         }
 
-                                        formData.append('price', editPrice.value);
-
-
                                         sizeValueArray.forEach(item => {
-                                            formData.append('oldSizes', item)
+                                            formData.append('oldSizes[]', JSON.stringify(item))
                                         })
 
                                         sizeArray.forEach(item => {
@@ -1220,18 +1200,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             setTimeout(() => {
                                 productCreation.style.display = "none";
+                                const priceRows = document.querySelectorAll('.product-creation .product-form-price-row');
+                                for (let i = 1; i < priceRows.length; i++) {
+                                    priceRows[i].remove();
+                                }
                             }, 400);
                         })
 
                         const addSizeCreate = document.querySelector('.product-creation .add-size');
 
-                        const addSizeWrapper = document.querySelector('.add-size-wrapper');
-
-                        console.log(addSizeCreate);
-
                         addSizeCreate.addEventListener('click', () => {
                             console.log(data);
-                            addPriceSizeHandlerCreate(data);
+                            addPriceSizeHandlerCreate(data, addSizeCreate);
                         })
 
                         const addCategory = document.querySelector('.product-creation .add-category');
@@ -1282,7 +1262,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function handleProductCreation(event) {
 
-        const productPicture = document.getElementById("productPicture");
+        const form = document.querySelector('.create-product');
+
+        if(form.checkValidity()){
+
+            const productPicture = document.getElementById("productPicture");
         const picture = productPicture.files;
 
         const pictureArray = [];
@@ -1298,24 +1282,17 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log(title);
 
 
-        const productFormPrice = document.querySelector('.product-creation .product-form-price');
-        const price = productFormPrice.value;
+        const productFormPrice = document.querySelectorAll('.product-creation .product-form-price');
+        const productFormPriceReduced = document.querySelectorAll('.product-creation .product-form-price-reduced');
+        const productSize = document.querySelectorAll('.product-creation .product-size-wrapper .product-size');
 
-        console.log(price);
+        const pricePerSizeArray = [];
 
-        const productSize = document.querySelectorAll('.product-creation .product-size-wrapper div input');
+        for(let i=0; i<productFormPrice.length; i++){
+            pricePerSizeArray.push({price: productFormPrice[i].value, priceReduced: productFormPriceReduced[i].value, size: productSize[i].value});
+        }
 
-        let sizeArray = [];
-
-        productSize.forEach((item) => {
-
-            if (item.checked) {
-                sizeArray.push(item.value);
-            }
-
-        })
-
-        console.log(sizeArray);
+        console.log(pricePerSizeArray[0].price);
 
         const productCategory = document.querySelectorAll('.product-creation .product-category-wrapper div input');
 
@@ -1355,10 +1332,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(); // Create a FormData object
 
             formData.append('title', title);
-            formData.append('price', price);
-            for (let i = 0; i < sizeArray.length; i++) {
-                const size = sizeArray[i];
-                formData.append('size', size); // Append each file to the FormData object
+            for (let i = 0; i < pricePerSizeArray.length; i++) {
+                const size = pricePerSizeArray[i];
+                console.log(size);
+                formData.append('price[]', JSON.stringify(size)); // Append each file to the FormData object
             }
             for (let i = 0; i < categoryArray.length; i++) {
                 const category = categoryArray[i];
@@ -1388,10 +1365,16 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('The file is not a picture!');
         }
 
+        }else {
+            alert('Please fill the remaining fields');
+        }
+
+        
+
 
     }
 
-    function addPriceSizeHandlerEdit(data) {
+    function addPriceSizeHandlerEdit(data, item) {
         const productPriceWrapper = document.querySelector('.product-edit .product-form-price-wrapper');
         const wrapper = document.createElement('div');
         wrapper.classList.add('product-form-price-row');
@@ -1399,6 +1382,30 @@ document.addEventListener('DOMContentLoaded', function () {
         const input = document.createElement('input');
         input.classList.add('product-form-price');
         input.placeholder = "ex. 399.99";
+        input.setAttribute('required', true);
+        input.value = item.product_price;
+
+        const inputDiv = document.createElement('div');
+        inputDiv.classList.add('input-wrapper');
+        const inputTitle = document.createElement('p');
+        inputTitle.textContent = "Price";
+
+        inputDiv.appendChild(inputTitle);
+        inputDiv.appendChild(input);
+
+        const input1 = document.createElement('input');
+        input1.classList.add('product-form-price-reduced');
+        input1.placeholder = "ex. 399.99";
+        input1.setAttribute('required', true);
+        input1.value = item.product_price_reduced;
+
+        const input1Div = document.createElement('div');
+        input1Div.classList.add('input-wrapper');
+        const input1Title = document.createElement('p');
+        input1Title.textContent = "Reduced Price";
+
+        input1Div.appendChild(input1Title);
+        input1Div.appendChild(input1);
 
         const sizeWrapper = document.createElement('div');
         sizeWrapper.classList.add('product-size-wrapper');
@@ -1414,6 +1421,9 @@ document.addEventListener('DOMContentLoaded', function () {
             option.textContent = item.size_value;
             select.appendChild(option);
         })
+
+        const optionToSelect = Array.from(select.options).find((option) => option.value === item.size_value);
+        select.selectedIndex = Array.from(select.options).indexOf(optionToSelect);
 
         const option = document.createElement('option');
         option.setAttribute('value', 'remove-size');
@@ -1444,30 +1454,89 @@ document.addEventListener('DOMContentLoaded', function () {
         path.setAttribute("d", "M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z");
         path.setAttribute("fill", "#67A329");
 
-        // Append path to SVG
-        svg.appendChild(path);
 
+        const sizeDiv1 = document.createElement('div');
+        sizeDiv1.classList.add('add-product');
+        sizeDiv1.classList.add('remove-size');
+
+        const div1 = document.createElement('div');
+
+        const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg1.setAttribute("width", "20");
+        svg1.setAttribute("height", "20");
+        svg1.setAttribute("viewBox", "0 0 24 25");
+        svg1.setAttribute("fill", "none");
+
+        // Create path element
+        const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path1.setAttribute("d", "M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z");
+        path1.setAttribute("fill", "#67A329");
+
+        // Append path to the SVG element
+        svg.appendChild(path);
+        svg1.appendChild(path1);
+
+        div1.appendChild(svg1);
         div.appendChild(svg);
+        sizeDiv1.appendChild(div1);
         sizeDiv.appendChild(div);
 
-        wrapper.appendChild(input);
+        wrapper.appendChild(inputDiv);
+        wrapper.appendChild(input1Div);
         wrapper.appendChild(sizeWrapper);
         wrapper.appendChild(sizeDiv);
+        wrapper.appendChild(sizeDiv1);
         productPriceWrapper.appendChild(wrapper);
 
         sizeDiv.addEventListener('click', () => {
-            addPriceSizeHandler(data);
+            addPriceSizeHandlerCreate(data, sizeDiv);
         });
+
+        sizeDiv1.addEventListener('click', () => {
+            removePriceHandler(sizeDiv1, productPriceWrapper);
+        })
+
+        const buttons = document.querySelectorAll('.product-edit .product-form-price-wrapper .add-size');
+        const buttonToRemove = document.querySelectorAll('.product-edit .product-form-price-wrapper .remove-size');
+        buttonToRemove[0].style.display = "none";
+        for (let i = 0; i < buttons.length - 1; i++) {
+            buttons[i].style.display = "none";
+        }
+
     }
 
-    function addPriceSizeHandlerCreate(data) {
-        const productPriceWrapper = document.querySelector('.product-creation .product-form-price-wrapper');
+    function addPriceSizeHandlerCreate(data, button) {
+
+        button.style.display = "none";
+        const productPriceWrapper = button.closest('.product-form-price-wrapper');
         const wrapper = document.createElement('div');
         wrapper.classList.add('product-form-price-row');
 
         const input = document.createElement('input');
         input.classList.add('product-form-price');
         input.placeholder = "ex. 399.99";
+        input.setAttribute('required', true);
+
+        const inputDiv = document.createElement('div');
+        inputDiv.classList.add('input-wrapper');
+        const inputTitle = document.createElement('p');
+        inputTitle.textContent = "Price";
+
+        inputDiv.appendChild(inputTitle);
+        inputDiv.appendChild(input);
+
+        const input1 = document.createElement('input');
+        input1.classList.add('product-form-price-reduced');
+        input1.placeholder = "ex. 399.99";
+        input1.setAttribute('required', true);
+
+        const input1Div = document.createElement('div');
+        input1Div.classList.add('input-wrapper');
+        const input1Title = document.createElement('p');
+        input1Title.textContent = "Reduced Price";
+
+        input1Div.appendChild(input1Title);
+        input1Div.appendChild(input1);
 
         const sizeWrapper = document.createElement('div');
         sizeWrapper.classList.add('product-size-wrapper');
@@ -1513,20 +1582,76 @@ document.addEventListener('DOMContentLoaded', function () {
         path.setAttribute("d", "M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z");
         path.setAttribute("fill", "#67A329");
 
-        // Append path to SVG
-        svg.appendChild(path);
 
+        const sizeDiv1 = document.createElement('div');
+        sizeDiv1.classList.add('add-product');
+        sizeDiv1.classList.add('remove-size');
+        sizeDiv1.classList.add('temp');
+
+        const div1 = document.createElement('div');
+
+        const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg1.setAttribute("width", "20");
+        svg1.setAttribute("height", "20");
+        svg1.setAttribute("viewBox", "0 0 24 25");
+        svg1.setAttribute("fill", "none");
+
+        // Create path element
+        const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path1.setAttribute("d", "M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z");
+        path1.setAttribute("fill", "#67A329");
+
+        // Append path to the SVG element
+        svg.appendChild(path);
+        svg1.appendChild(path1);
+
+        div1.appendChild(svg1);
         div.appendChild(svg);
+        sizeDiv1.appendChild(div1);
         sizeDiv.appendChild(div);
 
-        wrapper.appendChild(input);
+        wrapper.appendChild(inputDiv);
+        wrapper.appendChild(input1Div);
         wrapper.appendChild(sizeWrapper);
         wrapper.appendChild(sizeDiv);
+        wrapper.appendChild(sizeDiv1);
         productPriceWrapper.appendChild(wrapper);
 
         sizeDiv.addEventListener('click', () => {
-            addPriceSizeHandlerCreate(data);
-        });
+            addPriceSizeHandlerCreate(data, sizeDiv);
+        })
+
+        sizeDiv1.addEventListener('click', () => {
+            removePriceHandler(sizeDiv1, productPriceWrapper);
+
+        })
+    }
+
+    function removePriceHandler(button, wrapper) {
+
+        const parent = button.closest('.product-form-price-row');
+
+        const priceValue = parent.querySelector('.product-form-price').value;
+        const priceReducedValue = parent.querySelector('.product-form-price-reduced').value;
+        const sizeValue = parent.querySelector('.product-size').value;
+
+        console.log(priceValue);
+        console.log(sizeValue);
+
+        if (button.classList.contains('temp')) {
+            parent.remove();
+        } else {
+            removePrices.push({ price: priceValue, priceReduced: priceReducedValue, size: sizeValue });
+            parent.remove();
+            console.log(removePrices);
+        }
+        const buttons = wrapper.querySelectorAll('.add-size');
+        console.log(buttons);
+        const buttonToAdd = buttons[buttons.length - 1];
+        console.log(buttonToAdd);
+        buttonToAdd.style.display = "flex";
+        const buttonToRemove = wrapper.querySelectorAll('.remove-size');
+        buttonToRemove[0].style.display = "none";
     }
 
     function addSizeHandler(event) {
@@ -1610,11 +1735,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const sizes = document.querySelectorAll('.remove-size-inputs div input');
 
+        const selectContainer = document.querySelectorAll('.product-size-wrapper .product-size');
+
         const removeSizes = [];
 
         sizes.forEach((item) => {
             if (item.checked) {
                 removeSizes.push(item.value)
+
+                selectContainer.forEach((container) => {
+                    const optionToRemove = Array.from(container.options).find((option) => option.value === item.value);
+                    container.removeChild(optionToRemove);
+                })
             }
         })
 

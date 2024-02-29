@@ -357,6 +357,7 @@ td div {
 .two-row {
     display: flex;
     gap: 40px;
+    justify-content: space-between;
 }
 
 .product-creation, .product-edit {
@@ -422,7 +423,7 @@ td div {
 }
 
 .img-wrapper {
-    width: 40%;
+    width: 30%;
     display: flex;
     flex-direction: column;
     align-items: end;
@@ -479,8 +480,8 @@ td div {
 
 
 
-.product-form-title, .product-form-price {
-    max-width: 200px;
+.product-form-title, .product-form-price, .product-form-price-reduced {
+    max-width: 100px;
     width: 100%;
     padding: 10px;
     outline: var(--gray-accent);
@@ -492,6 +493,7 @@ td div {
     gap: 20px;
     align-items: center;
     flex-wrap: wrap;
+    padding: 10px;
 }
 
 .product-form-price-wrapper {
@@ -504,7 +506,7 @@ td div {
 .product-form-price-row{
     display: flex;
     gap: 20px;
-    align-items: center;
+    align-items: end;
 }
 
 .product-size-wrapper, .product-category-wrapper {
@@ -556,6 +558,7 @@ td div {
     gap: 20px;
     justify-content: center;
     align-items: center;
+    padding: 5px;
 }
 
 .add-product div {
