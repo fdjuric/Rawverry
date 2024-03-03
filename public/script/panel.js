@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let prevSection = 0;
 
     const removePrices = [];
+    const sizeIds = [];
 
     const navElement = document.querySelectorAll('nav div');
     const navSvg = document.querySelectorAll('nav div svg path');
@@ -801,12 +802,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             const productRemove = document.querySelector('.remove-product-wrapper');
 
-                            productRemove.style.display = "block";
+                            productRemove.style.display = "flex";
                             productRemove.style.opacity = 1;
 
                             const removeButton = document.querySelector('.remove-product-wrapper .remove-button');
 
-                            const cancelButton = document.querySelector('.remove-product-wrapper .button');
+                            const cancelButton = document.querySelector('.remove-product-wrapper .button:last-child');
 
                             const productId = document.querySelectorAll('.products .products-table table tbody .product-id');
 
@@ -819,10 +820,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                 fetch(`/panel/products/removeProduct/${removeProductId}`)
                                     .then(() => {
 
+                                        const status = document.querySelector('.remove-product-wrapper .status-category');
+                                        status.textContent = "Successfully removed product!";
+                                        status.classList.add('out-of-stock');
+
                                         console.log(removeProductId);
                                         windows.location.reload();
                                     })
                                     .catch(() => {
+                                        const status = document.querySelector('.remove-product-wrapper .status-category');
+                                        status.textContent = "Error removing product!";
+                                        status.classList.add('out-of-stock');
                                         console.log("Failed!");
                                     })
 
@@ -834,26 +842,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 setTimeout(() => {
                                     productRemove.style.display = "none";
                                 }, 400);
-                            })
-
-
-                            const addCategory = document.querySelector('.product-edit .add-category');
-
-                            const addCategoryWrapper = document.querySelector('.add-category-wrapper');
-
-                            addCategory.addEventListener('click', () => {
-                                addCategoryWrapper.style.display = "flex";
-                                addCategoryWrapper.style.opacity = 1;
-
-                                const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
-
-                                closeBtn.addEventListener('click', () => {
-                                    addCategoryWrapper.style.opacity = 0;
-
-                                    setTimeout(() => {
-                                        addCategoryWrapper.style.display = "none";
-                                    }, 400);
-                                })
                             })
 
                         })
@@ -904,8 +892,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             })
 
                             const addCategory = document.querySelector('.product-edit .add-category');
-
                             const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+
+                            const removeCategory = document.querySelector('.product-edit .remove-category');
+                            const removeCategoryWrapper = document.querySelector('.remove-category-wrapper');
+                            const removeCategoryInputs = document.querySelector('.remove-category-inputs');
 
                             addCategory.addEventListener('click', () => {
                                 addCategoryWrapper.style.display = "flex";
@@ -920,10 +911,44 @@ document.addEventListener('DOMContentLoaded', function () {
                                         addCategoryWrapper.style.display = "none";
                                     }, 400);
                                 })
+                            })
 
-                                const submitBtn = document.querySelector('.add-category-wrapper .button');
+                            removeCategory.addEventListener('click', () => {
+                                removeCategoryWrapper.style.display = "flex";
+                                removeCategoryWrapper.style.opacity = 1;
 
-                                submitBtn.addEventListener('click', addCategoryHandler);
+                                data.categories.forEach((item) => {
+                                    const input = document.createElement('input');
+                                    input.type = 'checkbox';
+                                    input.name = 'category';
+                                    input.value = item.category_name;
+                                    const label = document.createElement('label');
+                                    label.textContent = item.category_name;
+                                    label.setAttribute("for", "category");
+                                    const div = document.createElement('div');
+
+                                    div.appendChild(input);
+                                    div.appendChild(label);
+
+                                    removeCategoryInputs.appendChild(div);
+                                })
+
+                                const closeBtn = document.querySelector('.remove-category-wrapper .close-btn');
+
+                                closeBtn.addEventListener('click', () => {
+                                    removeCategoryWrapper.style.opacity = 0;
+
+                                    setTimeout(() => {
+                                        removeCategoryWrapper.style.display = "none";
+                                        while (removeCategoryInputs.firstChild) {
+                                            removeCategoryInputs.removeChild(removeCategoryInputs.firstChild);
+                                        }
+                                    }, 400);
+                                })
+
+                                const submitBtn = document.querySelector('.remove-category-wrapper .button');
+
+                                submitBtn.addEventListener('click', removeCategoryHandler);
                             })
 
                             //Adding Data into Fields
@@ -943,6 +968,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     editTitle.value = dat[0].product_name;
 
                                     const sizeValueArray = dat[3].map(item => ({
+                                        id: item.id,
                                         product_price: item.product_price,
                                         product_price_reduced: item.product_price_reduced,
                                         size_value: item.size_value
@@ -1050,8 +1076,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                     confirmEditButton.addEventListener('click', () => {
 
-                                        const productId = data[0].product_id;
-                                        const oldTitle = data[0].product_name;
+                                        const productId = dat[0].product_id;
+                                        const oldTitle = dat[0].product_name;
 
                                         console.log(removePrices);
 
@@ -1096,6 +1122,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                         const formData = new FormData();
 
+                                        const productFormWrapper = document.querySelectorAll('.product-edit .product-form-price-row');
+
+                                        const newSizes = [];
+                                        const changedSizes = [];
+
+                                        productFormWrapper.forEach((item, index) => {
+                                            if (item.classList.contains('temp')) {
+                                                const price = item.querySelector('.product-form-price');
+                                                const priceReduced = item.querySelector('.product-form-price-reduced');
+                                                const size = item.querySelector('.product-size');
+                                                newSizes.push({ price: price.value, priceReduced: priceReduced.value, size: size.value })
+                                            } else if (item.classList.contains('changed')) {
+                                                const price = item.querySelector('.product-form-price');
+                                                const priceReduced = item.querySelector('.product-form-price-reduced');
+                                                const size = item.querySelector('.product-size');
+                                                changedSizes.push({ id: sizeIds[index].id, price: price.value, priceReduced: priceReduced.value, size: size.value });
+                                            }
+                                        })
+
                                         formData.append('title', oldTitle);
                                         formData.append('newTitle', editTitle.value);
 
@@ -1109,19 +1154,22 @@ document.addEventListener('DOMContentLoaded', function () {
                                             formData.append('removePics', removeImagesArray[i]);
                                         }
 
-                                        sizeValueArray.forEach(item => {
-                                            formData.append('oldSizes[]', JSON.stringify(item))
+                                        removePrices.forEach(item => {
+                                            formData.append('removePrices[]', JSON.stringify(item));
                                         })
 
-                                        sizeArray.forEach(item => {
-                                            formData.append('sizes', item);
+                                        newSizes.forEach(item => {
+                                            formData.append('newSizes[]', JSON.stringify(item))
+                                        })
+
+                                        changedSizes.forEach(item => {
+                                            formData.append('changedSizes[]', JSON.stringify(item));
                                         })
 
                                         categoryValueArray.forEach(item => {
                                             formData.append('oldCategories', item)
                                         })
 
-                                        console.log(sizeArray);
                                         categoryArray.forEach(item => {
                                             formData.append('categories', item);
                                         })
@@ -1144,15 +1192,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                                     setTimeout(() => {
                                                         productEdit.style.display = "none";
 
-                                                        const editSizes = document.querySelectorAll('.edit-product .product-size-wrapper div input');
+                                                        const editSizes = document.querySelectorAll('.edit-product .product-form-price-wrapper');
                                                         const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input')
 
-                                                        editSizes.forEach(input => {
-
-                                                            input.checked = false;
-
+                                                        editSizes.forEach(item => {
+                                                            item.remove();
                                                         })
-
                                                         editCategories.forEach(input => {
 
                                                             input.checked = false;
@@ -1215,8 +1260,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
 
                         const addCategory = document.querySelector('.product-creation .add-category');
+                        const removeCategory = document.querySelector('.product-creation .remove-category');
 
                         const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+                        const removeCategoryWrapper = document.querySelector('.remove-category-wrapper');
+
+                        const removeCategoryInputs = document.querySelector('.remove-category-inputs');
 
                         addCategory.addEventListener('click', () => {
                             addCategoryWrapper.style.display = "flex";
@@ -1235,6 +1284,41 @@ document.addEventListener('DOMContentLoaded', function () {
                             const submitBtn = document.querySelector('.add-category-wrapper .button');
 
                             submitBtn.addEventListener('click', addCategoryHandler);
+                        })
+
+                        removeCategory.addEventListener('click', () => {
+                            removeCategoryWrapper.style.display = "flex";
+                            removeCategoryWrapper.style.opacity = 1;
+
+                            data.categories.forEach((item) => {
+                                const input = document.createElement('input');
+                                input.type = 'checkbox';
+                                input.name = 'category';
+                                input.value = item.category_name;
+                                const label = document.createElement('label');
+                                label.textContent = item.category_name;
+                                label.setAttribute("for", "category");
+                                const div = document.createElement('div');
+
+                                div.appendChild(input);
+                                div.appendChild(label);
+
+                                removeCategoryInputs.appendChild(div);
+                            })
+
+                            const closeBtn = document.querySelector('.remove-category-wrapper .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+                                removeCategoryWrapper.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    removeCategoryWrapper.style.display = "none";
+                                }, 400);
+                            })
+
+                            const submitBtn = document.querySelector('.remove-category-wrapper .button');
+
+                            submitBtn.addEventListener('click', removeCategoryHandler);
                         })
 
 
@@ -1264,117 +1348,119 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = document.querySelector('.create-product');
 
-        if(form.checkValidity()){
+        if (form.checkValidity()) {
 
             const productPicture = document.getElementById("productPicture");
-        const picture = productPicture.files;
+            const picture = productPicture.files;
 
-        const pictureArray = [];
-        for (let i = 0; i < picture.length; i++) {
-            const file = picture[i];
-            pictureArray.push({ name: file.name });
-            // Optionally, you can access other file properties like file.type, file.size, etc.
-        }
-
-        const productFormTitle = document.querySelector('.product-creation .product-form-title');
-        const title = productFormTitle.value;
-
-        console.log(title);
-
-
-        const productFormPrice = document.querySelectorAll('.product-creation .product-form-price');
-        const productFormPriceReduced = document.querySelectorAll('.product-creation .product-form-price-reduced');
-        const productSize = document.querySelectorAll('.product-creation .product-size-wrapper .product-size');
-
-        const pricePerSizeArray = [];
-
-        for(let i=0; i<productFormPrice.length; i++){
-            pricePerSizeArray.push({price: productFormPrice[i].value, priceReduced: productFormPriceReduced[i].value, size: productSize[i].value});
-        }
-
-        console.log(pricePerSizeArray[0].price);
-
-        const productCategory = document.querySelectorAll('.product-creation .product-category-wrapper div input');
-
-        let categoryArray = [];
-
-        productCategory.forEach((item) => {
-
-            if (item.checked) {
-                categoryArray.push(item.value);
-            }
-
-        })
-
-        console.log(categoryArray);
-
-        const description = getText(editorDesc);
-        const details = getText(editorDetails);
-
-        console.log(description);
-        console.log(details);
-
-
-        // picture.forEach((item) => {
-
-        console.log(picture);
-
-        // })
-
-        const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
-
-        const areAllValidFiles = pictureArray.every(item => {
-            return allowedTypes.some(ext => item.name.toLowerCase().endsWith(ext));
-        });
-
-        if (areAllValidFiles) {
-
-            const formData = new FormData(); // Create a FormData object
-
-            formData.append('title', title);
-            for (let i = 0; i < pricePerSizeArray.length; i++) {
-                const size = pricePerSizeArray[i];
-                console.log(size);
-                formData.append('price[]', JSON.stringify(size)); // Append each file to the FormData object
-            }
-            for (let i = 0; i < categoryArray.length; i++) {
-                const category = categoryArray[i];
-                formData.append('category', category); // Append each file to the FormData object
-            }
-            formData.append('description', description);
-            formData.append('details', details);
+            const pictureArray = [];
             for (let i = 0; i < picture.length; i++) {
                 const file = picture[i];
-                formData.append('file', file); // Append each file to the FormData object
+                pictureArray.push({ name: file.name });
+                // Optionally, you can access other file properties like file.type, file.size, etc.
             }
 
-            fetch('/panel/products/addProduct', {
-                method: 'POST',
-                body: formData // Set the body of the request as FormData
+            const productFormTitle = document.querySelector('.product-creation .product-form-title');
+            const title = productFormTitle.value;
+
+            console.log(title);
+
+
+            const productFormPrice = document.querySelectorAll('.product-creation .product-form-price');
+            const productFormPriceReduced = document.querySelectorAll('.product-creation .product-form-price-reduced');
+            const productSize = document.querySelectorAll('.product-creation .product-size-wrapper .product-size');
+
+            const pricePerSizeArray = [];
+
+            for (let i = 0; i < productFormPrice.length; i++) {
+                pricePerSizeArray.push({ price: productFormPrice[i].value, priceReduced: productFormPriceReduced[i].value, size: productSize[i].value });
+            }
+
+            console.log(pricePerSizeArray[0].price);
+
+            const productCategory = document.querySelectorAll('.product-creation .product-category-wrapper div input');
+
+            let categoryArray = [];
+
+            productCategory.forEach((item) => {
+
+                if (item.checked) {
+                    categoryArray.push(item.value);
+                }
+
             })
-                .then(response => {
-                    if (response.ok) {
-                        alert('Product created successfully!');
-                        window.location.reload();
-                    } else {
-                        alert('Error creating product!');
-                    }
+
+            console.log(categoryArray);
+
+            const description = getText(editorDesc);
+            const details = getText(editorDetails);
+
+            console.log(description);
+            console.log(details);
+
+
+            // picture.forEach((item) => {
+
+            console.log(picture);
+
+            // })
+
+            const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
+
+            const areAllValidFiles = pictureArray.every(item => {
+                return allowedTypes.some(ext => item.name.toLowerCase().endsWith(ext));
+            });
+
+            if (areAllValidFiles) {
+
+                const formData = new FormData(); // Create a FormData object
+
+                formData.append('title', title);
+                for (let i = 0; i < pricePerSizeArray.length; i++) {
+                    const size = pricePerSizeArray[i];
+                    console.log(size);
+                    formData.append('price[]', JSON.stringify(size)); // Append each file to the FormData object
+                }
+                for (let i = 0; i < categoryArray.length; i++) {
+                    const category = categoryArray[i];
+                    formData.append('category', category); // Append each file to the FormData object
+                }
+                formData.append('description', description);
+                formData.append('details', details);
+                for (let i = 0; i < picture.length; i++) {
+                    const file = picture[i];
+                    formData.append('file', file); // Append each file to the FormData object
+                }
+
+                fetch('/panel/products/addProduct', {
+                    method: 'POST',
+                    body: formData // Set the body of the request as FormData
                 })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Product created successfully!');
+                            window.location.reload();
+                        } else {
+                            alert('Error creating product!');
+                        }
+                    })
+
+            } else {
+                alert('The file is not a picture!');
+            }
 
         } else {
-            alert('The file is not a picture!');
-        }
-
-        }else {
             alert('Please fill the remaining fields');
         }
 
-        
+
 
 
     }
 
     function addPriceSizeHandlerEdit(data, item) {
+
+        sizeIds.push(item);
         const productPriceWrapper = document.querySelector('.product-edit .product-form-price-wrapper');
         const wrapper = document.createElement('div');
         wrapper.classList.add('product-form-price-row');
@@ -1396,7 +1482,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const input1 = document.createElement('input');
         input1.classList.add('product-form-price-reduced');
         input1.placeholder = "ex. 399.99";
-        input1.setAttribute('required', true);
         input1.value = item.product_price_reduced;
 
         const input1Div = document.createElement('div');
@@ -1488,6 +1573,16 @@ document.addEventListener('DOMContentLoaded', function () {
         wrapper.appendChild(sizeDiv1);
         productPriceWrapper.appendChild(wrapper);
 
+        input.addEventListener('input', () => {
+            handleInputChange(input);
+        });
+        input1.addEventListener('input', () => {
+            handleInputChange(input1);
+        });
+        select.addEventListener('change', () => {
+            handleInputChange(select);
+        });
+
         sizeDiv.addEventListener('click', () => {
             addPriceSizeHandlerCreate(data, sizeDiv);
         });
@@ -1502,6 +1597,13 @@ document.addEventListener('DOMContentLoaded', function () {
         for (let i = 0; i < buttons.length - 1; i++) {
             buttons[i].style.display = "none";
         }
+
+    }
+
+    function handleInputChange(input) {
+
+        const parent = input.closest('.product-form-price-row');
+        parent.classList.add('changed');
 
     }
 
@@ -1528,7 +1630,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const input1 = document.createElement('input');
         input1.classList.add('product-form-price-reduced');
         input1.placeholder = "ex. 399.99";
-        input1.setAttribute('required', true);
 
         const input1Div = document.createElement('div');
         input1Div.classList.add('input-wrapper');
@@ -1587,6 +1688,8 @@ document.addEventListener('DOMContentLoaded', function () {
         sizeDiv1.classList.add('add-product');
         sizeDiv1.classList.add('remove-size');
         sizeDiv1.classList.add('temp');
+        wrapper.classList.add('temp');
+
 
         const div1 = document.createElement('div');
 
@@ -1623,13 +1726,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         sizeDiv1.addEventListener('click', () => {
             removePriceHandler(sizeDiv1, productPriceWrapper);
-
         })
     }
 
     function removePriceHandler(button, wrapper) {
 
         const parent = button.closest('.product-form-price-row');
+
+        const siblings = document.querySelectorAll('.product-form-price-row');
+
+        const index = Array.from(siblings).indexOf(parent);
+
+        console.log(index-1);
+
+        sizeIds.splice(index-1);
+
+        console.log(sizeIds);
 
         const priceValue = parent.querySelector('.product-form-price').value;
         const priceReducedValue = parent.querySelector('.product-form-price-reduced').value;
@@ -1844,6 +1956,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }, 800);
 
+    }
+
+    function removeCategoryHandler(event) {
+        const categories = document.querySelectorAll('.remove-category-inputs div input');
+
+        const removeCategories = [];
+
+        categories.forEach((item) => {
+            if (item.checked) {
+                removeCategories.push(item.value);
+            }
+        });
+
+        removeCategories.forEach((value) => {
+            const inputToRemove = document.querySelector(`.product-category-wrapper div input[value="${value}"]`);
+
+            if (inputToRemove) {
+                const div = inputToRemove.closest('div');
+                div.parentNode.removeChild(div);
+            }
+        });
+
+        const formData = new FormData();
+
+        for (i = 0; i < removeCategories.length; i++) {
+            console.log(removeCategories[i]);
+            formData.append('categories', removeCategories[i]);
+        }
+
+        console.log(formData);
+
+        fetch('/panel/products/removeCategories', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                const status = document.querySelector('.remove-category-wrapper .status-category');
+                if (response.ok) {
+                    status.textContent = "Successfully removed!";
+                    status.classList.add('in-stock');
+                    status.classList.remove('out-of-stock');
+                    setTimeout(() => {
+
+                        const wrapper = document.querySelector('.remove-category-wrapper');
+
+                        wrapper.style.opacity = 0;
+
+                        setTimeout(() => {
+
+                            wrapper.style.display = "none";
+
+                        }, 400)
+
+
+                    }, 400);
+                } else {
+                    status.textContent = "Error removing sizes!";
+                    status.classList.remove('in-stock');
+                    status.classList.add('out-of-stock');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
 
 

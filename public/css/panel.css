@@ -369,7 +369,7 @@ td div {
 
 }
 
-.add-size-wrapper, .add-category-wrapper, .remove-size-wrapper, .remove-product-wrapper {
+.add-size-wrapper, .add-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper {
     display: none;
     flex-direction: column;
     gap: 40px;
@@ -387,7 +387,13 @@ td div {
     transition: all 0.4s ease;
 }
 
-.remove-size-inputs {
+.remove-product-wrapper div{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.remove-size-inputs, .remove-category-inputs {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;

@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes','/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -900,17 +900,17 @@ app.post('/change-profile-pic', upload.single('file'), (req, res) => {
     console.log(req.session.passport.user.username);
     console.log(req.session.passport.user.picture);
 
-        const profilePicPath = "public/" + req.session.passport.user.picture;
-        console.log("Profile pic path: " + profilePicPath);
-        fs.unlink(profilePicPath, (err) => {
-          if (err) {
-            console.log("Error deleting file!");
-            return;
-          }
-          console.log("File deleted successfully!");
-        });
+    const profilePicPath = "public/" + req.session.passport.user.picture;
+    console.log("Profile pic path: " + profilePicPath);
+    fs.unlink(profilePicPath, (err) => {
+      if (err) {
+        console.log("Error deleting file!");
+        return;
+      }
+      console.log("File deleted successfully!");
+    });
 
-        req.session.passport.user.picture = fileName;
+    req.session.passport.user.picture = fileName;
 
     db.SetPicturePath(fileName, req.session.passport.user.username)
       .then(() => {
@@ -1057,7 +1057,7 @@ app.post('/panel/products/addProductSizes', checkPermission(['Admin', 'Editor'])
 
 })
 
-app.post('/panel/products/removeSizes', checkPermission(['Admin', 'Editor']), upload.none(), (req,res) => {
+app.post('/panel/products/removeSizes', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
   const sizes = req.body.sizes;
 
   console.log(sizes);
@@ -1065,11 +1065,11 @@ app.post('/panel/products/removeSizes', checkPermission(['Admin', 'Editor']), up
   const db = dbService.getDbServiceInstance();
 
   db.removeProductSizes(sizes)
-  .then(() => {
-    console.log("Success!")
-    res.status(200).json("Success!");
-  })
-  .catch(err => console.log(err))
+    .then(() => {
+      console.log("Success!")
+      res.status(200).json("Success!");
+    })
+    .catch(err => console.log(err))
 })
 
 app.get('/panel/products/getProductCategory', checkPermission(['Admin', 'Editor']), (req, res) => {
@@ -1101,6 +1101,21 @@ app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor
     })
     .catch((err) => console.log(err));
 
+})
+
+app.post('/panel/products/removeCategories', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
+  const categories = req.body.categories;
+
+  console.log("test" + categories);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.removeProductCategories(categories)
+    .then(() => {
+      console.log("Success!")
+      res.status(200).json("Success!");
+    })
+    .catch(err => console.log(err))
 })
 
 
@@ -1189,10 +1204,26 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
 
 app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
-  const { id, newTitle, title, removePics, price, oldSizes, sizes, oldCategories, categories, description, details } = req.body;
+  const { id, newTitle, title, removePics, removePrices, newSizes, changedSizes, oldCategories, categories, description, details } = req.body;
 
   const files = req.files;
-  console.log(`${id},${newTitle},${title},${price},${oldSizes}+, ${sizes},${categories},${description},${details},`);
+
+  let removePricesData;
+  let changedSizesData;
+  let newSizesData;
+
+  if (removePrices != null) {
+    removePricesData = removePrices.map(jsonString => JSON.parse(jsonString));
+  }
+  if (changedSizes != null) {
+    changedSizesData = changedSizes.map(jsonString => JSON.parse(jsonString));
+  }
+
+  if (newSizes != null) {
+    newSizesData = newSizes.map(jsonString => JSON.parse(jsonString));
+  }
+
+  console.log(`${id},${newTitle},${title},${removePrices},${changedSizesData}+, ${newSizesData},${categories},${description},${details},`);
   console.log(files);
 
   const productPicDir = "public/images/products";
@@ -1214,7 +1245,7 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
 
 
   const db = dbService.getDbServiceInstance();
-  db.editProduct(id, newTitle, removePicsArray, price, oldSizes, sizes, oldCategories, categories, description, details, fileNames)
+  db.editProduct(id, newTitle, removePicsArray, removePricesData, changedSizesData, newSizesData, oldCategories, categories, description, details, fileNames)
     .then(() => {
       console.log("Successfully edited product: " + newTitle);
 

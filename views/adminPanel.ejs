@@ -333,11 +333,20 @@
                     <p class="status-category"></p>
                 </form>
 
+                <form class="remove-category-wrapper">
+                    <h2 class="close-btn">X</h2>
+                    <h2>Select the categories you want to remove</h2>
+                    <div class="remove-category-inputs"></div>
+                    <p class="button">Remove</p>
+                    <p class="status-category"></p>
+                </form>
+
                 <div class="remove-product-wrapper">
                     <h1>Remove product?</h1>
-                    <h2 class="out-of-stock"></h2>
-                    <p class="remove-button">Yes</p>
-                    <p class="button">No</p>
+                    <div>
+                        <p class="remove-button button">Yes</p>
+                        <p class="button">No</p>
+                    </div>
                     <p class="status-category"></p>
                 </div>
 
@@ -352,31 +361,31 @@
 
                         <input class="product-form-title" placeholder="Title" required></input>
                         <div class="product-form-price-wrapper">
-                                <div class="product-form-price-row">
-                                    <div class="input-wrapper">
-                                        <p class="subheader">Price</p><input class="product-form-price"
-                                            placeholder="ex. 399.99" required>
-                                    </div>
-                                    <div class="input-wrapper">
-                                        <p class="subheader">Reduced Price</p><input class="product-form-price-reduced"
-                                            placeholder="ex. 399.99" required>
-                                    </div>
-                                    <div class="product-size-wrapper"></div>
-                                    <div class="add-product add-size" style="display: flex;">
-                                        <div><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                                                viewBox="0 0 20 20" fill="none">
-                                                <path
-                                                    d="M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z"
-                                                    fill="#67A329"></path>
-                                            </svg></div>
-                                    </div>
-                                    <div class="add-product remove-size" style="display: none;">
-                                        <div><svg width="20" height="20" viewBox="0 0 24 25" fill="none">
-                                                <path
-                                                    d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
-                                                    fill="#67A329"></path>
-                                            </svg></div>
-                                    </div>
+                            <div class="product-form-price-row">
+                                <div class="input-wrapper">
+                                    <p class="subheader">Price</p><input type="number" class="product-form-price"
+                                        placeholder="ex. 399.99" required>
+                                </div>
+                                <div class="input-wrapper">
+                                    <p class="subheader">Reduced Price</p><input type="number" class="product-form-price-reduced"
+                                        placeholder="ex. 399.99">
+                                </div>
+                                <div class="product-size-wrapper"></div>
+                                <div class="add-product add-size" style="display: flex;">
+                                    <div><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                            viewBox="0 0 20 20" fill="none">
+                                            <path
+                                                d="M10 17.5C8.62167 17.5 7.5 16.3783 7.5 15L7.54417 12.4558L5.015 12.5C3.62167 12.5 2.5 11.3783 2.5 10C2.5 8.62167 3.62167 7.5 5 7.5L7.54417 7.455L7.5 5.015C7.5 3.62167 8.62167 2.5 10 2.5C11.3783 2.5 12.5 3.62167 12.5 5L12.5458 7.455L15.015 7.5C16.3783 7.5 17.5 8.62167 17.5 10C17.5 11.3783 16.3783 12.5 15 12.5L12.5458 12.4558L12.5 15.015C12.5 16.3783 11.3783 17.5 10 17.5ZM9.16667 10.8333V15.015C9.16667 15.4592 9.54083 15.8333 10 15.8333C10.4592 15.8333 10.8333 15.4592 10.8333 15V10.8333H15.015C15.4592 10.8333 15.8333 10.4592 15.8333 10C15.8333 9.54083 15.4592 9.16667 15 9.16667H10.8333V5C10.8333 4.52583 10.4592 4.16667 10 4.16667C9.54083 4.16667 9.16667 4.54083 9.16667 5V9.16667H5C4.52583 9.16667 4.16667 9.54083 4.16667 10C4.16667 10.4592 4.54083 10.8333 5 10.8333H9.16667Z"
+                                                fill="#67A329"></path>
+                                        </svg></div>
+                                </div>
+                                <div class="add-product remove-size" style="display: none;">
+                                    <div><svg width="20" height="20" viewBox="0 0 24 25" fill="none">
+                                            <path
+                                                d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                                fill="#67A329"></path>
+                                        </svg></div>
+                                </div>
                             </div>
                         </div>
                         <div class="product-category">
@@ -393,6 +402,13 @@
                                             fill="#67A329" />
                                     </svg>
                                 </div>
+                            </div>
+                            <div class="add-product remove-category">
+                                <div><svg width="20" height="20" viewBox="0 0 24 25" fill="none">
+                                        <path
+                                            d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                            fill="#67A329"></path>
+                                    </svg></div>
                             </div>
                         </div>
                         <div class="editor-container">
@@ -454,6 +470,13 @@
                                                     fill="#67A329" />
                                             </svg>
                                         </div>
+                                    </div>
+                                    <div class="add-product remove-category">
+                                        <div><svg width="20" height="20" viewBox="0 0 24 25" fill="none">
+                                                <path
+                                                    d="M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z"
+                                                    fill="#67A329"></path>
+                                            </svg></div>
                                     </div>
                                 </div>
 
