@@ -529,6 +529,11 @@ td div {
     flex-wrap: wrap;
 }
 
+.ql-editor {
+    min-height: 500px;
+    height: 100%;
+}
+
 #editorDescCreate, #editorDetailsCreate, #editorDescEdit, #editorDetailsEdit {
     min-height: 500px;
     height: 100%;

@@ -466,11 +466,24 @@ class dbService {
     async getProducts() {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = `SELECT Product.product_id, Product.product_name, Product_size_link.product_price, Product.product_amount_bought_total, Product_size_link.product_price_reduced, Product.in_stock, Product.description, Product.details, Product.date_col, Product_images.image_url
-                FROM Product
-                LEFT JOIN Product_Images ON Product.product_id = Product_Images.product_id
-                LEFT JOIN Product_size_link ON Product.product_id = Product_size_link.product_id
-                `;
+                const query = ` SELECT 
+                                Product.product_id, 
+                                Product.product_name, 
+                                Product_size_link.product_price, 
+                                Product.product_amount_bought_total, 
+                                Product_size_link.product_price_reduced, 
+                                Product.in_stock, 
+                                Product.description, 
+                                Product.details, 
+                                DATE_FORMAT(Product.date_col, '%H:%i:%s %d.%m.%Y') AS date_col,
+                                DATE_FORMAT(Product.date_edited, '%H:%i:%s %d.%m.%Y') AS date_edited,
+                                Product.edited_by, 
+                                Product_images.image_url
+                                FROM Product
+                                LEFT JOIN Product_Images ON Product.product_id = Product_Images.product_id
+                                LEFT JOIN Product_size_link ON Product.product_id = Product_size_link.product_id
+                                `;
+
 
                 db.query(query, (err, results) => {
                     if (err) reject(new Error(err.message));
@@ -632,7 +645,7 @@ class dbService {
         }
     }
 
-    async addProduct(title, price, description, details, category, images) {
+    async addProduct(title, price, description, details, category, date, author, images) {
         try {
 
             console.log(price);
@@ -640,9 +653,9 @@ class dbService {
             console.log(price[0].priceReduced);
 
             const response1 = await new Promise((resolve, reject) => {
-                const query = `INSERT INTO product (product_name, product_amount_bought_total, description, details) VALUES (?, ?, ?, ?)`;
+                const query = `INSERT INTO product (product_name, product_amount_bought_total, description, details, date_col, date_edited, edited_by) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-                db.query(query, [title, 0, description, details], (err, results) => {
+                db.query(query, [title, 0, description, details, date, date, author], (err, results) => {
                     if (err) reject(new Error(err.message));
 
                     resolve(results);
@@ -833,7 +846,7 @@ class dbService {
         }
     }
 
-    async editProduct(id, title, removePics, removePrices, changedSizes, newSizes, oldCategories, categories, description, details, images) {
+    async editProduct(id, title, removePics, removePrices, changedSizes, newSizes, oldCategories, categories, description, details, date, author, images) {
         try {
 
             console.log(newSizes);
@@ -842,10 +855,10 @@ class dbService {
 
             const response1 = await new Promise((resolve, reject) => {
                 const query = `UPDATE product
-                SET product_name = ?, description = ?, details = ?
+                SET product_name = ?, description = ?, details = ?, date_edited = ?, edited_by = ?
                 WHERE product_id = ?`;
 
-                db.query(query, [title, description, details, id], (err, results) => {
+                db.query(query, [title, description, details, date, author, id], (err, results) => {
                     if (err) reject(new Error(err.message));
 
                     resolve(results);
@@ -863,8 +876,8 @@ class dbService {
                 const categoriesArray = [];
                 const oldCategoriesArray = [];
 
-                if(removePrices != null)
-                removedPricesArray.push(...removePrices);
+                if (removePrices != null)
+                    removedPricesArray.push(...removePrices);
 
                 if (newSizes != null)
                     newSizesArray.push(...newSizes);
@@ -888,7 +901,7 @@ class dbService {
                     removedPricesArray.forEach(async (item) => {
 
                         console.log("RemovedArray ", item);
-    
+
                         const sizeId = await new Promise((resolve, reject) => {
                             try {
                                 const query = `SELECT size_id from product_size WHERE size_value = ?`;
@@ -902,11 +915,11 @@ class dbService {
                         })
 
                         console.log(sizeId, " Remove");
-    
+
                         await new Promise((resolve, reject) => {
                             try {
                                 const query = `DELETE FROM product_size_link WHERE product_id = ? AND size_id = ? AND product_price = ? AND product_price_reduced = ?`;
-    
+
                                 db.query(query, [id, sizeId, item.price, item.priceReduced || 0.00], (err, results) => {
                                     if (err) reject(new Error(err.message))
                                     console.log("Successfully removed size: ", item.size);
@@ -915,13 +928,13 @@ class dbService {
                             } catch (error) {
                                 console.error(error);
                             }
-    
+
                         })
-    
+
                     })
-    
+
                 }
-    
+
 
                 if (newSizesArray !== null) {
 
@@ -1074,18 +1087,20 @@ class dbService {
 
                 const removePicsArray = [];
                 if (removePics != null) {
-
                     if (!Array.isArray(removePics)) {
-                        removePicsArray.push(removePics);
+                        // Check if removePics is not an array and is not undefined before pushing
+                        if (removePics !== undefined) {
+                            removePicsArray.push(removePics);
+                        }
                     } else if (Array.isArray(removePics)) {
-                        removePics.forEach(item => {
-                            removePicsArray.push(item);
-                        })
+                        // Use filter to exclude undefined values when populating the array
+                        removePicsArray.push(...removePics.filter(item => item !== undefined));
                     }
-
                 }
 
-                if (removePicsArray != null) {
+                console.log("test12", removePicsArray);
+
+                if (removePicsArray !== null && removePicsArray.length > 0) {
 
                     removePicsArray.forEach(item => {
                         try {
@@ -1102,7 +1117,7 @@ class dbService {
                             console.error(error);
                         }
                     });
-                } 
+                }
 
                 if (images != null) {
                     images.forEach(item => {

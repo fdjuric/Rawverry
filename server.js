@@ -1176,7 +1176,9 @@ app.get('/panel/products/getProduct/:id', checkPermission(['Admin', 'Editor']), 
 
 app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
-  const { title, price, category, description, details } = req.body;
+  const { title, price, category, description, details, date } = req.body;
+
+
 
   const files = req.files;
   console.log(title, price, category, description, details);
@@ -1192,11 +1194,15 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
 
   console.log(fileNames);
 
+  const author = req.session.passport.user.username;
+  console.log(author);
+
   const db = dbService.getDbServiceInstance();
 
-  db.addProduct(title, priceData, description, details, category, fileNames)
+  db.addProduct(title, priceData, description, details, category, date, author, fileNames)
     .then((data) => {
       console.log("SUCCESS!");
+      res.status(200).send("Product added successfully!");
     })
     .catch(err => console.log(err));
 
@@ -1204,9 +1210,13 @@ app.post('/panel/products/addProduct', checkPermission(['Admin', 'Editor']), pro
 
 app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), productUpload.array('file', 10), (req, res) => {
 
-  const { id, newTitle, title, removePics, removePrices, newSizes, changedSizes, oldCategories, categories, description, details } = req.body;
+  const { id, newTitle, title, removePics, removePrices, newSizes, changedSizes, oldCategories, categories, description, details, date } = req.body;
 
   const files = req.files;
+
+  
+  const author = req.session.passport.user.username;
+  console.log(author);
 
   let removePricesData;
   let changedSizesData;
@@ -1245,7 +1255,7 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
 
 
   const db = dbService.getDbServiceInstance();
-  db.editProduct(id, newTitle, removePicsArray, removePricesData, changedSizesData, newSizesData, oldCategories, categories, description, details, fileNames)
+  db.editProduct(id, newTitle, removePicsArray, removePricesData, changedSizesData, newSizesData, oldCategories, categories, description, details, date, author, fileNames)
     .then(() => {
       console.log("Successfully edited product: " + newTitle);
 
@@ -1310,6 +1320,8 @@ app.get('/panel/products/removeProduct/:id', checkPermission(['Admin']), async (
       })
 
       console.log("Successfully deleted product: " + productId);
+
+      res.status(200).send("Product deleted successfully!");
 
     })
     .catch(err => console.log(err));
