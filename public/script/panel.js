@@ -853,7 +853,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                             console.log(removeProductId);
 
-                                            
+
                                             windows.location.reload();
                                         } else {
                                             const status = document.querySelector('.remove-product-wrapper .status-category');
@@ -1209,7 +1209,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                         formData.append('description', editorDescEdit.root.innerHTML);
                                         formData.append('details', editorDetailsEdit.root.innerHTML);
-                                        
+
                                         const currentDate = new Date();
                                         const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
                                         console.log(formattedDate);
@@ -1494,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 alert('Product added successfully!');
 
                                 const productCreation = document.querySelector('.product-creation');
-                                
+
                                 productCreation.style.opacity = 0;
 
                                 setTimeout(() => {
@@ -1535,6 +1535,437 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     }
+
+
+    const manageAccountsBtn = document.querySelector('.manage-accounts-btn');
+
+    let areAccountsAdded = false;
+
+    manageAccountsBtn.addEventListener('click', () => {
+
+        if (!areAccountsAdded) {
+            fetch('/panel/manageAccounts')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.createElement('tbody');
+                    const table = document.querySelector('.manage-accounts .products-table table');
+                    let temp;
+                    data.forEach(account => {
+                        const row = document.createElement('tr');
+                        console.log('Account');
+                        if (temp != account.id) {
+                            // Create and populate table data (td) for each field
+
+                            console.log('AccountID');
+                            const idCell = createTableCell(account.id, 'account-id');
+                            const titleCellWrapper = document.createElement('td');
+                            const titleCellWrapperDiv = document.createElement('div');
+                            const titleCellImgWrapper = document.createElement('div');
+                            titleCellImgWrapper.classList.add('account-picture');
+                            if (account.picture_path !== null) {
+                                const titlePic = document.createElement('img');
+                                titlePic.src = account.picture_path;
+                                titlePic.style.width = "50px";
+                                titlePic.style.height = "50px";
+                                titlePic.style.borderRadius = "50%";
+                                titleCellWrapperDiv.appendChild(titlePic);
+                            } else {
+                                const titlePic = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                                titlePic.setAttribute("class", "acc-default");
+                                titlePic.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+                                titlePic.setAttribute("width", "35");
+                                titlePic.setAttribute("height", "35");
+                                titlePic.setAttribute("viewBox", "0 0 35 35");
+                                titlePic.setAttribute("fill", "none");
+                                titlePic.setAttribute("style", "display: block;");
+
+                                // Create the path element
+                                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                                path.setAttribute("d", "M17.4987 17.5C15.8945 17.5 14.5213 16.9288 13.3789 15.7864C12.2365 14.6441 11.6654 13.2708 11.6654 11.6666C11.6654 10.0625 12.2365 8.68922 13.3789 7.54685C14.5213 6.40449 15.8945 5.83331 17.4987 5.83331C19.1029 5.83331 20.4761 6.40449 21.6185 7.54685C22.7609 8.68922 23.332 10.0625 23.332 11.6666C23.332 13.2708 22.7609 14.6441 21.6185 15.7864C20.4761 16.9288 19.1029 17.5 17.4987 17.5ZM5.83203 29.1666V25.0833C5.83203 24.2569 6.04495 23.4971 6.47078 22.8039C6.89661 22.1107 7.46148 21.5823 8.16536 21.2187C9.67231 20.4653 11.2036 19.8999 12.7591 19.5227C14.3147 19.1455 15.8945 18.9573 17.4987 18.9583C19.1029 18.9583 20.6827 19.1469 22.2383 19.5241C23.7938 19.9014 25.3251 20.4662 26.832 21.2187C27.5369 21.5833 28.1022 22.1122 28.5281 22.8054C28.9539 23.4986 29.1663 24.2579 29.1654 25.0833V29.1666H5.83203ZM8.7487 26.25H26.2487V25.0833C26.2487 24.816 26.1816 24.5729 26.0474 24.3541C25.9133 24.1354 25.7373 23.9653 25.5195 23.8437C24.207 23.1875 22.8824 22.6955 21.5456 22.3679C20.2088 22.0403 18.8598 21.876 17.4987 21.875C16.1376 21.875 14.7886 22.0393 13.4518 22.3679C12.115 22.6965 10.7904 23.1885 9.47786 23.8437C9.25911 23.9653 9.08266 24.1354 8.94849 24.3541C8.81432 24.5729 8.74773 24.816 8.7487 25.0833V26.25ZM17.4987 14.5833C18.3008 14.5833 18.9877 14.2975 19.5593 13.7258C20.131 13.1541 20.4163 12.4678 20.4154 11.6666C20.4154 10.8646 20.1295 10.1777 19.5579 9.60602C18.9862 9.03435 18.2998 8.74901 17.4987 8.74998C16.6966 8.74998 16.0097 9.03581 15.4381 9.60748C14.8664 10.1791 14.5811 10.8655 14.582 11.6666C14.582 12.4687 14.8679 13.1556 15.4395 13.7273C16.0112 14.2989 16.6976 14.5843 17.4987 14.5833Z");
+                                path.setAttribute("fill", "var(--accent-color)");
+
+                                // Append the path to the SVG
+                                titlePic.appendChild(path);
+
+                                // Append the SVG to the body
+                                titleCellImgWrapper.appendChild(titlePic);
+                                titleCellWrapperDiv.appendChild(titleCellImgWrapper);
+                            }
+                            const titleCell = document.createElement('p');
+                            titleCell.classList.add('account-name');
+                            titleCell.textContent = account.user_name;
+
+                            const emailCell = createTableCell(account.user_email, 'account-email');
+                            const joinedCell = createTableCell(account.date_col, 'account-date-joined');
+                            const roleCell = createTableCell(account.account_role, 'account-role');
+
+                            // Append table data to the table row
+                            titleCellWrapperDiv.appendChild(titleCell);
+                            titleCellWrapper.appendChild(titleCellWrapperDiv);
+                            row.appendChild(idCell);
+                            row.appendChild(titleCellWrapper);
+                            row.appendChild(emailCell);
+                            row.appendChild(joinedCell);
+                            row.appendChild(roleCell);
+
+                            // Create and append the SVG icons
+                            const settingsEditIcons = createSettingsEditIcons(); // Function to create SVG icons
+                            const settingsCell = document.createElement('td');
+                            settingsCell.appendChild(settingsEditIcons);
+                            row.appendChild(settingsCell);
+
+                            // Append the row to the table body
+                            tbody.appendChild(row);
+
+                            temp = account.id;
+                        } else return;
+                    });
+
+                    table.appendChild(tbody);
+                })
+            fetch(`/panel/manageAccounts/getAccountRoles`)
+                .then(response => response.json())
+                .then(data => {
+                    const sizeWrapper = document.querySelector('.account-creation .create-account');
+
+                    const select = document.createElement('select');
+                    select.name = "role";
+                    select.classList.add('account-role');
+
+                    data.forEach((item) => {
+
+                        const option = document.createElement('option');
+                        option.setAttribute('value', item);
+                        option.textContent = item;
+                        select.appendChild(option);
+                    })
+
+                    sizeWrapper.appendChild(select);
+
+                    const removeAccountButton = document.querySelectorAll('.manage-accounts .products-table .product-settings svg:nth-child(2)');
+
+                    removeAccountButton.forEach((item, index) => {
+
+                        item.addEventListener('click', () => {
+
+                            const accountRemove = document.querySelector('.remove-account-wrapper');
+
+                            const row = item.closest('tr');
+
+                            console.log(row);
+
+                            accountRemove.style.display = "flex";
+                            accountRemove.style.opacity = 1;
+
+                            const removeButton = document.querySelector('.remove-account-wrapper .remove-button');
+
+                            const cancelButton = document.querySelector('.remove-account-wrapper .button:last-child');
+
+                            const productId = document.querySelectorAll('.manage-accounts .products-table table tbody .account-id');
+
+                            const removeAccountId = productId[index].textContent;
+
+                            console.log(removeAccountId);
+
+                            removeButton.addEventListener('click', () => {
+
+                                fetch(`/panel/manageAccounts/removeAccount/${removeAccountId}`)
+
+                                    .then(response => {
+                                        if (response.ok) {
+                                            const status = document.querySelector('.remove-account-wrapper .status-category');
+                                            status.textContent = "Successfully removed Account!";
+                                            status.classList.add('in-stock');
+
+                                            const wrapper = document.querySelector('.remove-account-wrapper');
+
+                                            row.remove();
+
+                                            setTimeout(() => {
+                                                wrapper.style.opacity = 0;
+                                                setTimeout(() => {
+                                                    wrapper.style.display = "none";
+                                                }, 400)
+                                            }, 400)
+
+                                            console.log(removeAccountId);
+
+
+                                            windows.location.reload();
+                                        } else {
+                                            const status = document.querySelector('.remove-account-wrapper .status-category');
+                                            status.textContent = "Error removing account!";
+                                            status.classList.add('out-of-stock');
+                                            console.log("Failed!");
+                                        }
+                                    })
+                                    .catch((err) => {
+                                        console.log(err);
+                                    })
+
+                            })
+
+                            cancelButton.addEventListener('click', () => {
+                                accountRemove.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    accountRemove.style.display = "none";
+                                }, 400);
+                            })
+
+                        })
+
+                    })
+
+                    //Edit Product Button Creation with EventListeners
+
+                    const editAccountButton = document.querySelectorAll('.manage-accounts .products-table .product-settings svg:first-child');
+
+                    editAccountButton.forEach((item, index) => {
+
+                        item.addEventListener('click', () => {
+
+                            const accountEdit = document.querySelector('.account-edit');
+
+                            accountEdit.style.display = "block";
+                            accountEdit.style.opacity = 1;
+
+                            const closeBtn = document.querySelector('.account-edit .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+                                accountEdit.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    accountEdit.style.display = "none";
+
+                                    const priceRows = document.querySelectorAll('.product-edit .product-form-price-row');
+                                    for (let i = 0; i < priceRows.length; i++) {
+                                        priceRows[i].remove();
+                                    }
+
+                                    const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
+
+                                    while (productPictures.firstChild) {
+                                        productPictures.removeChild(productPictures.firstChild);
+                                    }
+                                }, 400);
+                            })
+
+                            //Adding Data into Fields
+
+                            const tr = item.closest('tr');
+                            const accountId = tr.querySelector('.account-id');
+
+                            const editAccountId = accountId.textContent;
+
+                            fetch(`/panel/manageAccounts/getAccount/${editAccountId}`)
+                                .then(response => response.json())
+                                .then((dat) => {
+                                    console.log(dat);
+                                    console.log(dat[0]);
+                                    console.log(dat[0].user_name);
+
+                                    const editName = document.querySelector('.account-edit .account-form-username');
+                                    const editEmail = document.querySelector('.account-edit .account-form-email');
+
+                                    console.log(editName);
+                                    editName.value = dat[0].user_name;
+                                    editEmail.value = dat[0].user_email;
+
+                                    const accountRoleWrapper = document.querySelector('.account-edit .edit-account .account-role-wrapper');
+
+                                    const select = document.createElement('select');
+                                    select.name = "role";
+                                    select.classList.add('account-role');
+
+                                    data.forEach((item) => {
+
+                                        const option = document.createElement('option');
+                                        option.setAttribute('value', item);
+                                        option.textContent = item;
+                                        select.appendChild(option);
+
+                                    })
+
+                                    const optionToSelect = Array.from(select.options).find((option) => option.value === dat[0].account_role);
+                                    select.selectedIndex = Array.from(select.options).indexOf(optionToSelect);
+
+                                    accountRoleWrapper.appendChild(select);
+
+
+                                    const confirmEditButton = document.querySelector('.account-edit .edit-account .edit-button');
+
+                                    confirmEditButton.addEventListener('click', () => {
+
+                                        const formData = new FormData();
+                                        
+                                        const accountId = dat[0].id;
+
+                                        const username = editName.value;
+                                        const email = editEmail.value;
+
+                                        const role = document.querySelector('.account-edit .edit-account .account-role');
+
+                                        const accountRole = role.value;
+
+                                        console.log(accountId, username, email, accountRole);
+
+                                        if (validateEmail(email)) {
+
+    
+
+                                            formData.append('id', accountId);
+                                            formData.append('username', username);
+                                            formData.append('email', email);
+                                            formData.append('role', accountRole);
+
+
+                                            console.log(formData);
+
+                                            fetch('/panel/manageAccounts/editAccount', {
+                                                method: 'POST',
+                                                body: formData
+                                            })
+                                                .then(response => {
+                                                    if (response.ok) {
+                                                        alert('Account edited successfully!');
+
+                                                        accountEdit.style.opacity = 0;
+
+                                                        setTimeout(() => {
+                                                            accountEdit.style.display = "none";
+
+                                                        }, 400);
+
+                                                    } else {
+                                                        alert('Error editing Account!');
+                                                    }
+                                                })
+                                                .catch(err => console.log(err));
+
+                                        } else {
+                                            editEmail.style.borderColor = "var(--red-color)";
+                                            alert('Incorrect email format!');
+                                        }
+
+
+
+
+
+                                    });
+                                })
+                                .catch(err => console.log(err));
+
+
+
+
+                        })
+
+                    })
+
+                    const addAccountButton = document.querySelector('.add-an-account');
+
+
+
+                    addAccountButton.addEventListener('click', () => {
+
+                        const accountCreation = document.querySelector('.account-creation');
+
+                        accountCreation.style.display = "block";
+                        accountCreation.style.opacity = 1;
+
+                        const closeBtn = document.querySelector('.account-creation .close-btn');
+
+                        closeBtn.addEventListener('click', () => {
+                            accountCreation.style.opacity = 0;
+
+                            setTimeout(() => {
+                                accountCreation.style.display = "none";
+                            }, 400);
+                        })
+
+                        const addSizeCreate = document.querySelector('.product-creation .add-size');
+
+                        addSizeCreate.addEventListener('click', () => {
+                            console.log(data);
+                            addPriceSizeHandlerCreate(data, addSizeCreate);
+                        })
+
+                        const addCategory = document.querySelector('.product-creation .add-category');
+                        const removeCategory = document.querySelector('.product-creation .remove-category');
+
+                        const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+                        const removeCategoryWrapper = document.querySelector('.remove-category-wrapper');
+
+                        const removeCategoryInputs = document.querySelector('.remove-category-inputs');
+
+                        addCategory.addEventListener('click', () => {
+                            addCategoryWrapper.style.display = "flex";
+                            addCategoryWrapper.style.opacity = 1;
+
+                            const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+                                addCategoryWrapper.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    addCategoryWrapper.style.display = "none";
+                                }, 400);
+                            })
+
+                            const submitBtn = document.querySelector('.add-category-wrapper .button');
+
+                            submitBtn.addEventListener('click', addCategoryHandler);
+                        })
+
+                        removeCategory.addEventListener('click', () => {
+                            removeCategoryWrapper.style.display = "flex";
+                            removeCategoryWrapper.style.opacity = 1;
+
+                            data.categories.forEach((item) => {
+                                const input = document.createElement('input');
+                                input.type = 'checkbox';
+                                input.name = 'category';
+                                input.value = item.category_name;
+                                const label = document.createElement('label');
+                                label.textContent = item.category_name;
+                                label.setAttribute("for", "category");
+                                const div = document.createElement('div');
+
+                                div.appendChild(input);
+                                div.appendChild(label);
+
+                                removeCategoryInputs.appendChild(div);
+                            })
+
+                            const closeBtn = document.querySelector('.remove-category-wrapper .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+                                removeCategoryWrapper.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    removeCategoryWrapper.style.display = "none";
+                                }, 400);
+                            })
+
+                            const submitBtn = document.querySelector('.remove-category-wrapper .button');
+
+                            submitBtn.addEventListener('click', removeCategoryHandler);
+                        })
+
+
+                        const createProductBtn = document.querySelector('.product-creation .creation-button');
+
+                        createProductBtn.addEventListener('click', handleProductCreation);
+
+                    })
+
+                })
+
+            areAccountsAdded = true;
+        }
+
+    })
 
     function addPriceSizeHandlerEdit(data, item) {
 
@@ -2102,6 +2533,16 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => {
                 console.error('Error:', error);
             });
+
+
+
+    }
+
+
+    function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        return emailRegex.test(email);
     }
 
 

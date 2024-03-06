@@ -8,12 +8,14 @@ body {
     flex-direction: row;
     gap: 0px;
 }
+
 .side {
-    max-width: 300px;
-    width: 100%;
+    width: 15%;
+    height: 100%;
     padding: var(--padding-40);
     display: flex;
     flex-direction: column;
+    position: fixed;
     gap: 80px;
     z-index: 2;
     background-color: var(--primary-color);
@@ -72,12 +74,13 @@ nav div:hover {
 }
 
 .content-wrapper {
-    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 40px;
     margin-bottom: 40px;
     position: relative;
+    left: 20%;
+    width: 80%;
 }
 
 .header {
@@ -96,6 +99,7 @@ nav div:hover {
     display: flex;
     gap: 40px;
 }
+
 
 .notification {
     border-radius: 50%;
@@ -324,7 +328,7 @@ td div {
     object-fit: cover;
 }
 
-.products {
+.products, .manage-accounts {
     box-sizing: border-box;
     padding-inline: var(--padding-40);
     display: flex;
@@ -332,7 +336,7 @@ td div {
     gap: 40px;
 }
 
-.product-form {
+.product-form, .account-form {
     display: flex;
     flex-direction: column;
     padding: var(--padding-40);
@@ -348,7 +352,7 @@ td div {
     gap: 20px;
 }
 
-.edit-product {
+.edit-product, .edit-account {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -360,7 +364,7 @@ td div {
     justify-content: space-between;
 }
 
-.product-creation, .product-edit {
+.product-creation, .product-edit, .account-creation, .account-edit {
 
     position: relative;
     display: none;
@@ -369,7 +373,8 @@ td div {
 
 }
 
-.add-size-wrapper, .add-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper {
+
+.add-size-wrapper, .add-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper, .remove-account-wrapper {
     display: none;
     flex-direction: column;
     gap: 40px;
@@ -487,14 +492,19 @@ td div {
 
 
 .product-form-title, .product-form-price, .product-form-price-reduced {
-    max-width: 100px;
-    width: 100%;
+    max-width: 150px;
+    padding: 10px;
+    outline: var(--gray-accent);
+}
+
+.account-form-username, .account-form-email {
+
     padding: 10px;
     outline: var(--gray-accent);
 }
 
 
-.product-size {
+.product-size, .account-role {
     display: flex;
     gap: 20px;
     align-items: center;
@@ -557,6 +567,10 @@ td div {
     background-color: var(--primary-color);
     border-radius: 10px;
     transition: all 0.4s ease;
+}
+
+.products-wrapper .products-table table tbody tr td {
+    padding-right: 10px;
 }
 
 .products-header {
@@ -631,6 +645,11 @@ td div {
 
 .products-table table tbody tr td:last-child {
     text-align: right;
+}
+
+.product-date, .product-date-edited {
+    max-width: 150px;
+    text-align: start;
 }
 
 

@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manage-accounts', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts','/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -30,6 +30,7 @@ const path = require('path');
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -70,7 +71,7 @@ app.use((req, res, next) => {
     res.sendFile(`${__dirname}/public${urlPath}.html`);
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/')) {
+  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
 
@@ -1418,7 +1419,7 @@ app.get('/panel/newsletter', checkPermission(['Admin', 'Editor']), (req, res) =>
 
 })
 
-app.get('/panel/manage-accounts', checkPermission('Admin'), (req, res) => {
+app.get('/panel/manageAccounts', checkPermission('Admin'), (req, res) => {
 
   const db = dbService.getDbServiceInstance();
 
@@ -1427,12 +1428,69 @@ app.get('/panel/manage-accounts', checkPermission('Admin'), (req, res) => {
   getAccounts
     .then(data => {
 
+      res.json(data);
       console.log(data);
     })
+    .catch(err => console.log(err));
 
 })
 
+app.get('/panel/manageAccounts/getAccountRoles', checkPermission('Admin'), (req, res) => {
+  
+  const db = dbService.getDbServiceInstance();
 
+  const getAccountRoles = db.getAccountRoles();
+
+  getAccountRoles
+  .then(data => {
+    res.json(data);
+    console.log(data);
+  })
+  .catch(err => console.log(err));
+})
+
+app.get('/panel/manageAccounts/removeAccount/:id', checkPermission('Admin'), (req, res) => {
+  const accountId = req.params.id;
+
+  const db = dbService.getDbServiceInstance();
+
+  db.removeAccount(accountId)
+  .then(() => {
+    res.status(200).json("Success!");
+  })
+  .catch(err => console.log(err))
+})
+
+app.get('/panel/manageAccounts/getAccount/:id', checkPermission('Admin'), (req, res) => {
+
+  const accountId = req.params.id;
+
+  console.log(accountId);
+
+  const db = dbService.getDbServiceInstance();
+  db.getSpecificAccount(accountId)
+  .then(data => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err))
+})
+
+app.post('/panel/manageAccounts/editAccount', checkPermission('Admin'), upload.none(), (req, res) => {
+
+  const {id, username, email, role} = req.body;
+
+  console.log( id, username, email, role);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.editAccount(id, username, email, role)
+  .then(() => {
+    
+    res.status(200).json("Success!");
+  })
+  .catch(err => console.log(err)) 
+})
 
 app.get('/forgot-password', (req, res) => {
   res.render('forgot-password.ejs');

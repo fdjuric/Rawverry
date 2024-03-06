@@ -177,11 +177,93 @@ class dbService {
     async getAccountData() {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = `SELECT id, user_name, user_email, account_role, token FROM account`;
+                const query = `SELECT id, user_name, user_email, account_role, picture_path,  DATE_FORMAT(Account.date_col, '%d.%m.%Y') AS date_col FROM account`;
 
                 db.query(query, (err, results) => {
                     if (err) reject(new Error(err.message));
                     resolve(results);
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async getAccountRoles() {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT DISTINCT
+                SUBSTRING(COLUMN_TYPE, 6, LENGTH(COLUMN_TYPE) - 6) AS enum_values
+                FROM
+                information_schema.COLUMNS
+                WHERE
+                TABLE_NAME = 'account'
+                AND COLUMN_NAME = 'account_role'`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message));
+
+                    const enumString = results[0].enum_values;
+                    const enumValues = enumString.match(/'([^']+)'/g).map(value => value.slice(1, -1));
+                    resolve(enumValues);
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async getSpecificAccount(id) {
+
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT id, user_name, user_email, account_role FROM account WHERE id = ?`;
+
+                db.query(query, [id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
+    async editAccount(id, username, email, role){
+        try{
+
+            return new Promise((resolve, reject) => { 
+                const query = `UPDATE account
+                SET user_name = ?, user_email = ?, account_role = ?
+                WHERE id = ?`
+
+                db.query(query, [username, email, role, id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    console.log("success")
+                    console.log(results);
+                    resolve();
+                })
+            })
+
+        }catch(error){
+            console.log(error)
+        }
+
+    }
+
+    async removeAccount(id) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `DELETE FROM account WHERE id = ?`;
+
+                db.query(query, [id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve();
                 });
             });
             return response;
