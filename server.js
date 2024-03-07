@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/register', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts','/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/sendTest', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -25,12 +25,17 @@ const { checkPermission } = require('./middlewares.js')
 
 var user;
 
+let tempAccounts = false;
+
+let emailArray = [];
+const registerToken = [];
+
 const path = require('path');
 
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -71,7 +76,7 @@ app.use((req, res, next) => {
     res.sendFile(`${__dirname}/public${urlPath}.html`);
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
 
@@ -930,40 +935,39 @@ app.post('/change-profile-pic', upload.single('file'), (req, res) => {
 });
 
 
-app.post('/register', async (request, response) => {
+app.post('/register/:token', upload.none(), async (req, res) => {
+
+  const token = req.params.token;
+
+  console.log(token, req.body.username, req.body.password);
 
   try {
-    const hashedPassword = await bcrypt.hash(request.body.password, 10);
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const db = dbService.getDbServiceInstance();
-    if (request.body.username && hashedPassword && request.body.email != null) {
+    if (req.body.username && hashedPassword != null) {
 
-      let isEmail = validateEmail(request.body.email);
-
-      if (isEmail) {
-        const tokenLength = 128;
-        const tokenValue = generateRandomToken(tokenLength);
-
-        db.registerUser(request.body.username, hashedPassword, request.body.email, tokenValue)
-          .then(() => {
-            response.redirect('/login');
-          })
-          .catch((error) => {
-            console.log(error);
-            response.json({ success: false });
-          })
-      } else {
-        console.log("Wrong email!");
-      }
+      db.registerUser(req.body.username, hashedPassword, token)
+        .then(() => {
+          res.redirect('/login');
+        })
+        .catch((error) => {
+          console.log(error);
+          res.json({ success: false });
+        })
     } else {
-      response.status(400).json({ success: false, message: "Invalid request" });
+      console.log("Wrong email!");
     }
   } catch {
-    response.redirect('/register')
+    res.redirect('/register')
   }
 })
 
-app.get('/register', (req, res) => {
-  res.render('register.ejs')
+app.get('/register/:token', (req, res) => {
+  if (registerToken.includes(req.params.token)) {
+    res.render('register.ejs')
+  } else {
+    res.render('404notfound.ejs');
+  }
 })
 
 app.get('/login', (req, res) => {
@@ -1215,7 +1219,7 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
 
   const files = req.files;
 
-  
+
   const author = req.session.passport.user.username;
   console.log(author);
 
@@ -1428,6 +1432,14 @@ app.get('/panel/manageAccounts', checkPermission('Admin'), (req, res) => {
   getAccounts
     .then(data => {
 
+      if (!tempAccounts) {
+        data.forEach(item => {
+          emailArray.push(item.user_email);
+        })
+
+        tempAccounts = true;
+      }
+
       res.json(data);
       console.log(data);
     })
@@ -1436,17 +1448,17 @@ app.get('/panel/manageAccounts', checkPermission('Admin'), (req, res) => {
 })
 
 app.get('/panel/manageAccounts/getAccountRoles', checkPermission('Admin'), (req, res) => {
-  
+
   const db = dbService.getDbServiceInstance();
 
   const getAccountRoles = db.getAccountRoles();
 
   getAccountRoles
-  .then(data => {
-    res.json(data);
-    console.log(data);
-  })
-  .catch(err => console.log(err));
+    .then(data => {
+      res.json(data);
+      console.log(data);
+    })
+    .catch(err => console.log(err));
 })
 
 app.get('/panel/manageAccounts/removeAccount/:id', checkPermission('Admin'), (req, res) => {
@@ -1455,10 +1467,13 @@ app.get('/panel/manageAccounts/removeAccount/:id', checkPermission('Admin'), (re
   const db = dbService.getDbServiceInstance();
 
   db.removeAccount(accountId)
-  .then(() => {
-    res.status(200).json("Success!");
-  })
-  .catch(err => console.log(err))
+    .then((data) => {
+
+      emailArray = emailArray.filter(item => item !== data);
+      console.log(emailArray);
+      res.status(200).json("Success!");
+    })
+    .catch(err => console.log(err))
 })
 
 app.get('/panel/manageAccounts/getAccount/:id', checkPermission('Admin'), (req, res) => {
@@ -1469,27 +1484,104 @@ app.get('/panel/manageAccounts/getAccount/:id', checkPermission('Admin'), (req, 
 
   const db = dbService.getDbServiceInstance();
   db.getSpecificAccount(accountId)
-  .then(data => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err))
+    .then(data => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err))
 })
 
 app.post('/panel/manageAccounts/editAccount', checkPermission('Admin'), upload.none(), (req, res) => {
 
-  const {id, username, email, role} = req.body;
+  const { id, username, email, role } = req.body;
 
-  console.log( id, username, email, role);
+  console.log(id, username, email, role);
 
   const db = dbService.getDbServiceInstance();
 
   db.editAccount(id, username, email, role)
-  .then(() => {
-    
-    res.status(200).json("Success!");
-  })
-  .catch(err => console.log(err)) 
+    .then(() => {
+
+      res.status(200).json("Success!");
+    })
+    .catch(err => console.log(err))
+})
+
+app.post('/panel/manageAccounts/createAccount', checkPermission('Admin'), upload.none(), (req, res) => {
+
+  const email = req.body.email;
+  const role = req.body.role;
+
+  if (emailArray.includes(email)) {
+    res.status(409).json({ message: `That email is already registered to another account` });
+  } else {
+
+    const tokenLength = 128;
+    const tokenValue = generateRandomToken(tokenLength);
+
+    registerToken.push(tokenValue);
+
+    const db = dbService.getDbServiceInstance();
+
+    db.createAccount(email, role, tokenValue)
+      .then(() => {
+
+        const mailOptions = {
+          from: process.env.EMAIL_NAME,
+          to: email,
+          subject: 'Create your Account',
+          //text: `Click on the following link to register your account: http://25.48.211.38:3001/register/${tokenValue}`,
+          html: `<!DOCTYPE html>
+        <html lang="en">
+        
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" type="text/css" href="css/styles.css">
+        </head>
+        
+        <body>
+        
+            <h2 style="font-size: 28px;
+            line-height: 44px;
+            font-weight: 400;
+            font-family: sans-serif;
+            white-space: normal;
+            font-smooth: always;
+            text-rendering: optimizeLegibility;">Click on the following button to register your account:</h2>
+            <a href="http://localhost:3001/register/${tokenValue}" style ="text-decoration: none; font-family: sans-serif;
+            color: #F2F2F2;
+            font-size: 18px;
+            line-height: 28.3px;
+            font-weight: 400;
+            padding: 15px 40px;
+            display: inline-block;
+            background-color: #67A329;
+            transition: all 200ms ease-in-out;
+            white-space: normal;
+            font-smooth: always;
+            text-rendering: optimizeLegibility;"class="button">Create Account</a>
+
+        </body>
+        
+        </html>`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log(error);
+            response.status(500).send("Error sending email");
+          } else {
+            console.log(info);
+            response.status(200).send("Email sent successfully");
+          }
+        });
+
+      })
+      .catch(error => console.log(error))
+
+  }
+
 })
 
 app.get('/forgot-password', (req, res) => {

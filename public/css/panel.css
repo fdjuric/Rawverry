@@ -346,13 +346,7 @@ td div {
     transition: all 0.4s ease;
 }
 
-.create-product {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.edit-product, .edit-account {
+.create-product, .edit-product, .create-account, .edit-account {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -499,6 +493,8 @@ td div {
 
 .account-form-username, .account-form-email {
 
+
+    max-width: 150px;
     padding: 10px;
     outline: var(--gray-accent);
 }
@@ -510,6 +506,7 @@ td div {
     align-items: center;
     flex-wrap: wrap;
     padding: 10px;
+    max-width: 150px;
 }
 
 .product-form-price-wrapper {
@@ -571,6 +568,10 @@ td div {
 
 .products-wrapper .products-table table tbody tr td {
     padding-right: 10px;
+}
+
+.creation-header {
+    padding-bottom: 20px;
 }
 
 .products-header {

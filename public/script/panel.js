@@ -1628,6 +1628,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     const sizeWrapper = document.querySelector('.account-creation .create-account');
 
+                    const accountRoleWrapper = document.querySelector('.account-creation .create-account .account-role-wrapper');
+
                     const select = document.createElement('select');
                     select.name = "role";
                     select.classList.add('account-role');
@@ -1640,7 +1642,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         select.appendChild(option);
                     })
 
-                    sizeWrapper.appendChild(select);
+                    accountRoleWrapper.appendChild(select);
 
                     const removeAccountButton = document.querySelectorAll('.manage-accounts .products-table .product-settings svg:nth-child(2)');
 
@@ -1761,9 +1763,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             fetch(`/panel/manageAccounts/getAccount/${editAccountId}`)
                                 .then(response => response.json())
                                 .then((dat) => {
-                                    console.log(dat);
-                                    console.log(dat[0]);
-                                    console.log(dat[0].user_name);
 
                                     const editName = document.querySelector('.account-edit .account-form-username');
                                     const editEmail = document.querySelector('.account-edit .account-form-email');
@@ -1848,24 +1847,15 @@ document.addEventListener('DOMContentLoaded', function () {
                                             alert('Incorrect email format!');
                                         }
 
-
-
-
-
                                     });
                                 })
                                 .catch(err => console.log(err));
-
-
-
 
                         })
 
                     })
 
                     const addAccountButton = document.querySelector('.add-an-account');
-
-
 
                     addAccountButton.addEventListener('click', () => {
 
@@ -1884,79 +1874,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             }, 400);
                         })
 
-                        const addSizeCreate = document.querySelector('.product-creation .add-size');
+                        const createAccountBtn = document.querySelector('.account-creation .creation-button');
 
-                        addSizeCreate.addEventListener('click', () => {
-                            console.log(data);
-                            addPriceSizeHandlerCreate(data, addSizeCreate);
-                        })
-
-                        const addCategory = document.querySelector('.product-creation .add-category');
-                        const removeCategory = document.querySelector('.product-creation .remove-category');
-
-                        const addCategoryWrapper = document.querySelector('.add-category-wrapper');
-                        const removeCategoryWrapper = document.querySelector('.remove-category-wrapper');
-
-                        const removeCategoryInputs = document.querySelector('.remove-category-inputs');
-
-                        addCategory.addEventListener('click', () => {
-                            addCategoryWrapper.style.display = "flex";
-                            addCategoryWrapper.style.opacity = 1;
-
-                            const closeBtn = document.querySelector('.add-category-wrapper .close-btn');
-
-                            closeBtn.addEventListener('click', () => {
-                                addCategoryWrapper.style.opacity = 0;
-
-                                setTimeout(() => {
-                                    addCategoryWrapper.style.display = "none";
-                                }, 400);
-                            })
-
-                            const submitBtn = document.querySelector('.add-category-wrapper .button');
-
-                            submitBtn.addEventListener('click', addCategoryHandler);
-                        })
-
-                        removeCategory.addEventListener('click', () => {
-                            removeCategoryWrapper.style.display = "flex";
-                            removeCategoryWrapper.style.opacity = 1;
-
-                            data.categories.forEach((item) => {
-                                const input = document.createElement('input');
-                                input.type = 'checkbox';
-                                input.name = 'category';
-                                input.value = item.category_name;
-                                const label = document.createElement('label');
-                                label.textContent = item.category_name;
-                                label.setAttribute("for", "category");
-                                const div = document.createElement('div');
-
-                                div.appendChild(input);
-                                div.appendChild(label);
-
-                                removeCategoryInputs.appendChild(div);
-                            })
-
-                            const closeBtn = document.querySelector('.remove-category-wrapper .close-btn');
-
-                            closeBtn.addEventListener('click', () => {
-                                removeCategoryWrapper.style.opacity = 0;
-
-                                setTimeout(() => {
-                                    removeCategoryWrapper.style.display = "none";
-                                }, 400);
-                            })
-
-                            const submitBtn = document.querySelector('.remove-category-wrapper .button');
-
-                            submitBtn.addEventListener('click', removeCategoryHandler);
-                        })
-
-
-                        const createProductBtn = document.querySelector('.product-creation .creation-button');
-
-                        createProductBtn.addEventListener('click', handleProductCreation);
+                        createAccountBtn.addEventListener('click', handleAccountCreation);
 
                     })
 
@@ -1966,6 +1886,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     })
+
+    function handleAccountCreation(){
+
+        const emailField = document.querySelector('.create-account .account-form-email');
+        const role = document.querySelector('.create-account .account-role');
+
+        console.log(emailField.value);
+        console.log(role.value);
+
+        if(!validateEmail(emailField.value)){
+            alert('Insert a valid email address!');
+        }else {
+
+            const formData = new FormData();
+
+            formData.append('email', emailField.value);
+            formData.append('role', role.value);
+
+            fetch('/panel/manageAccounts/createAccount', {
+                method: 'POST',
+                body: formData,
+            })
+            .then((response) => {
+                if(response.ok){
+                    alert('Successfully created account!')
+                }else {
+                    response.json().then((data) => {
+                        alert(data.message);
+                    })
+                }
+            })
+
+        }
+
+    }
 
     function addPriceSizeHandlerEdit(data, item) {
 

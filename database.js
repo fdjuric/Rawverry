@@ -125,12 +125,12 @@ class dbService {
     }
 
 
-    async registerUser(username, password, email, token) {
+    async registerUser(username, password, token) {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = "INSERT INTO account (user_name, user_password, user_email, token, date_col) VALUES (?, ?, ?, ?, CURDATE())";
+                const query = "UPDATE account SET user_name = ?, user_password = ? WHERE token = ?";
 
-                db.query(query, [username, password, email, token], (err, results) => {
+                db.query(query, [username, password, token], (err, results) => {
                     if (err) reject(new Error(err.message));
                     resolve(results);
 
@@ -258,6 +258,16 @@ class dbService {
 
     async removeAccount(id) {
         try {
+
+            const responseEmail = await new Promise((resolve, reject) => {
+                const query = `select user_email FROM account WHERE id = ?`;
+
+                db.query(query, [id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results[0].user_email);
+                });
+            })
+
             const response = await new Promise((resolve, reject) => {
                 const query = `DELETE FROM account WHERE id = ?`;
 
@@ -266,8 +276,26 @@ class dbService {
                     resolve();
                 });
             });
-            return response;
+            return responseEmail;
         } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async createAccount(email, role, token){
+        try{
+            const response = await new Promise((resolve, reject) => {
+                const query = `INSERT INTO account (user_email, account_role, token, date_col) VALUES(?, ?, ?, CURDATE())`
+            
+            
+                db.query(query, [email, role, token], (err,results) => {
+                    if(err) reject(new Error(err.message))
+                    resolve();
+                })
+            })
+
+            return response;
+        }catch(error){
             console.log(error);
         }
     }
