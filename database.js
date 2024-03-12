@@ -351,13 +351,13 @@ class dbService {
         }
     }
 
-    async createBlog(title, content, author, picture, author_pic) {
+    async createBlog(title, content, author, picture, date, author_pic) {
         try {
             const response = await new Promise((resolve, reject) => {
 
-                const query = `INSERT INTO blog (title, content, author, picture_path, author_pic) VALUES (?, ?, ?, ?, ?)`;
+                const query = `INSERT INTO blog (title, content, author, created_at, updated_at, image_url, author_picture) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-                db.query(query, [title, content, author, picture, author_pic], (err, results) => {
+                db.query(query, [title, content, author, date, date, picture, author_pic], (err, results) => {
                     if (err) reject(new Error(err.message));
                     resolve(results);
                 })
@@ -393,7 +393,15 @@ class dbService {
     async getBlogData() {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = `SELECT * FROM blog`;
+                const query = `SELECT Blog.id, 
+                Blog.title, 
+                Blog.content, 
+                Blog.author, 
+                Blog.image_url, 
+                Blog.author_picture, 
+                DATE_FORMAT(Blog.created_at, '%H:%i:%s %d.%m.%Y') AS created_at,
+                DATE_FORMAT(Blog.updated_at, '%H:%i:%s %d.%m.%Y') AS updated_at 
+                FROM blog`;
 
                 db.query(query, (err, results) => {
                     if (err) reject(new Error(err.message));

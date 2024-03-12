@@ -368,7 +368,7 @@ td div {
 }
 
 
-.add-size-wrapper, .add-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper, .remove-account-wrapper {
+.add-size-wrapper, .add-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper, .remove-account-wrapper, .remove-blog-wrapper {
     display: none;
     flex-direction: column;
     gap: 40px;
@@ -485,7 +485,7 @@ td div {
 
 
 
-.product-form-title, .product-form-price, .product-form-price-reduced {
+.product-form-title, .product-form-price, .product-form-price-reduced, .blog-form-title, .newsletter-form-title {
     max-width: 150px;
     padding: 10px;
     outline: var(--gray-accent);
@@ -541,12 +541,10 @@ td div {
     height: 100%;
 }
 
-#editorDescCreate, #editorDetailsCreate, #editorDescEdit, #editorDetailsEdit {
+ #editor, #editorDescCreate, #editorDetailsCreate, #editorDescEdit, #editorDetailsEdit {
     min-height: 500px;
     height: 100%;
 }
-
-
 
 .form-button {
     padding: 5px 10px;
@@ -648,7 +646,7 @@ td div {
     text-align: right;
 }
 
-.product-date, .product-date-edited {
+.product-date, .product-date-edited, .blog-created, .blog-updated {
     max-width: 150px;
     text-align: start;
 }
@@ -701,12 +699,6 @@ td div {
     object-fit: cover;
 }
 
-.editor-container {
-
-    min-height: 500px;
-    display: flex;
-    gap: 40px;
-}
 
 .editor-wrapper {
     max-height: 800px;
@@ -757,10 +749,39 @@ td div {
     transition: all 0.4s ease;
 }
 
-.blog-form-title {
-    outline: none;
-    padding: 5px;
+.create-blog {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
+
+.newsletter {
+    background-color: transparent;
+    height: 100%;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    margin: var(--margin-40);
+    gap: 40px;
+    width: auto;
+}
+
+.newsletter h2, .newsletter .subheader {
+    color: var(--secondary-color);
+}
+
+.newsletter-form {
+    display: flex;
+    flex-direction: column;
+    padding: var(--padding-40);
+    background-color: var(--primary-color);
+    box-sizing: border-box;
+    border-radius: 10px;
+    gap: 20px;
+    transition: all 0.4s ease;
+}
+
+
 
 .lds-ring {
     display: none;
