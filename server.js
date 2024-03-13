@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -76,11 +76,12 @@ app.use((req, res, next) => {
     res.sendFile(`${__dirname}/public${urlPath}.html`);
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+    console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
 
-    if (newPath) {
+    if (newPath && newPath !== '/blog') {
       // Redirect to the URL without the common prefixes and with the valid HTML path
       res.redirect(newPath);
     } else {
@@ -292,25 +293,44 @@ app.post('/sendEmail', (request, response) => {
 
 
 app.post('/panel/newsletter/sendNewsletter', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
-   const  { title, newsletter } = req.body;
+  const { title, newsletter } = req.body;
 
-  const mailOptions = {
-    from: `${process.env.Email_NAME}`,
-    to: `${process.env.Email_NAME}`,
-    subject: title,
-    //text: `From: ${name} (${email})\n\nMessage: ${message}`
-    html: newsletter
-  };
+  const db = dbService.getDbServiceInstance();
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      response.status(500).send("Error sending email");
-    } else {
-      console.log(info);
-      response.status(200).send("Email sent successfully");
-    }
-  });
+  const emails = db.getNewsletterEmails();
+
+  emails
+    .then((data) => {
+        console.log(data);
+
+        data.forEach((item) => {
+
+          console.log(item.email);
+    
+          const mailOptions = {
+            from: `${process.env.Email_NAME}`,
+            to: `${item.email}`,
+            subject: title,
+            //text: `From: ${name} (${email})\n\nMessage: ${message}`
+            html: newsletter
+          };
+        
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log(error);
+              res.status(500).send("Error sending email");
+            } else {
+              console.log(info);
+              res.status(200).send("Email sent successfully");
+            }
+          });
+      
+        })
+    
+    })
+    .catch(err => console.log(err));
+
+
 
 });
 
@@ -791,7 +811,7 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
 app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 
 
-  const {title, content, date} = req.body;
+  const { title, content, date } = req.body;
   const picture = req.file;
 
   console.log(picture);
@@ -814,23 +834,36 @@ app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpl
 
 })
 
-app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), (req, res) => {
+app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
 
-  const { id, title, content, author } = req.body;
+  const { id, title, content, date } = req.body;
 
   // Process the received data (perform database updates, etc.)
-  console.log(`Received data: id=${id}, title=${title}, content=${content}, author=${author}`);
+  console.log(`Received data: id=${id}, title=${title}, content=${content}`);
 
   const db = dbService.getDbServiceInstance();
 
-  db.editBlog(id, title, content, author)
+  db.editBlog(id, title, content, req.session.passport.user.username, date, req.session.passport.user.picture)
     .then(() => {
       console.log("Successfully Updated blog!");
+      res.status(200).json("Success!");
     })
     .catch((err) => console.log(err));
 
+})
 
+app.get('/panel/blog/removeBlog/:id', checkPermission('Admin'), (req, res) => {
+  const blogId = req.params.id;
 
+  console.log("TEST", blogId)
+
+  const db = dbService.getDbServiceInstance();
+
+  db.removeBlog(blogId)
+    .then(() => {
+      res.status(200).json("Success!");
+    })
+    .catch(err => console.log(err))
 })
 
 

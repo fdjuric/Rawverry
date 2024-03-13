@@ -124,6 +124,29 @@ class dbService {
         }
     }
 
+    async getNewsletterEmails() {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT email FROM newsletter WHERE isConfirmed = 1`;
+
+                db.query(query, (err, results) => {
+                    if(err) {
+                        console.log(error);
+                        reject.status(500).send("Failed to get Newsletters");
+                    } else {
+                        resolve(results);
+                    }
+                    
+                })
+            })
+
+            return response;
+
+        }catch(error){
+            console.log(error);
+        }
+    }
+
 
     async registerUser(username, password, token) {
         try {
@@ -370,12 +393,12 @@ class dbService {
         }
     }
 
-    async editBlog(id, title, content, author) {
+    async editBlog(id, title, content, author, date, author_pic) {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = 'UPDATE blog SET title = ?, content = ?, author = ? WHERE id = ?';
+                const query = 'UPDATE blog SET title = ?, content = ?, author = ?, updated_at = ?, author_picture = ? WHERE id = ?';
 
-                db.query(query, [title, content, author, id], (err, results) => {
+                db.query(query, [title, content, author, date, author_pic, id], (err, results) => {
                     if (err) {
                         reject(new Error(err.message));
                     } else {
@@ -384,6 +407,23 @@ class dbService {
                 });
             });
 
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async removeBlog(id) {
+        try {
+
+            const response = await new Promise((resolve, reject) => {
+                const query = `DELETE FROM blog WHERE id = ?`;
+
+                db.query(query, [id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve();
+                });
+            });
             return response;
         } catch (error) {
             console.log(error);

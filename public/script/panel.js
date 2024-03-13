@@ -281,6 +281,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const table = document.querySelector('.blog .products-table table');
 
         data.forEach(blog => {
+
+            console.log(blog);
             const row = document.createElement('tr');
 
             const titleCellWrapper = document.createElement('td');
@@ -354,8 +356,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 titlePic.appendChild(path);
 
                 // Append the SVG to the body
-                titleCellImgWrapper.appendChild(titlePic);
-                titleCellWrapperDiv.appendChild(titleCellImgWrapper);
+                titleCellAuthorImgWrapper.appendChild(titlePic);
+                titleCellAuthorWrapperDiv.appendChild(titleCellAuthorImgWrapper);
             }
 
             const titleAuthorCell = document.createElement('p');
@@ -397,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         //Adding event listeners to settings buttons
 
-        const editButton = document.querySelector('.edit-button');
+        const editButton = document.querySelector('.blog-edit .edit-button');
 
         const blogSettings = document.querySelectorAll('.blog .edit');
 
@@ -444,15 +446,61 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteBlog.addEventListener('click', () => {
                 const removeBlogWrapper = document.querySelector('.remove-blog-wrapper');
 
-                removeBlogWrapper.style.display= "flex";
+                const row = parent.closest('tr');
+
+                console.log(row);
+
+                removeBlogWrapper.style.display = "flex";
                 removeBlogWrapper.style.opacity = 1;
+
+                const blogIds = row.querySelector('.blog-id');
+
+                console.log(blogIds);
+
+                const blogId = blogIds.textContent;
+
+                console.log(blogId);
 
                 const removeButton = document.querySelector('.remove-blog-wrapper .remove-button');
                 removeButton.addEventListener('click', () => {
 
-                    
+                    fetch(`/panel/blog/removeBlog/${blogId}`)
+                        .then(response => {
+                            if (response.ok) {
+                                const status = document.querySelector('.remove-blog-wrapper .status-category');
+                                status.textContent = "Successfully removed blog!";
+                                status.classList.add('in-stock');
+
+                                const wrapper = document.querySelector('.remove-blog-wrapper');
+
+                                row.remove();
+
+                                setTimeout(() => {
+                                    wrapper.style.opacity = 0;
+                                    setTimeout(() => {
+                                        wrapper.style.display = "none";
+                                        status.textContent = "";
+                                    }, 400)
+                                }, 400)
+
+                                console.log(blogId);
+
+
+                                //window.location.reload();
+                            } else {
+                                const status = document.querySelector('.remove-blog-wrapper .status-category');
+                                status.textContent = "Error removing blog!";
+                                status.classList.add('out-of-stock');
+                                console.log("Failed!");
+                            }
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                        })
 
                 })
+
+
 
                 const cancelButton = document.querySelector('.remove-blog-wrapper .button:last-child');
                 cancelButton.addEventListener('click', () => {
@@ -661,23 +709,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const blogIdElement = document.querySelector('.blog-form-id');
         const blogFormTitleElement = document.querySelector('.blog-edit .blog-form-title');
-        const authorElement = document.querySelector('.welcome-name');
 
         const url = '/panel/blog/editBlog';
 
-        const data = {
-            id: blogIdElement.textContent.trim(),
-            title: blogFormTitleElement.value.trim(),
-            content: contentWithTags,
-            author: authorElement.textContent.trim()
-        };
+        const currentDate = new Date();
+        const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+        console.log(formattedDate);
+
+        const formData = new FormData();
+
+        formData.append('id', blogIdElement.textContent);
+        formData.append('title', blogFormTitleElement.value);
+        formData.append('content', contentWithTags);
+        formData.append('date', formattedDate);
 
         fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
+            body: formData
         })
             .then(response => {
                 if (response.ok) {
@@ -2626,6 +2674,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const title = document.querySelector('.newsletter-form .newsletter-form-title');
 
+                console.log(fileContent);
 
                 formData.append('newsletter', fileContent);
                 formData.append('title', title.value);
