@@ -301,12 +301,14 @@ app.post('/panel/newsletter/sendNewsletter', checkPermission(['Admin', 'Editor']
 
   emails
     .then((data) => {
-        console.log(data);
+      console.log(data);
 
-        data.forEach((item) => {
+      data.forEach((item, index) => {
+
+        setTimeout(() => {
 
           console.log(item.email);
-    
+
           const mailOptions = {
             from: `${process.env.Email_NAME}`,
             to: `${item.email}`,
@@ -314,7 +316,7 @@ app.post('/panel/newsletter/sendNewsletter', checkPermission(['Admin', 'Editor']
             //text: `From: ${name} (${email})\n\nMessage: ${message}`
             html: newsletter
           };
-        
+
           transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
               console.log(error);
@@ -324,9 +326,11 @@ app.post('/panel/newsletter/sendNewsletter', checkPermission(['Admin', 'Editor']
               res.status(200).send("Email sent successfully");
             }
           });
-      
-        })
-    
+
+        }, index * 1000)
+
+      })
+
     })
     .catch(err => console.log(err));
 
