@@ -6,13 +6,15 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/logout'];
+const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
 const cookieParser = require("cookie-parser");
 const bcrypt = require('bcrypt');
 const fs = require('fs');
+const os = require('os');
+const https = require('https');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
@@ -173,8 +175,45 @@ const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 
-const db = dbService.getDbServiceInstance();
-db.createBackup();
+
+app.get('/panel/createBackup', checkPermission(['Admin']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  try {
+    db.createBackup()
+      .then((data) => {
+
+        console.log(data);
+
+        const filePath = path.join(__dirname, 'dumps', path.basename(data));
+
+        setTimeout(() => {
+
+          fs.readFile(filePath, (err, data) => {
+            if (err) {
+                console.error(err);
+                res.status(500).send('Error reading file');
+                return;
+            }
+    
+            res.set({
+                'Content-Type': 'application/octet-stream',
+                'Content-Disposition': `attachment; filename="${path.basename(filePath)}"`,
+            });
+            res.send(data);
+        });
+        }, 1000);
+
+      })
+      .catch(err => console.log(err))
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Error creating backup');
+  }
+
+})
+
 //Inserting the email to the database
 
 app.post('/insertNewsletter', (request, response) => {

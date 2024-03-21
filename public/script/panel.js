@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const removePrices = [];
     const sizeIds = [];
 
-    const navElement = document.querySelectorAll('nav div');
+    const navElement = document.querySelectorAll('nav div:not(:last-child)');
     const navSvg = document.querySelectorAll('nav div svg path');
     const navText = document.querySelectorAll('nav div p');
 
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    const logoutButton = document.querySelector('.side nav div:last-child');
+    const logoutButton = document.querySelector('.log-out-btn');
     console.log(logoutButton);
 
     logoutButton.addEventListener('click', () => {
@@ -2041,6 +2041,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
             areAccountsAdded = true;
+        }
+
+    })
+
+    const backupDataBtn = document.querySelector('.backup-btn');
+
+    backupDataBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch('/panel/createBackup');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+
+            const contentDispositionHeader = response.headers.get('Content-Disposition');
+
+            const fileName = contentDispositionHeader.match(/filename="([^"]+)"/);
+
+            a.download = fileName[1];
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.log(error);
         }
 
     })

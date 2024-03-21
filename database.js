@@ -4,6 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const { exec } = require('child_process');
+const fs = require('fs');
 
 const mysql = require('mysql2');
 let instance = null;
@@ -1415,7 +1416,9 @@ class dbService {
 
 
 
-    createBackup() {
+   async createBackup() {
+
+    try {
 
         const currentDateTime = new Date();
 
@@ -1438,7 +1441,11 @@ class dbService {
         // Replace "/" with "-" to match the desired format
         const customFormat = formattedDateTime.replace(/[/ : ,]/g, '-'); // Replace '/', ':', and ',' with '-'
 
-        const dumpFilePath = path.join(__dirname, 'dumps', `${process.env.DB_NAME}${customFormat}.sql`);
+        const finalFormat = customFormat.replace(/--/g, '-');
+
+        const dumpFilePath = path.join(__dirname, 'dumps', `${process.env.DB_NAME}${finalFormat}.sql`);
+
+        fs.mkdirSync(path.dirname(dumpFilePath), { recursive: true });
 
         // Construct the mysqldump command
         const mysqldumpPath = '"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump"'; // Replace with the actual path
@@ -1446,19 +1453,26 @@ class dbService {
         const mysqldumpCommand = `${mysqldumpPath} -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > ${dumpFilePath}`;
 
         // Execute the mysqldump command
-        exec(mysqldumpCommand, (error, stdout, stderr) => {
-            if (error) {
-                console.error('Error during mysqldump:', error.message);
-                return;
-            }
 
-            if (stderr) {
-                console.error('Error during mysqldump (stderr):', stderr);
-                return;
-            }
+       // return new Promise((resolve, reject) => {
+            exec(mysqldumpCommand) /*, (error, stdout, stderr) => {
+                if (error) reject(new Error(error.message))
+                if (stderr) {
+                    console.error('Error during mysqldump (stderr):', stderr);
+                    return;
+                }
 
-            console.log("Success!");
-        })
+                resolve(dumpFilePath);
+    
+            }) */
+            return dumpFilePath;
+       // });
+
+    } catch (error) {
+        console.log(error);
+    }
+
+       
     }
 }
 
