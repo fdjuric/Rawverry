@@ -366,7 +366,7 @@ td div {
     justify-content: space-between;
 }
 
-.product-creation, .product-edit, .account-creation, .account-edit {
+.product-creation, .product-edit, .blog-creation, .blog-edit, .account-creation, .account-edit {
 
     position: relative;
     display: none;

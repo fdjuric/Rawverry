@@ -131,19 +131,19 @@ class dbService {
                 const query = `SELECT email FROM newsletter WHERE isConfirmed = 1`;
 
                 db.query(query, (err, results) => {
-                    if(err) {
+                    if (err) {
                         console.log(error);
                         reject.status(500).send("Failed to get Newsletters");
                     } else {
                         resolve(results);
                     }
-                    
+
                 })
             })
 
             return response;
 
-        }catch(error){
+        } catch (error) {
             console.log(error);
         }
     }
@@ -257,16 +257,16 @@ class dbService {
 
     }
 
-    async editAccount(id, username, email, role){
-        try{
+    async editAccount(id, username, email, role) {
+        try {
 
-            return new Promise((resolve, reject) => { 
+            return new Promise((resolve, reject) => {
                 const query = `UPDATE account
                 SET user_name = ?, user_email = ?, account_role = ?
                 WHERE id = ?`
 
                 db.query(query, [username, email, role, id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     console.log("success")
                     console.log(results);
@@ -274,7 +274,7 @@ class dbService {
                 })
             })
 
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
 
@@ -306,20 +306,20 @@ class dbService {
         }
     }
 
-    async createAccount(email, role, token){
-        try{
+    async createAccount(email, role, token) {
+        try {
             const response = await new Promise((resolve, reject) => {
                 const query = `INSERT INTO account (user_email, account_role, token, date_col) VALUES(?, ?, ?, CURDATE())`
-            
-            
-                db.query(query, [email, role, token], (err,results) => {
-                    if(err) reject(new Error(err.message))
+
+
+                db.query(query, [email, role, token], (err, results) => {
+                    if (err) reject(new Error(err.message))
                     resolve();
                 })
             })
 
             return response;
-        }catch(error){
+        } catch (error) {
             console.log(error);
         }
     }
@@ -443,6 +443,80 @@ class dbService {
                 DATE_FORMAT(Blog.created_at, '%H:%i:%s %d.%m.%Y') AS created_at,
                 DATE_FORMAT(Blog.updated_at, '%H:%i:%s %d.%m.%Y') AS updated_at 
                 FROM blog`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message));
+
+                    resolve(results);
+                });
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async getFavourites() {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT 
+                main.product_id, 
+                main.product_name, 
+                MIN(Product_size_link.product_price) AS product_price,
+                main.product_price_reduced, 
+                main.in_stock, 
+                main.size_id,
+                product_size.size_value,
+                img1.image_url AS image_url_1,
+                img2.image_url AS image_url_2
+            FROM (
+                SELECT 
+                    Product.product_id, 
+                    Product.product_name, 
+                    Product_size_link.product_price_reduced, 
+                    Product.in_stock, 
+                    Product_size_link.size_id AS size_id
+                FROM Product
+                LEFT JOIN Product_size_link ON Product.product_id = Product_size_link.product_id
+            ) AS main
+            LEFT JOIN (
+                SELECT 
+                    product_id,
+                    product_price,
+                    ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY product_price) AS rn
+                FROM Product_size_link
+            ) AS Product_size_link ON main.product_id = Product_size_link.product_id AND Product_size_link.rn = 1
+            LEFT JOIN product_size ON main.size_id = product_size.size_id
+            LEFT JOIN (
+                SELECT 
+                    product_id,
+                    image_url
+                FROM (
+                    SELECT 
+                        Product_Images.product_id,
+                        Product_Images.image_url,
+                        ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
+                    FROM Product_Images
+                ) AS img_subquery
+                WHERE img_rn = 1
+            ) AS img1 ON main.product_id = img1.product_id
+            LEFT JOIN (
+                SELECT 
+                    product_id,
+                    image_url
+                FROM (
+                    SELECT 
+                        Product_Images.product_id,
+                        Product_Images.image_url,
+                        ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
+                    FROM Product_Images
+                ) AS img_subquery
+                WHERE img_rn = 2
+            ) AS img2 ON main.product_id = img2.product_id
+            GROUP BY main.product_id, main.product_name, main.product_price_reduced, main.in_stock, main.size_id, product_size.size_value, img1.image_url, img2.image_url;
+            
+            `;
 
                 db.query(query, (err, results) => {
                     if (err) reject(new Error(err.message));
@@ -1416,45 +1490,45 @@ class dbService {
 
 
 
-   async createBackup() {
+    async createBackup() {
 
-    try {
+        try {
 
-        const currentDateTime = new Date();
+            const currentDateTime = new Date();
 
-        const path = require('path');
+            const path = require('path');
 
-        //const mainFolderPath = path.resolve(__dirname, '..');
+            //const mainFolderPath = path.resolve(__dirname, '..');
 
-        const options = {
-            year: 'numeric',
-            month: 'numeric',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: false, // Use 24-hour format
-            timeZone: 'Europe/Paris',
-        };
+            const options = {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: false, // Use 24-hour format
+                timeZone: 'Europe/Paris',
+            };
 
-        const formattedDateTime = new Intl.DateTimeFormat('en-GB', options).format(currentDateTime);
+            const formattedDateTime = new Intl.DateTimeFormat('en-GB', options).format(currentDateTime);
 
-        // Replace "/" with "-" to match the desired format
-        const customFormat = formattedDateTime.replace(/[/ : ,]/g, '-'); // Replace '/', ':', and ',' with '-'
+            // Replace "/" with "-" to match the desired format
+            const customFormat = formattedDateTime.replace(/[/ : ,]/g, '-'); // Replace '/', ':', and ',' with '-'
 
-        const finalFormat = customFormat.replace(/--/g, '-');
+            const finalFormat = customFormat.replace(/--/g, '-');
 
-        const dumpFilePath = path.join(__dirname, 'dumps', `${process.env.DB_NAME}${finalFormat}.sql`);
+            const dumpFilePath = path.join(__dirname, 'dumps', `${process.env.DB_NAME}${finalFormat}.sql`);
 
-        fs.mkdirSync(path.dirname(dumpFilePath), { recursive: true });
+            fs.mkdirSync(path.dirname(dumpFilePath), { recursive: true });
 
-        // Construct the mysqldump command
-        const mysqldumpPath = '"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump"'; // Replace with the actual path
+            // Construct the mysqldump command
+            const mysqldumpPath = '"C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump"'; // Replace with the actual path
 
-        const mysqldumpCommand = `${mysqldumpPath} -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > ${dumpFilePath}`;
+            const mysqldumpCommand = `${mysqldumpPath} -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > ${dumpFilePath}`;
 
-        // Execute the mysqldump command
+            // Execute the mysqldump command
 
-       // return new Promise((resolve, reject) => {
+            // return new Promise((resolve, reject) => {
             exec(mysqldumpCommand) /*, (error, stdout, stderr) => {
                 if (error) reject(new Error(error.message))
                 if (stderr) {
@@ -1466,13 +1540,13 @@ class dbService {
     
             }) */
             return dumpFilePath;
-       // });
+            // });
 
-    } catch (error) {
-        console.log(error);
-    }
+        } catch (error) {
+            console.log(error);
+        }
 
-       
+
     }
 }
 

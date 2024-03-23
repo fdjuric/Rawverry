@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const createBlog = document.querySelector('.add-blog');
     const blogCreateWrapper = document.querySelector('.blog-creation');
     const blogEditWrapper = document.querySelector('.blog-edit');
-    const blogTitle = document.querySelector('.blog-title');
+    
 
 
     const createButton = document.querySelector('.blog-creation .creation-button');
@@ -273,6 +273,19 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => {
             blogCreateWrapper.style.opacity = 1;
         }, 100);
+
+        const blogCloseBtn = document.querySelector('.blog-creation .close-btn');
+
+        blogCloseBtn.addEventListener('click', () => {
+            blogCreateWrapper.style.opacity = 0;
+
+            setTimeout(() => {
+                blogCreateWrapper.style.display = "none";
+                const blogTitle = document.querySelector('.blog-creation .blog-form-title');
+                blogTitle.value = "";
+                editor.setContents(null);
+            },400)
+        })
     })
 
     //Blog content table creation

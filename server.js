@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = [ '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -174,6 +174,21 @@ const productPicStorage = multer.diskStorage({
 const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
+
+
+app.get('/getFavourites', (req,res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const favourites = db.getFavourites();
+
+  favourites
+  .then((data) => {
+    console.log(data);
+    res.send(data);
+  })
+  .catch(err => console.log(err));
+})
 
 
 app.get('/panel/createBackup', checkPermission(['Admin']), (req, res) => {
