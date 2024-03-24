@@ -819,6 +819,78 @@ class dbService {
         }
     }
 
+    async getProduct(name) {
+        try {
+
+            const id = await new Promise((resolve, reject) => {
+                const query = `SELECT product_id FROM product WHERE product_name = ?`
+
+                db.query(query, [name], (err,results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve(results[0]);
+                })
+            })
+
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT product_id, product_name, description, in_stock, details FROM product WHERE product_id = ?`;
+
+                console.log()
+
+                db.query(query, [id.product_id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                })
+            })
+
+            const response1 = await new Promise((resolve, reject) => {
+                const query = `SELECT * FROM product_images WHERE product_id = ?`;
+
+                db.query(query, [id.product_id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                })
+            })
+
+            const response2 = await new Promise((resolve, reject) => {
+                const query = `SELECT product_category_link.*, product_category.*
+                FROM product_category_link
+                JOIN product_category ON product_category_link.category_id = product_category.category_id
+                WHERE product_category_link.product_id = ?;
+                `;
+
+                db.query(query, [id.product_id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                })
+            })
+
+            const response3 = await new Promise((resolve, reject) => {
+                const query = `SELECT product_size_link.*, product_size.*
+                FROM product_size_link
+                JOIN product_size ON product_size_link.size_id = product_size.size_id
+                WHERE product_size_link.product_id = ?;`;
+
+                db.query(query, [id.product_id], (err, results) => {
+                    if (err) reject(new Error(err.message));
+                    resolve(results);
+                })
+            })
+
+            const AllData = [];
+
+            AllData.push(response);
+            AllData.push(response1);
+            AllData.push(response2);
+            AllData.push(response3);
+
+
+            return AllData;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async getSpecificProduct(id) {
         try {
             const response = await new Promise((resolve, reject) => {

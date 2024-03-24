@@ -1,5 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
 
+
+document.addEventListener('DOMContentLoaded', function () {
 
     //Favourites Carousel
 
@@ -16,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Create the image element and set its src attribute
                 const img = document.createElement('img');
                 img.src = item.image_url_1;
+
+                let imgSource = img.src;
 
                 img.addEventListener('mouseenter', () => {
                     if (item.image_url_2 !== null) {
@@ -40,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 img.addEventListener('mouseleave', () => {
 
-                    if (img.src !== item.image_url_1) {
+                    if (img.src !== imgSource) {
                         img.style.opacity = 0.2; // Fade out the image
 
                         // Change the image source after the fade-out transition completes
@@ -86,9 +89,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 mainDiv.appendChild(priceDiv);
 
                 mainDiv.addEventListener('click', () => {
-                    fetch(`/getProduct/${item.product_id}`)
-                        .then(console.log("Success"))
-                        .catch(err => console.log(err))
+
+                    console.log("test " + item.product_id);
+
+                    const productName = item.product_name;
+                    const formmatedName = productName.replace(/\s+/g, "-");
+                    console.log(formmatedName);
+
+                    fetch(`/product/${formmatedName}`)
+                        .then(() => {
+                            window.location.href = `/product/${formmatedName}`;
+                        })
+                        .catch(err => console.error(err));
+
+
                 })
 
                 // Append the main div element to the desired parent element in the document
@@ -386,6 +400,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 500);
 
 
-
-
 });
+
+

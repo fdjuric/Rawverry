@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = [ '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -75,10 +75,18 @@ app.use((req, res, next) => {
   } else if (urlPath.includes('/index')) {
     res.redirect('/');
   } else if (validHTMLPaths.includes(urlPath)) {
-    res.sendFile(`${__dirname}/public${urlPath}.html`);
+    res.sendFile(`${__dirname}/public/${urlPath}.html`);
+  } else if (urlPath.startsWith('/product/')) {
+
+    const matches = urlPath.match(/^\/([^\/]+)/); // Match the first part of the URL
+    const url = matches[1]; // Get the first captured group
+
+    res.sendFile(`${__dirname}/public/${url}.html`);
+
+
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/product/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
@@ -176,19 +184,61 @@ const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 
 
-app.get('/getFavourites', (req,res) => {
+app.get('/getFavourites', (req, res) => {
 
   const db = dbService.getDbServiceInstance();
 
   const favourites = db.getFavourites();
 
   favourites
-  .then((data) => {
-    console.log(data);
-    res.send(data);
-  })
-  .catch(err => console.log(err));
+    .then((data) => {
+      console.log(data);
+      res.send(data);
+    })
+    .catch(err => console.log(err));
 })
+
+app.get('/getProduct/:name', (req, res) => {
+
+  const name = req.params.name;
+
+
+  const db = dbService.getDbServiceInstance();
+
+  const product = db.getProduct(name);
+
+  product
+    .then((data) => {
+      console.log(data);
+      const product = data[0][0];
+      const productImages = [];
+      const productCategory = [];
+      const productSize = [];
+      for (i = 0; i < data[3].length; i++) {
+        productSize.push(data[3][i]);
+      }
+
+      for (i = 0; i < data[2].length; i++) {
+        productCategory.push(data[2][i]);
+      }
+
+      for (i = 0; i < data[1].length; i++) {
+        productImages.push(data[1][i]);
+      }
+      const productArray = [];
+
+      productArray.push(product);
+      productArray.push(productImages);
+      productArray.push(productCategory);
+      productArray.push(productSize);
+
+      console.log(productArray[0].product_id);
+      res.json(productArray);
+    })
+    .catch(err => console.log(err));
+})
+
+
 
 
 app.get('/panel/createBackup', checkPermission(['Admin']), (req, res) => {
@@ -207,17 +257,17 @@ app.get('/panel/createBackup', checkPermission(['Admin']), (req, res) => {
 
           fs.readFile(filePath, (err, data) => {
             if (err) {
-                console.error(err);
-                res.status(500).send('Error reading file');
-                return;
+              console.error(err);
+              res.status(500).send('Error reading file');
+              return;
             }
-    
+
             res.set({
-                'Content-Type': 'application/octet-stream',
-                'Content-Disposition': `attachment; filename="${path.basename(filePath)}"`,
+              'Content-Type': 'application/octet-stream',
+              'Content-Disposition': `attachment; filename="${path.basename(filePath)}"`,
             });
             res.send(data);
-        });
+          });
         }, 1000);
 
       })

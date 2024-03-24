@@ -49,6 +49,15 @@ body {
     text-align:start;
 }
 
+.price {
+    display: flex;
+    gap: 10px;
+}
+
+.price-reduced {
+    text-decoration: line-through;
+}
+
 .product-size {
     display: flex;
     gap: 20px;
