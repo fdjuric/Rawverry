@@ -201,7 +201,8 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
 
       console.log(element.product_id, cart[0].product_id, element.product_name, cart[0].product_name);
       if (element.product_id === cart[0].product_id &&
-        element.product_name === cart[0].product_name) {
+        element.product_name === cart[0].product_name &&
+        element.size_value === cart[0].size_value) {
           temp = true;
       }else {
         temp = false;
@@ -251,6 +252,9 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
     console.log('New Item');
   } else if (cartItemIndex !== -1) {
     console.log('Dif quantity');
+    console.log(req.session.cart[cartItemIndex][0].quantity, cart[0].quantity);
+    req.session.cart[cartItemIndex][0].quantity = cart[0].quantity;
+    req.session.save();
   }else {
     console.log('Item exists');
   }
