@@ -27,47 +27,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 product_price: item.product_price,
                 product_price_reduced: item.product_price_reduced,
                 size_value: item.size_value
-            }));
+            }))
+
+            const quantityBox = document.querySelector('.quantity');
 
             const price = document.querySelector('.price p:first-child');
             const priceReduced = document.querySelector('.price .price-reduced');
 
-            price.textContent = sizeValueArray[0].product_price;
+            price.textContent = '$' + sizeValueArray[0].product_price;
 
-            if(sizeValueArray[0].product_price_reduced !== null && sizeValueArray[0].product_price_reduced !== '0.00')
-            priceReduced.textContent = sizeValueArray[0].product_price_reduced;
+            if (sizeValueArray[0].product_price_reduced !== null && sizeValueArray[0].product_price_reduced !== '0.00')
+                priceReduced.textContent = '$' + sizeValueArray[0].product_price_reduced;
 
 
             const productSize = document.querySelector('.product-size');
 
             sizeValueArray.forEach((item, index) => {
-                
+
                 const sizeButton = document.createElement('p');
                 sizeButton.classList.add('button-size');
                 sizeButton.textContent = item.size_value;
 
-                if(index === 0){
+                if (index === 0) {
                     sizeButton.classList.add('selected');
                 }
 
                 sizeButton.addEventListener('click', () => {
-                    price.textContent = item.product_price;
 
-                    if(item.product_price_reduced !== null && item.product_price_reduced !== '0.00')
-                    priceReduced.textContent = item.product_price_reduced;
+                    price.style.opacity = 0;
+                    setTimeout(() => {
+                        price.textContent = '$' + item.product_price;
+                        price.style.opacity = 1;
+                    }, 400)
+
+                    if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00')
+                        priceReduced.textContent = '$' + item.product_price_reduced;
                 })
                 productSize.appendChild(sizeButton);
 
             })
 
-            const categoryValueArray = data[2].map(item => item.category_name);
+            const description = document.querySelector('.description-row .description');
+            description.innerHTML = data[0].description;
+
+            const details = document.querySelector('.description-row .details');
+            details.innerHTML = data[0].details;
 
             const imagePath = data[1].map(item => item.image_url);
+
+            let isDone = true;
 
             imagePath.forEach((item, index) => {
 
                 const smallImageWrapper = document.querySelector('.small-image');
                 const imageWrapper = document.querySelector('.image-wrapper');
+                const imageContainer = document.querySelector('.big-image');
 
                 const products = document.querySelector('.products');
 
@@ -75,29 +89,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (index === 0) {
                     const mainImg = document.createElement('img');
                     mainImg.classList.add('image-main');
-                    mainImg.src = '../'+ item;
-                    imageWrapper.appendChild(mainImg);
+                    mainImg.src = '../' + item;
+                    imageContainer.appendChild(mainImg);
+                    imageWrapper.appendChild(imageContainer);
 
                     const product = document.createElement('div');
                     product.classList.add('product', 'product-main');
 
                     const phoneMainImg = document.createElement('img');
-                    phoneMainImg.src = '../'+ item;
+                    phoneMainImg.src = '../' + item;
                     product.appendChild(phoneMainImg);
                     products.appendChild(product);
+
+
+                } else {
+
+                    const img = document.createElement('img');
+                    img.src = '../' + item;
+                    smallImageWrapper.appendChild(img);
+
+                    const product = document.createElement('div');
+                    product.classList.add('product');
+
+
+                    img.addEventListener('click', () => {
+
+                        if (isDone) {
+
+                            isDone = false;
+
+                            const mainPic = document.querySelector('.image-main');
+
+                            let tempsrc = mainPic.src;
+
+                            mainPic.style.opacity = 0;
+                            img.style.opacity = 0;
+
+                            setTimeout(() => {
+                                mainPic.src = img.src;
+                                img.src = tempsrc;
+
+                                mainPic.style.opacity = 1;
+                                img.style.opacity = 1;
+
+                                isDone = true;
+                            }, 400)
+
+                        }
+                    })
+
+                    const phoneImg = document.createElement('img');
+                    phoneImg.src = '../' + item;
+                    product.appendChild(phoneImg);
+                    products.appendChild(product);
+
                 }
 
-                const img = document.createElement('img');
-                img.src = '../'+ item;
-                smallImageWrapper.appendChild(img);
 
-                const product = document.createElement('div');
-                product.classList.add('product');
-
-                const phoneImg = document.createElement('img');
-                phoneImg.src = '../'+ item;
-                product.appendChild(phoneImg);
-                products.appendChild(product);
 
             })
 
@@ -329,6 +377,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             }
+
+            const addToCart = document.querySelector('.description-wrapper .button-wrapper .button');
+
+            addToCart.addEventListener('click', () => {
+
+                const productId = data[0].product_id;
+                const productName = data[0].product_name;
+                const quantity = quantityBox.value;
+                const productSize = document.querySelector('.product-size .selected').textContent;
+
+                console.log(productId, productName, quantity, productSize);
+
+                const formData = new FormData();
+
+                formData.append('id', productId);
+                formData.append('name', productName);
+                formData.append('quantity', quantity);
+                formData.append('size', productSize);
+
+                fetch('/add-to-cart', {
+                        method: 'POST',
+                        body: formData,
+                })
+                .then(response => {
+                    if(response.ok){
+                        console.log("Success")
+                    }
+                })
+                .catch(err => console.log(err))
+
+
+            })
 
 
         })

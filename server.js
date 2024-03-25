@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/add-to-cart', '/getCart', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -44,7 +44,6 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(flash());
 app.use(session({
-  //store: new redisStore({ client: redisClient }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
@@ -182,6 +181,91 @@ const productPicStorage = multer.diskStorage({
 const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
+
+app.post('/add-to-cart', upload.none(), (req, res) => {
+
+  const { id, name, quantity, size } = req.body;
+
+  console.log("test190", id, name, quantity, size);
+
+  const cart = [{ product_id: id, product_name: name, quantity: quantity, size_value: size }];
+
+  // console.log(cart)
+  req.session.cart = req.session.cart || [];
+
+  const isCartItemInCart = req.session.cart.some((item) => {
+
+    let temp;
+
+    item.forEach((element) => {
+
+      console.log(element.product_id, cart[0].product_id, element.product_name, cart[0].product_name);
+      if (element.product_id === cart[0].product_id &&
+        element.product_name === cart[0].product_name) {
+          temp = true;
+      }else {
+        temp = false;
+      }
+
+    })
+
+    return temp;
+
+  });
+
+  console.log(isCartItemInCart);
+
+  const cartItemIndex = req.session.cart.findIndex((item) => {
+
+    let temp;
+
+    item.forEach((element) => {
+
+      //console.log("206", element);
+      //console.log(cart);
+
+      console.log(element.quantity, cart[0].quantity);
+
+      if (element.product_id === cart[0].product_id &&
+        element.product_name === cart[0].product_name &&
+        element.quantity !== cart[0].quantity &&
+        element.size_value === cart[0].size_value) {
+        temp = true;
+      } else
+        temp = false;
+
+    })
+    return temp;
+  });
+
+
+  console.log("test", cartItemIndex);
+
+  if (!isCartItemInCart) {
+
+    req.session.cart.push(cart);
+
+    req.session.save(session.cart)
+
+    console.log(req.session.cart);
+    console.log('New Item');
+  } else if (cartItemIndex !== -1) {
+    console.log('Dif quantity');
+  }else {
+    console.log('Item exists');
+  }
+
+})
+
+app.get('/getCart', (req, res) => {
+
+  const cart = req.session.cart;
+
+  //console.log(cart);
+
+  res.json(cart);
+
+})
 
 
 app.get('/getFavourites', (req, res) => {
