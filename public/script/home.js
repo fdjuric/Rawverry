@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data.forEach((item, index) => {
                 // Create the main div element with the specified classes
                 const mainDiv = document.createElement('div');
-                mainDiv.classList.add('product', 'hidden', 'scrollAnimate');
+                mainDiv.classList.add('product', 'hidden');
 
                 // Create the image element and set its src attribute
                 const img = document.createElement('img');
@@ -70,13 +70,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Create the first price paragraph element with the specified class and text content
                 const priceParagraph1 = document.createElement('p');
                 priceParagraph1.classList.add('paragraph-bold', 'blk');
-                priceParagraph1.textContent = `From $${item.product_price}`;
 
                 // Create the second price paragraph element with the specified class and text content
                 const priceParagraph2 = document.createElement('p');
                 priceParagraph2.classList.add('price-reduced', 'blk-shade');
                 if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
-                    priceParagraph2.textContent = `$${item.product_price_reduced}`;
+                    priceParagraph1.textContent = `From $${item.product_price_reduced}`;
+                    priceParagraph2.textContent = `$${item.product_price}`;
+                } else {
+                    priceParagraph1.textContent = `From $${item.product_price}`;
                 }
 
                 // Append the price paragraph elements to the price div element
@@ -119,9 +121,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const productCountParent = document.querySelector('.products-count');
 
                 productCountParent.appendChild(productCountElement);
-
-
-
 
             })
 
@@ -222,12 +221,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     prevTranslate = 0,
                     animationID,
                     currentIndex = 0,
-                    currentPosition = 0;
+                    currentPosition = 0,
+                    prevProduct = 0;
                 let hasMoved = false;
-                prevProduct = 0;
 
                 // add our event listeners
                 slides.forEach((slide, index) => {
+                    console.log(slide);
                     const slideImage = slide.querySelector('img')
                     // disable default image drag
                     slideImage.addEventListener('touchstart', (e) => e.preventDefault())

@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/add-to-cart', '/getCart', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -182,11 +182,47 @@ const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 
+
+app.post('/remove-from-cart', upload.none(), (req,res) => {
+  const productToRemove = req.body;
+
+  if(productToRemove){
+
+    const cartItemIndex = req.session.cart.findIndex((item) => {
+
+      let temp;
+  
+      item.forEach((element) => {
+  
+  
+        console.log(element.quantity, productToRemove[0].quantity);
+  
+        if (element.product_id === productToRemove[0].product_id &&
+          element.product_name === productToRemove[0].product_name &&
+          element.size_value === productToRemove[0].size_value) {
+          temp = true;
+        } else
+          temp = false;
+  
+      })
+      return temp;
+    });
+
+    req.session.cart = req.session.cart || [];
+
+    console.log("213", req.session.cart);
+
+    req.session.cart.splice(cartItemIndex, 1);
+    req.session.save(session.cart);
+
+    console.log("218", req.session.cart);
+
+    res.status(200).json("Success!");
+  }
+})
 app.post('/add-to-cart', upload.none(), (req, res) => {
 
   const { id, name, quantity, size } = req.body;
-
-  console.log("test190", id, name, quantity, size);
 
   const cart = [{ product_id: id, product_name: name, quantity: quantity, size_value: size }];
 
@@ -203,8 +239,8 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
       if (element.product_id === cart[0].product_id &&
         element.product_name === cart[0].product_name &&
         element.size_value === cart[0].size_value) {
-          temp = true;
-      }else {
+        temp = true;
+      } else {
         temp = false;
       }
 
@@ -222,8 +258,6 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
 
     item.forEach((element) => {
 
-      //console.log("206", element);
-      //console.log(cart);
 
       console.log(element.quantity, cart[0].quantity);
 
@@ -239,9 +273,6 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
     return temp;
   });
 
-
-  console.log("test", cartItemIndex);
-
   if (!isCartItemInCart) {
 
     req.session.cart.push(cart);
@@ -255,7 +286,7 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
     console.log(req.session.cart[cartItemIndex][0].quantity, cart[0].quantity);
     req.session.cart[cartItemIndex][0].quantity = cart[0].quantity;
     req.session.save();
-  }else {
+  } else {
     console.log('Item exists');
   }
 
@@ -265,9 +296,36 @@ app.get('/getCart', (req, res) => {
 
   const cart = req.session.cart;
 
-  //console.log(cart);
+  if (cart) {
 
-  res.json(cart);
+    res.json(cart.flat());
+
+  } else {
+    res.json([]);
+  }
+
+})
+
+app.post('/getCartData', upload.none(), (req, res) => {
+
+  const formData = req.body;
+
+  console.log(formData[0]);
+
+  const db = dbService.getDbServiceInstance();
+
+  if (formData) {
+
+    const productData = db.getCartProducts(formData);
+
+    productData
+      .then((data) => {
+        console.log("ProductData, ", data);
+        res.json(data);
+      })
+      .catch(err => console.log(err));
+
+  }
 
 })
 

@@ -20,7 +20,6 @@ body {
     width: 100%;
     gap: 40px;
     padding-bottom: var(--padding-40);
-    border-bottom: 1px solid var(--gray-accent);
 }
 
 .cart-table {
@@ -39,11 +38,20 @@ body {
     display: grid;
     grid-template-columns: 40% 25% 25% 10%;
     width: 100%;
+    transition: all 0.4s ease;
 }
 
 .cart-item:last-child {
     border-bottom: 1px solid var(--gray-accent);
     padding-bottom: var(--padding-40);
+}
+
+.empty-cart {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
 }
 
 
@@ -67,15 +75,49 @@ body {
     object-fit: cover;
 }
 
+.price-wrapper {
+    display: flex;
+    gap: 20px;
+}
+
+.product-price-reduced {
+    text-decoration: line-through;
+}
+
 .quantity-wrapper {
     display: flex;
     align-items: center;
 }
 
 .quantity {
-    padding: 10px 20px;
-    border: 1px solid var(--gray-accent);
+    font-family: var(--primary-font);
+    color: var(--secondary-color);
+    font-size: 16px;
+    line-height: 28.3px;
+    font-weight: 400;
     display: inline-block;
+    box-shadow: 1px 1px 0px 0px var(--primary-shade),
+        -1px -1px 0px 0px var(--primary-shade),
+        1px -1px 0px 0px var(--primary-shade),
+        -1px 1px 0px 0px var(--primary-shade);
+    transition: all 200ms ease-in-out;
+    white-space: normal;
+    font-smooth: always;
+    text-rendering: optimizeLegibility;
+    outline: none;
+    border: none;
+    text-align: center;
+    aspect-ratio: 1/1;
+    max-width: 45px;
+    padding: 5px 5px 5px 10px;
+}
+
+.quantity:hover, .quantity:focus {
+    cursor: pointer;
+    box-shadow: 1px 1px 0px 0px var(--accent-color),
+        -1px -1px 0px 0px var(--accent-color),
+        1px -1px 0px 0px var(--accent-color),
+        -1px 1px 0px 0px var(--accent-color);
 }
 
 .total-wrapper {
@@ -87,6 +129,33 @@ body {
     display: flex;
     align-items: center;
     justify-content: end;
+}
+
+.remove-button:hover {
+    cursor: pointer;
+}
+
+.remove-wrapper p span {
+    position: absolute;
+    display: block;
+    background: var(--secondary-color);
+    transition: transform ease-in-out 0.4s;
+}
+
+.remove-wrapper p span {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition-delay: 0s;
+}
+
+.remove-button:hover span {
+    transform: scaleX(1);
+    transform-origin: left;
 }
 
 .checkout-wrapper {

@@ -67,8 +67,7 @@ body {
     font-size: 16px;
     line-height: 28.3px;
     font-weight: 400;
-    padding: 5px;
-    box-sizing: border-box;
+    padding: 5px 5px 5px 10px;
     display: inline-block;
     box-shadow: 1px 1px 0px 0px var(--primary-shade),
         -1px -1px 0px 0px var(--primary-shade),
@@ -80,6 +79,7 @@ body {
     text-rendering: optimizeLegibility;
     outline: none;
     border: none;
+    max-width: 45px;
 }
 
 .quantity:hover, .quantity:focus {

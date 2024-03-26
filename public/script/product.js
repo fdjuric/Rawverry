@@ -34,15 +34,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const price = document.querySelector('.price p:first-child');
             const priceReduced = document.querySelector('.price .price-reduced');
 
-            price.textContent = '$' + sizeValueArray[0].product_price;
-
-            if (sizeValueArray[0].product_price_reduced !== null && sizeValueArray[0].product_price_reduced !== '0.00')
-                priceReduced.textContent = '$' + sizeValueArray[0].product_price_reduced;
-
-
             const productSize = document.querySelector('.product-size');
 
             sizeValueArray.forEach((item, index) => {
+
+                if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
+                    price.textContent = `$${item.product_price_reduced}`;
+                    priceReduced.textContent = `$${item.product_price}`;
+                } else {
+                    price.textContent = `$${item.product_price}`;
+                }
 
                 const sizeButton = document.createElement('p');
                 sizeButton.classList.add('button-size');
@@ -56,12 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     price.style.opacity = 0;
                     setTimeout(() => {
-                        price.textContent = '$' + item.product_price;
+                        if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
+                            price.textContent = `$${item.product_price_reduced}`;
+                            priceReduced.textContent = `$${item.product_price}`;
+                        } else {
+                            price.textContent = `$${item.product_price}`;
+                        }
                         price.style.opacity = 1;
                     }, 400)
 
-                    if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00')
-                        priceReduced.textContent = '$' + item.product_price_reduced;
+
                 })
                 productSize.appendChild(sizeButton);
 

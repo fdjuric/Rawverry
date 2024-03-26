@@ -819,14 +819,64 @@ class dbService {
         }
     }
 
+    async getCartProducts(data) {
+        try {
+
+            const responseData = [];
+
+            await Promise.all(data.map(async (item) => {
+                const sizeQuery = 'SELECT size_id FROM product_size WHERE size_value = ?';
+                const sizeResults = await new Promise((resolve, reject) => {
+                    db.query(sizeQuery, [item.size_value], (err, results) => {
+                        if (err) reject(err);
+                        resolve(results);
+                    });
+                });
+                
+                const sizeId = sizeResults[0].size_id;
+    
+                const priceQuery = 'SELECT product_price, product_price_reduced FROM product_size_link WHERE product_id = ? AND size_id = ?';
+                const priceResults = await new Promise((resolve, reject) => {
+                    db.query(priceQuery, [item.id, sizeId], (err, results) => {
+                        if (err) reject(err);
+                        resolve(results);
+                    });
+                });
+    
+                const imageQuery = 'SELECT image_url FROM product_images WHERE product_id = ?';
+                const imageResults = await new Promise((resolve, reject) => {
+                    db.query(imageQuery, [item.id], (err, results) => {
+                        if (err) reject(err);
+                        resolve(results);
+                    });
+                });
+    
+                responseData.push({
+                    product_id: item.id,
+                    product_name: item.product_name,
+                    quantity: item.quantity,
+                    size_value: item.size_value,
+                    product_price: priceResults[0].product_price,
+                    product_price_reduced: priceResults[0].product_price_reduced,
+                    image_url: imageResults[0].image_url
+                });
+            }));
+    
+            return responseData;
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async getProduct(name) {
         try {
 
             const id = await new Promise((resolve, reject) => {
                 const query = `SELECT product_id FROM product WHERE product_name = ?`
 
-                db.query(query, [name], (err,results) => {
-                    if(err) reject(new Error(err.message))
+                db.query(query, [name], (err, results) => {
+                    if (err) reject(new Error(err.message))
 
                     resolve(results[0]);
                 })
