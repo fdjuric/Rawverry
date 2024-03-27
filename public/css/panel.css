@@ -667,14 +667,6 @@ td div {
     align-items: center;
 }
 
-.in-stock {
-    color: var(--accent-color);
-}
-
-.out-of-stock {
-    color: var(--red-color);
-}
-
 .product-settings svg {
     border-radius: 50%;
     background-color: var(--primary-shade);

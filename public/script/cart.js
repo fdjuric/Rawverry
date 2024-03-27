@@ -44,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         console.log("test", data);
 
+                        const subtotal = document.querySelector('.subtotal-price');
+                        const totalPrice = document.querySelector('.total-price');
+
+                        let temp = 0;
+
                         data.forEach(item => {
 
                             var cartItem = document.createElement("div");
@@ -134,24 +139,53 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
                                 const calculation = item.product_price_reduced * item.quantity;
                                 total.textContent = `$${calculation.toFixed(2)}`;
+                                temp += calculation;
                             } else {
                                 const calculation = item.product_price * item.quantity;
                                 total.textContent = `$${calculation.toFixed(2)}`;
+                                temp += calculation;
                             }
 
                             quantity.addEventListener('change', () => {
                                 const newQuantity = quantity.value;
 
+                                temp = 0;
+
+                                const allTotal = document.querySelectorAll('.total-wrapper .total');
+
                                 if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
                                     const calculation = item.product_price_reduced * newQuantity;
                                     total.textContent = `$${calculation.toFixed(2)}`;
+
+
+                                    allTotal.forEach(price => {
+                                        const priceTotal = parseFloat(price.textContent.substring(1))
+
+                                        temp += priceTotal;
+                                    })
+
+                                    subtotal.textContent = `$${temp.toFixed(2)}`;
+                                    totalPrice.textContent = `$${temp.toFixed(2)}`;
+
+
+
+
                                 } else {
                                     const calculation = item.product_price * newQuantity;
                                     total.textContent = `$${calculation.toFixed(2)}`;
+
+                                    allTotal.forEach(price => {
+
+                                        const priceTotal = parseFloat(price.textContent.substring(1))
+
+                                        temp += priceTotal;
+                                    })
+
+                                    subtotal.textContent = `$${temp.toFixed(2)}`;
+                                    totalPrice.textContent = `$${temp.toFixed(2)}`;
                                 }
 
                             })
-
                             // Append the total paragraph to the total wrapper
                             totalWrapper.appendChild(total);
 

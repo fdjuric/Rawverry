@@ -402,15 +402,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('size', productSize);
 
                 fetch('/add-to-cart', {
-                        method: 'POST',
-                        body: formData,
+                    method: 'POST',
+                    body: formData,
                 })
-                .then(response => {
-                    if(response.ok){
-                        console.log("Success")
-                    }
-                })
-                .catch(err => console.log(err))
+                    .then(response => {
+                        const status = document.querySelector('.add-to-cart-status');
+
+                        status.style.opacity = 1;
+
+                        if (response.ok) {
+
+                            response.json().then((data) => {
+                                console.log("Success")
+                            status.textContent = data.message;
+                            status.classList.add('in-stock');
+                            status.classList.remove('out-of-stock');
+                            })
+
+                            setTimeout(() => {
+                                status.style.opacity = 0;
+                            }, 1000)
+
+                        } else {
+                            response.json().then((data) => {
+                                console.log("Success")
+                            status.textContent = data.message;
+                            status.classList.add('out-of-stock');
+                            status.classList.remove('in-stock');
+                            })
+
+                            setTimeout(() => {
+                                status.style.opacity = 0;
+                            }, 1000)
+                        }
+                    })
+                    .catch(err => console.log(err))
 
 
             })

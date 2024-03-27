@@ -274,20 +274,21 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
   });
 
   if (!isCartItemInCart) {
-
     req.session.cart.push(cart);
-
     req.session.save(session.cart)
 
     console.log(req.session.cart);
     console.log('New Item');
+    res.status(200).json({message:'Item added to the cart.'});
   } else if (cartItemIndex !== -1) {
     console.log('Dif quantity');
     console.log(req.session.cart[cartItemIndex][0].quantity, cart[0].quantity);
     req.session.cart[cartItemIndex][0].quantity = cart[0].quantity;
     req.session.save();
+    res.status(200).json({message:'Item added to the cart.'});;
   } else {
     console.log('Item exists');
+    res.status(400).json({message:'Item is already in cart.'});
   }
 
 })

@@ -230,6 +230,14 @@ a {
   color: var(--primary-shade);
 }
 
+.in-stock {
+  color: var(--accent-color);
+}
+
+.out-of-stock {
+  color: var(--red-color);
+}
+
 body {
   display: flex;
   flex-direction: column;
