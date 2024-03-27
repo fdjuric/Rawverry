@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //Favourites Carousel
 
+    let isLongPress = false;
+    let movePosition = 0;
+
     fetch('/getFavourites')
         .then(response => response.json())
         .then((data) => {
@@ -104,6 +107,27 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                         .catch(err => console.error(err));
 
+                })
+
+                mainDiv.addEventListener('touchend', () => {
+
+                    if (movePosition === 0) {
+
+                        console.log("test " + item.product_id);
+
+                        const productName = item.product_name;
+                        const formmatedName = productName.replace(/\s+/g, "-");
+                        console.log(formmatedName);
+
+                        fetch(`/product/${formmatedName}`)
+                            .then(() => {
+                                window.location.href = `/product/${formmatedName}`;
+                            })
+                            .catch(err => console.error(err));
+
+                    }
+
+                    movePosition = 0;
 
                 })
 
@@ -251,6 +275,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // use a HOF so we have index in a closure
                 function pointerDown(index) {
                     return function (event) {
+                        setTimeout(() => {
+
+                            //isLongPress = true;
+
+                        }, 150)
+
                         event.preventDefault()
                         currentIndex = index
                         startPos = event.touches[0].clientX
@@ -265,7 +295,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (isDragging) {
                         currentPosition = event.touches[0].clientX
                         currentTranslate = prevTranslate + currentPosition - startPos
-
+                        movePosition = currentTranslate;
+                        console.log(movePosition)
                     }
                 }
 
@@ -282,6 +313,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     setPositionByIndex()
 
                     isSliding = false;
+
+                    setTimeout(() => {
+                        //isLongPress = false;
+                    }, 150)
 
                 }
 

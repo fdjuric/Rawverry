@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -20,6 +20,8 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
+
+const stripe = require('stripe')(`${process.env.stripe_secret}`)
 
 const multer = require('multer');
 
@@ -183,27 +185,85 @@ const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 
 
-app.post('/remove-from-cart', upload.none(), (req,res) => {
+app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
+
+  const checkoutData = req.body;
+
+  console.log(checkoutData, "192");
+
+  const db = dbService.getDbServiceInstance();
+
+  const items = [];
+
+  try {
+    const productCheckoutData = await db.getCheckoutProducts(checkoutData);
+
+    console.log(productCheckoutData, "197");
+
+    productCheckoutData.forEach(item => {
+      let price = 0;
+
+      if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
+        price = item.product_price_reduced;
+      } else {
+        price = item.product_price;
+      }
+
+      items.push({
+        price_data: {
+          currency: "eur",
+          product_data: {
+            name: item.product_name,
+            images: [`http://localhost:3001/${item.image_url}`],
+          },
+          unit_amount: Math.round(price*100), // Use unit_amount instead of price
+        },
+        quantity: item.quantity
+      });
+    });
+
+    console.log(items, "225")
+
+    // Create the Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: items,
+      mode: "payment",
+      success_url: "http://localhost:3001/index",
+      cancel_url: "http://localhost:3001/index"
+    });
+
+    // Once the session is created, return its id in the response
+    console.log(session.id)
+    res.json({ id: session.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+
+})
+
+app.post('/remove-from-cart', upload.none(), (req, res) => {
   const productToRemove = req.body;
 
-  if(productToRemove){
+  if (productToRemove) {
 
     const cartItemIndex = req.session.cart.findIndex((item) => {
 
       let temp;
-  
+
       item.forEach((element) => {
-  
-  
+
+
         console.log(element.quantity, productToRemove[0].quantity);
-  
+
         if (element.product_id === productToRemove[0].product_id &&
           element.product_name === productToRemove[0].product_name &&
           element.size_value === productToRemove[0].size_value) {
           temp = true;
         } else
           temp = false;
-  
+
       })
       return temp;
     });
@@ -279,16 +339,16 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
 
     console.log(req.session.cart);
     console.log('New Item');
-    res.status(200).json({message:'Item added to the cart.'});
+    res.status(200).json({ message: 'Item added to the cart.' });
   } else if (cartItemIndex !== -1) {
     console.log('Dif quantity');
     console.log(req.session.cart[cartItemIndex][0].quantity, cart[0].quantity);
     req.session.cart[cartItemIndex][0].quantity = cart[0].quantity;
     req.session.save();
-    res.status(200).json({message:'Item added to the cart.'});;
+    res.status(200).json({ message: 'Item added to the cart.' });;
   } else {
     console.log('Item exists');
-    res.status(400).json({message:'Item is already in cart.'});
+    res.status(400).json({ message: 'Item is already in cart.' });
   }
 
 })

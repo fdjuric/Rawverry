@@ -315,6 +315,27 @@ body {
     .product-wrapper {
         padding-inline: var(--padding-20);
     }
+
+    .image-wrapper {
+        grid-template-columns: 10% 90%;
+    }
+}
+
+@media (min-width: 480px) and (max-width:768px) {
+
+    .image-wrapper {
+        max-height: 800px;
+        grid-template-columns: 90% 10%;
+    }
+
+    .small-image {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .big-image {
+        grid-column: 1;
+    }
 }
 
 @media (max-width: 768px) {
@@ -413,6 +434,10 @@ body {
         height: auto;
         left: 0;
         transform: translate(0);
+    }
+
+    .button-wrapper {
+        flex-direction: column;
     }
 
     .product-wrapper {

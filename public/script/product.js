@@ -90,6 +90,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const products = document.querySelector('.products');
 
+                const productCountElement = document.createElement('span');
+                if (index === 0) {
+                    productCountElement.classList.add('product-main');
+                    productCountElement.style.backgroundColor = 'var(--accent-color)';
+                } else
+                    productCountElement.style.backgroundColor = 'var(--primary-shade)';
+
+
+                const productCount = document.querySelector('.products-count');
+
+                productCount.appendChild(productCountElement);
 
                 if (index === 0) {
                     const mainImg = document.createElement('img');
@@ -256,9 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     prevTranslate = 0,
                     animationID,
                     currentIndex = 0,
-                    currentPosition = 0;
+                    currentPosition = 0,
+                    prevProduct = 0;
                 let hasMoved = false;
-                prevProduct = 0;
+
 
                 // add our event listeners
                 slides.forEach((slide, index) => {
@@ -408,31 +420,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(response => {
                         const status = document.querySelector('.add-to-cart-status');
 
+                        status.style.display = "block";
                         status.style.opacity = 1;
 
                         if (response.ok) {
 
                             response.json().then((data) => {
                                 console.log("Success")
-                            status.textContent = data.message;
-                            status.classList.add('in-stock');
-                            status.classList.remove('out-of-stock');
+                                status.textContent = data.message;
+                                status.classList.add('in-stock');
+                                status.classList.remove('out-of-stock');
                             })
 
                             setTimeout(() => {
                                 status.style.opacity = 0;
+                                setTimeout(() => {
+                                    status.style.display = "none";
+                                }, 400)
                             }, 1000)
 
                         } else {
                             response.json().then((data) => {
                                 console.log("Success")
-                            status.textContent = data.message;
-                            status.classList.add('out-of-stock');
-                            status.classList.remove('in-stock');
+                                status.textContent = data.message;
+                                status.classList.add('out-of-stock');
+                                status.classList.remove('in-stock');
                             })
 
                             setTimeout(() => {
                                 status.style.opacity = 0;
+                                setTimeout(() => {
+                                    status.style.display = "none";
+                                }, 400)
                             }, 1000)
                         }
                     })

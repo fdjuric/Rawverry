@@ -819,6 +819,59 @@ class dbService {
         }
     }
 
+    async getCheckoutProducts(data) {
+        try {
+
+            const responseData = [];
+
+            await Promise.all(data.map(async (item) => {
+
+                console.log(item.product_id);
+
+                const sizeQuery = 'SELECT size_id FROM product_size WHERE size_value = ?';
+                const sizeResults = await new Promise((resolve, reject) => {
+                    db.query(sizeQuery, [item.size_value], (err, results) => {
+                        if (err) reject(err);
+                        resolve(results);
+                    });
+                });
+                
+                const sizeId = sizeResults[0].size_id;
+    
+                const priceQuery = 'SELECT product_price, product_price_reduced FROM product_size_link WHERE product_id = ? AND size_id = ?';
+                const priceResults = await new Promise((resolve, reject) => {
+                    db.query(priceQuery, [item.product_id, sizeId], (err, results) => {
+                        if (err) reject(err);
+                        resolve(results);
+                    });
+                });
+    
+                const imageQuery = 'SELECT image_url FROM product_images WHERE product_id = ?';
+                const imageResults = await new Promise((resolve, reject) => {
+                    db.query(imageQuery, [item.product_id], (err, results) => {
+                        if (err) reject(err);
+                        resolve(results);
+                    });
+                });
+    
+                responseData.push({
+                    product_id: item.product_id,
+                    product_name: item.product_name,
+                    quantity: item.quantity,
+                    size_value: item.size_value,
+                    product_price: priceResults[0].product_price,
+                    product_price_reduced: priceResults[0].product_price_reduced,
+                    image_url: imageResults[0].image_url
+                });
+            }));
+    
+            return responseData;
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async getCartProducts(data) {
         try {
 

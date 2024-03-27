@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const createBlog = document.querySelector('.add-blog');
     const blogCreateWrapper = document.querySelector('.blog-creation');
     const blogEditWrapper = document.querySelector('.blog-edit');
-    
+
 
 
     const createButton = document.querySelector('.blog-creation .creation-button');
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const blogTitle = document.querySelector('.blog-creation .blog-form-title');
                 blogTitle.value = "";
                 editor.setContents(null);
-            },400)
+            }, 400)
         })
     })
 
@@ -1558,151 +1558,142 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = document.querySelector('.create-product');
 
+        const title = document.querySelector('.create-product .product-form-title');
+        const price = document.querySelector('.create-product .product-form-price');
 
+        const categories = document.querySelectorAll('.product-creation .product-category-wrapper div input');
 
-        if (form.checkValidity()) {
+        const isChecked = Array.from(categories).some(checkbox => checkbox.checked);
 
-            const categories = document.querySelectorAll('.product-creation .product-category-wrapper div input');
+        console.log(isChecked);
 
-            const isChecked = Array.from(categories).some(checkbox => checkbox.checked);
+        if (isChecked && title.value !== null && price.value !== null) {
+            const productPicture = document.getElementById("productPicture");
+            const picture = productPicture.files;
 
-            console.log(isChecked);
-
-            if (isChecked) {
-                const productPicture = document.getElementById("productPicture");
-                const picture = productPicture.files;
-
-                const pictureArray = [];
-                for (let i = 0; i < picture.length; i++) {
-                    const file = picture[i];
-                    pictureArray.push({ name: file.name });
-                    // Optionally, you can access other file properties like file.type, file.size, etc.
-                }
-
-                const productFormTitle = document.querySelector('.product-creation .product-form-title');
-                const title = productFormTitle.value;
-
-                const productFormPrice = document.querySelectorAll('.product-creation .product-form-price');
-                const productFormPriceReduced = document.querySelectorAll('.product-creation .product-form-price-reduced');
-                const productSize = document.querySelectorAll('.product-creation .product-size-wrapper .product-size');
-
-                const pricePerSizeArray = [];
-
-                for (let i = 0; i < productFormPrice.length; i++) {
-                    pricePerSizeArray.push({ price: productFormPrice[i].value, priceReduced: productFormPriceReduced[i].value, size: productSize[i].value });
-                }
-
-                console.log(pricePerSizeArray[0].price);
-
-                const productCategory = document.querySelectorAll('.product-creation .product-category-wrapper div input');
-
-                let categoryArray = [];
-
-                productCategory.forEach((item) => {
-
-                    if (item.checked) {
-                        categoryArray.push(item.value);
-                    }
-
-                })
-
-                console.log(categoryArray);
-
-                const description = getText(editorDesc);
-                const details = getText(editorDetails);
-
-                console.log(description);
-                console.log(details);
-
-                const currentDate = new Date();
-                const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
-                console.log(formattedDate);
-
-
-                // picture.forEach((item) => {
-
-                console.log(picture);
-
-                // })
-
-                const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
-
-                const areAllValidFiles = pictureArray.every(item => {
-                    return allowedTypes.some(ext => item.name.toLowerCase().endsWith(ext));
-                });
-
-                if (areAllValidFiles) {
-
-                    const formData = new FormData(); // Create a FormData object
-
-                    formData.append('title', title);
-                    for (let i = 0; i < pricePerSizeArray.length; i++) {
-                        const size = pricePerSizeArray[i];
-                        console.log(size);
-                        formData.append('price[]', JSON.stringify(size)); // Append each file to the FormData object
-                    }
-                    for (let i = 0; i < categoryArray.length; i++) {
-                        const category = categoryArray[i];
-                        formData.append('category', category); // Append each file to the FormData object
-                    }
-                    formData.append('description', description);
-                    formData.append('details', details);
-                    for (let i = 0; i < picture.length; i++) {
-                        const file = picture[i];
-                        formData.append('file', file); // Append each file to the FormData object
-                    }
-
-                    formData.append('date', formattedDate);
-
-                    console.log(formattedDate);
-
-                    fetch('/panel/products/addProduct', {
-                        method: 'POST',
-                        body: formData // Set the body of the request as FormData
-                    })
-                        .then(response => {
-                            if (response.ok) {
-                                alert('Product added successfully!');
-
-                                const productCreation = document.querySelector('.product-creation');
-
-                                productCreation.style.opacity = 0;
-
-                                setTimeout(() => {
-                                    productCreation.style.display = "none";
-
-                                    const editSizes = document.querySelectorAll('.product-creation .product-form-price-wrapper');
-                                    const editCategories = document.querySelectorAll('.product-creation .product-category-wrapper div input')
-
-                                    editSizes.forEach(item => {
-                                        item.remove();
-                                    })
-                                    editCategories.forEach(input => {
-
-                                        input.checked = false;
-
-                                    })
-
-                                }, 400);
-                            } else {
-                                alert('Error creating product!');
-                            }
-                        })
-
-                } else {
-                    alert('The file is not a picture!');
-                }
-            } else {
-                alert('Please fill the remaining fields!');
+            const pictureArray = [];
+            for (let i = 0; i < picture.length; i++) {
+                const file = picture[i];
+                pictureArray.push({ name: file.name });
+                // Optionally, you can access other file properties like file.type, file.size, etc.
             }
 
+            const productFormTitle = document.querySelector('.product-creation .product-form-title');
+            const title = productFormTitle.value;
+
+            const productFormPrice = document.querySelectorAll('.product-creation .product-form-price');
+            const productFormPriceReduced = document.querySelectorAll('.product-creation .product-form-price-reduced');
+            const productSize = document.querySelectorAll('.product-creation .product-size-wrapper .product-size');
+
+            const pricePerSizeArray = [];
+
+            for (let i = 0; i < productFormPrice.length; i++) {
+                pricePerSizeArray.push({ price: productFormPrice[i].value, priceReduced: productFormPriceReduced[i].value, size: productSize[i].value });
+            }
+
+            console.log(pricePerSizeArray[0].price);
+
+            const productCategory = document.querySelectorAll('.product-creation .product-category-wrapper div input');
+
+            let categoryArray = [];
+
+            productCategory.forEach((item) => {
+
+                if (item.checked) {
+                    categoryArray.push(item.value);
+                }
+
+            })
+
+            console.log(categoryArray);
+
+            const description = getText(editorDesc);
+            const details = getText(editorDetails);
+
+            console.log(description);
+            console.log(details);
+
+            const currentDate = new Date();
+            const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+            console.log(formattedDate);
 
 
+            // picture.forEach((item) => {
+
+            console.log(picture);
+
+            // })
+
+            const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
+
+            const areAllValidFiles = pictureArray.every(item => {
+                return allowedTypes.some(ext => item.name.toLowerCase().endsWith(ext));
+            });
+
+            if (areAllValidFiles) {
+
+                const formData = new FormData(); // Create a FormData object
+
+                formData.append('title', title);
+                for (let i = 0; i < pricePerSizeArray.length; i++) {
+                    const size = pricePerSizeArray[i];
+                    console.log(size);
+                    formData.append('price[]', JSON.stringify(size)); // Append each file to the FormData object
+                }
+                for (let i = 0; i < categoryArray.length; i++) {
+                    const category = categoryArray[i];
+                    formData.append('category', category); // Append each file to the FormData object
+                }
+                formData.append('description', description);
+                formData.append('details', details);
+                for (let i = 0; i < picture.length; i++) {
+                    const file = picture[i];
+                    formData.append('file', file); // Append each file to the FormData object
+                }
+
+                formData.append('date', formattedDate);
+
+                console.log(formattedDate);
+
+                fetch('/panel/products/addProduct', {
+                    method: 'POST',
+                    body: formData // Set the body of the request as FormData
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Product added successfully!');
+
+                            const productCreation = document.querySelector('.product-creation');
+
+                            productCreation.style.opacity = 0;
+
+                            setTimeout(() => {
+                                productCreation.style.display = "none";
+
+                                const editSizes = document.querySelectorAll('.product-creation .product-form-price-wrapper');
+                                const editCategories = document.querySelectorAll('.product-creation .product-category-wrapper div input')
+
+                                editSizes.forEach(item => {
+                                    item.remove();
+                                })
+                                editCategories.forEach(input => {
+
+                                    input.checked = false;
+
+                                })
+
+                            }, 400);
+                        } else {
+                            alert('Error creating product!');
+                        }
+                    })
+
+            } else {
+                alert('The file is not a picture!');
+            }
         } else {
-            alert('Please fill the remaining fields');
+            alert('Please fill the remaining fields!');
         }
-
-
 
 
     }
