@@ -2,11 +2,12 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    //Favourites Carousel
 
-    let isLongPress = false;
     let movePosition = 0;
 
+
+    //Favourites Carousel
+    
     fetch('/getFavourites')
         .then(response => response.json())
         .then((data) => {
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 let imgSource = img.src;
 
-                img.addEventListener('mouseenter', () => {
+                img.addEventListener('mouseover', () => {
                     if (item.image_url_2 !== null) {
 
                         img.style.opacity = 0.2; // Fade out the image
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
 
-                img.addEventListener('mouseleave', () => {
+                img.addEventListener('mouseout', () => {
 
                     if (img.src !== imgSource) {
                         img.style.opacity = 0.2; // Fade out the image

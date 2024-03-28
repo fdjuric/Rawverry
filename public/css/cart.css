@@ -164,12 +164,63 @@ body {
 
 .checkout-wrapper {
     display: flex;
+    gap: 60px;
     justify-content: space-between;
-    align-items: center;
+    align-items: start;
     width: 100%;
     max-width: 1240px;
     box-sizing: border-box;
     padding-inline: var(--padding-20);
+}
+
+.coupon-wrapper .coupon {
+    padding: 10px;
+}
+
+.checkout-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    gap: 40px;
+    width: 100%;
+    max-width: 1240px;
+}
+
+.coupon-wrapper {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    justify-content: end;
+}
+
+.coupon-wrapper .button {
+    text-align: center;
+}
+
+
+.coupon-wrapper .coupon {
+    width: 100%;
+    max-width: 300px;
+    padding-inline: var(--padding-20);
+    border: 1px solid var(--gray-accent);
+    font-family: var(--primary-font);
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.1s ease;
+    outline: none;
+}
+
+.coupon-wrapper .coupon:focus {
+    border: 2px solid var(--accent-color);
+    font-family: var(--primary-font);
+    font-size: 14px;
+    box-sizing: border-box;
+    color: var(--secondary-color);
+}
+
+.coupon:focus::placeholder {
+    color: var(--secondary-color);
 }
 
 .checkout-box1{
@@ -191,7 +242,6 @@ body {
 }
 
 .checkout-box2 {
-    padding-left: var(--padding-40);
     box-sizing: border-box;
 }
 
@@ -259,7 +309,7 @@ body {
         padding: 2px;
     }
 
-    .checkout-wrapper {
+    .checkout-box-wrapper {
         flex-direction: column;
         gap: 40px;
     }
@@ -274,6 +324,15 @@ body {
 
     .checkout-wrapper {
         align-items: start;
+    }
+
+    .coupon-wrapper {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .coupon-wrapper .button {
+        text-align: center;
     }
 
     .checkout-box2 {

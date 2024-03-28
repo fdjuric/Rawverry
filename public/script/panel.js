@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const navElement = document.querySelectorAll('nav div:not(:last-child)');
     const navSvg = document.querySelectorAll('nav div svg path');
+    const navSvgCoupon = document.querySelectorAll('nav .coupon-btn svg path');
     const navText = document.querySelectorAll('nav div p');
 
     const section = document.querySelectorAll('.section');
@@ -14,10 +15,14 @@ document.addEventListener('DOMContentLoaded', function () {
     navSvg[0].style.fill = "var(--accent-color)";
     navText[0].style.color = "var(--accent-color)";
 
+    console.log(navElement);
+
 
     navElement.forEach((item, index) => {
 
         console.log(section[index]);
+        console.log(index);
+        console.log(navSvg[index]);
 
         if (index >= 1 && index < section.length) {
             section[index].style.display = "none";
@@ -27,23 +32,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
             console.log(index);
             console.log(section[index]);
+            console.log(navElement[index]);
+            console.log(navSvg[index]);
             console.log("prev index " + prevSection)
-
-
 
             section[prevSection].style.opacity = 0;
 
             setTimeout(() => {
                 section[prevSection].style.display = "none";
 
-                navSvg.forEach((item) => {
-                    item.style.fill = "var(--secondary-color)";
+                navSvg.forEach((item, index) => {
+                    if (index === 6) {
+                        navSvgCoupon[0].style.stroke = "var(--secondary-color)";
+                        navSvgCoupon[0].style.color = "var(--secondary-color)";
+                        navSvgCoupon[1].style.stroke = "var(--secondary-color)";
+                        navSvgCoupon[1].style.color = "var(--secondary-color)";
+                    } else {
+                        item.style.fill = "var(--secondary-color)";
+                    }
                 })
                 navText.forEach((item) => {
                     item.style.color = "var(--secondary-color)";
                 })
-                navSvg[index].style.fill = "var(--accent-color)";
-                navText[index].style.color = "var(--accent-color)";
+
+                if (index === 6) {
+                    console.log(navSvgCoupon)
+                    navSvgCoupon[0].style.stroke = "var(--accent-color)";
+                    navSvgCoupon[0].style.color = "var(--accent-color)";
+                    navSvgCoupon[1].style.stroke = "var(--accent-color)";
+                    navSvgCoupon[1].style.color = "var(--accent-color)";
+                    navText[index].style.color = "var(--accent-color)";
+
+                } else if (index === 7) {
+                    navSvg[index + 1].style.fill = "var(--accent-color)";
+                    navText[index].style.color = "var(--accent-color)";
+                } else {
+                    navSvg[index].style.fill = "var(--accent-color)";
+                    navText[index].style.color = "var(--accent-color)";
+                }
 
                 section[index].style.display = "flex";
                 section[index].style.opacity = 1;
@@ -1697,6 +1723,396 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     }
+
+    const couponBtn = document.querySelector('.coupon-btn');
+
+    let areCouponsAdded = false;
+
+    couponBtn.addEventListener('click', () => {
+        if (!areCouponsAdded) {
+            areCouponsAdded = true;
+
+            fetch('/panel/coupon')
+                .then(response => response.json())
+                .then(data => {
+
+                    const tbody = document.createElement('tbody');
+                    const table = document.querySelector('.coupon .products-table table');
+                    let temp;
+
+                    fetch('/panel/coupon/getProductNames')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+
+                            const productRestrictions = document.querySelectorAll('.coupon-product-restrictions-wrapper');
+
+                            productRestrictions.forEach((item) => {
+
+                                const wrapper = document.createElement('div');
+                                wrapper.classList.add('coupon-product-wrapper');
+
+                                data.forEach(product => {
+
+                                    const div = document.createElement('div')
+                                    const input = document.createElement('input');
+                                    input.type = "checkbox";
+                                    const label = document.createElement('label');
+
+                                    input.value = product.product_name;
+                                    label.textContent = product.product_name;
+
+                                    div.appendChild(input);
+                                    div.appendChild(label);
+
+                                    wrapper.appendChild(div);
+
+                                })
+
+                                item.appendChild(wrapper);
+
+                            })
+                        })
+                        .catch(err => console.log(err))
+
+
+                    data.forEach(coupon => {
+                        const row = document.createElement('tr');
+                        if (temp != coupon.id) {
+                            // Create and populate table data (td) for each field
+                            const titleCellWrapper = document.createElement('td');
+                            const titleCell = document.createElement('p');
+                            titleCell.classList.add('coupon-name');
+                            titleCell.textContent = coupon.coupon_code;
+                            const discountCell = createTableCell(coupon.discount_amount, 'discount-amount');
+                            const usesCell = createTableCell(coupon.maximum_uses, 'maximum-uses');
+                            const orderAmountCell = createTableCell(coupon.maximum_order_amount, 'maximum-order-amount');
+                            const expirationCell = createTableCell(coupon.expiration_date, 'expiration-date');
+                            const statusCell = createTableCell(coupon.redemption_status, 'redemption-status');
+                            // Append table data to the table row
+                            titleCellWrapper.appendChild(titleCell);
+                            row.appendChild(titleCellWrapper);
+                            row.appendChild(discountCell);
+                            row.appendChild(usesCell);
+                            row.appendChild(orderAmountCell);
+                            row.appendChild(expirationCell);
+                            row.appendChild(statusCell);
+
+                            // Create and append the SVG icons
+                            const settingsEditIcons = createSettingsEditIcons(); // Function to create SVG icons
+                            const settingsCell = document.createElement('td');
+                            settingsCell.appendChild(settingsEditIcons);
+                            row.appendChild(settingsCell);
+
+                            settingsEditIcons.firstChild.addEventListener('click', () => {
+
+                                const editCouponWrapper = document.querySelector('.coupon-edit');
+
+                                const code = document.querySelector('.coupon-edit .coupon-form-code');
+                                const discount = document.querySelector('.coupon-edit .coupon-form-discount');
+                                const uses = document.querySelector('.coupon-edit .coupon-form-uses');
+                                const orderAmount = document.querySelector('.coupon-edit .coupon-form-max-amount');
+                                const expDate = document.querySelector('.coupon-edit .coupon-form-exp-date');
+                                const excludedProducts = document.querySelectorAll('.coupon-edit .coupon-product-wrapper div input');
+
+                                const regex = /\b\d{2}\.\d{2}\.\d{4}\b/;
+
+                                let extractedDate;
+
+                                const match = coupon.expiration_date.match(regex);
+                                if (match) {
+                                    extractedDate = match[0];
+                                    console.log(extractedDate); // Output: "31.03.2024"
+                                }
+
+                                const [day, month, year] = extractedDate.split('.');
+
+                                const expirationDate = `${year}-${month}-${day}`;
+
+                                const splitProducts = coupon.product_restrictions.split('/');
+
+                                console.log(splitProducts);
+
+                                code.value = coupon.coupon_code;
+                                discount.value = coupon.discount_amount;
+                                uses.value = coupon.maximum_uses;
+                                orderAmount.value = coupon.maximum_order_amount;
+                                expDate.value = expirationDate;
+
+                                excludedProducts.forEach(input => {
+
+                                    splitProducts.forEach(item => {
+                                        if (input.value === item) {
+
+                                            console.log(input.value, item);
+                                            input.checked = true;
+                                        }
+                                    })
+
+                                })
+
+                                editCouponWrapper.style.display = "flex";
+                                editCouponWrapper.style.opacity = 1;
+
+                                const exitBtn = document.querySelector('.coupon-edit .close-btn');
+
+                                exitBtn.addEventListener('click', () => {
+
+                                    editCouponWrapper.style.opacity = 0;
+
+                                    setTimeout(() => {
+                                        editCouponWrapper.style.display = "none";
+
+                                        code.value = '';
+                                        discount.value = '';
+                                        uses.value = '';
+                                        orderAmount.value = '';
+                                        expDate.value = '';
+
+                                        excludedProducts.forEach(item => {
+                                            item.checked = false;
+                                        })
+
+                                    }, 400)
+
+                                })
+
+                                const saveChanges = document.querySelector('.coupon-edit .edit-button');
+
+                                saveChanges.addEventListener('click', () => {
+
+                                    const excludedProductsArray = [];
+
+                                    excludedProducts.forEach(item => {
+                                        if (item.checked) {
+                                            excludedProductsArray.push(item.value);
+                                        }
+                                    })
+                                    console.log(code.value, discount.value, uses.value, orderAmount.value, expDate.value, excludedProductsArray);
+
+                                    const formData = new FormData();
+
+                                    const currentDate = new Date();
+                                    const formattedTime = currentDate.toTimeString().slice(0, 8);
+
+                                    const expirationDate = expDate.value + " " + formattedTime;
+
+                                    formData.append('id', coupon.id);
+                                    formData.append('code', code.value);
+                                    formData.append('discount', discount.value);
+                                    formData.append('uses', uses.value);
+                                    formData.append('orderAmount', orderAmount.value);
+                                    formData.append('expDate', expirationDate);
+                                    for (let i = 0; i < excludedProductsArray.length; i++) {
+                                        formData.append('excluded', excludedProductsArray[i])
+                                    }
+
+
+                                    fetch('/panel/coupon/editCoupon', {
+                                        method: 'POST',
+                                        body: formData
+                                    })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            alert("Successfully edited coupon!");
+    
+                                            editCouponWrapper.style.opacity = 0;
+    
+                                            setTimeout(() => {
+                                                editCouponWrapper.style.display = "none";
+    
+                                                code.value = '';
+                                                discount.value = '';
+                                                uses.value = '';
+                                                orderAmount.value = '';
+                                                expDate.value = '';
+    
+                                                excludedProducts.forEach(item => {
+                                                    item.checked = false;
+                                                })
+    
+                                            }, 400)
+    
+                                        } else {
+                                            alert("Error creating coupon!");
+                                        }
+                                    })
+                                    .catch(err => console.log(err))
+
+                                })
+
+                            })
+
+                            settingsEditIcons.lastChild.addEventListener('click', () => {
+
+                                const removeCouponWrapper = document.querySelector('.remove-coupon-wrapper');
+                                removeCouponWrapper.style.display = "flex";
+                                removeCouponWrapper.style.opacity = 1;
+
+                                const cancelButton = document.querySelector('.remove-coupon-wrapper .button:last-child');
+
+                                cancelButton.addEventListener('click', () => {
+                                    removeCouponWrapper.style.opacity = 0;
+
+                                    setTimeout(() => {
+
+                                        removeCouponWrapper.style.display = "flex";
+
+                                    }, 400)
+                                })
+
+                                console.log(coupon.id);
+
+                                const removeButton = document.querySelector('.remove-coupon-wrapper .remove-button');
+
+                                removeButton.addEventListener('click', () => {
+
+                                    fetch(`/panel/coupon/removeCoupon/${coupon.id}`)
+                                        .then(response => {
+
+                                            const status = document.querySelector('.remove-coupon-wrapper .status-category')
+                                            if (response.ok) {
+                                                status.textContent = "Successfully removed coupon";
+                                                status.style.color = "var(--accent-color)";
+
+                                                setTimeout(() => {
+
+                                                    removeCouponWrapper.style.opacity = 0;
+
+                                                    setTimeout(() => {
+                                                        removeCouponWrapper.style.display = "none";
+                                                        const row = settingsEditIcons.lastChild.closest('tr');
+                                                        row.remove();
+                                                    }, 400)
+
+                                                }, 1000)
+
+                                            } else {
+                                                status.textContent = "Error removing coupon";
+                                                status.style.color = "var(--red-color)";
+                                            }
+                                        })
+                                })
+
+                            })
+
+                            // Append the row to the table body
+                            tbody.appendChild(row);
+
+                            temp = coupon.id;
+                        } else return;
+                    });
+                    table.appendChild(tbody);
+
+                    const addCoupon = document.querySelector('.add-an-coupon');
+
+                    addCoupon.addEventListener('click', () => {
+                        const couponCreation = document.querySelector('.coupon-creation');
+
+                        couponCreation.style.display = "flex";
+                        couponCreation.style.opacity = 1;
+
+                        const code = document.querySelector('.coupon-creation .coupon-form-code');
+                        const discount = document.querySelector('.coupon-creation .coupon-form-discount');
+                        const uses = document.querySelector('.coupon-creation .coupon-form-uses');
+                        const orderAmount = document.querySelector('.coupon-creation .coupon-form-max-amount');
+                        const expDate = document.querySelector('.coupon-creation .coupon-form-exp-date');
+                        const excludedProducts = document.querySelectorAll('.coupon-creation .coupon-product-wrapper div input');
+
+                        const exitBtn = document.querySelector('.coupon-creation .close-btn');
+
+                        exitBtn.addEventListener('click', () => {
+
+                            couponCreation.style.opacity = 0;
+
+                            setTimeout(() => {
+                                couponCreation.style.display = "none";
+
+                                code.value = '';
+                                discount.value = '';
+                                uses.value = '';
+                                orderAmount.value = '';
+                                expDate.value = '';
+
+                                excludedProducts.forEach(item => {
+                                    item.checked = false;
+                                })
+
+                            }, 400)
+
+                        })
+
+                        addCouponBtn = document.querySelector('.coupon-creation .creation-button');
+
+                        addCouponBtn.addEventListener('click', () => {
+
+                            const excludedArray = [];
+
+                            excludedProducts.forEach(item => {
+                                if (item.checked) {
+                                    excludedArray.push(item.value)
+                                }
+                            })
+
+                            console.log(excludedArray);
+
+                            const currentDate = new Date();
+                            const formattedTime = currentDate.toTimeString().slice(0, 8);
+
+                            const expirationDate = expDate.value + " " + formattedTime;
+
+
+                            const formData = new FormData();
+
+                            formData.append('code', code.value);
+                            formData.append('discount', discount.value);
+                            formData.append('uses', uses.value);
+                            formData.append('orderAmount', orderAmount.value);
+                            formData.append('expDate', expirationDate);
+                            for (let i = 0; i < excludedArray.length; i++) {
+                                formData.append('excluded', excludedArray[i])
+                            }
+
+                            fetch('/panel/coupon/createCoupon', {
+                                method: 'POST',
+                                body: formData
+                            })
+                                .then(response => {
+                                    if (response.ok) {
+                                        alert("Successfully added coupon!");
+
+                                        couponCreation.style.opacity = 0;
+
+                                        setTimeout(() => {
+                                            couponCreation.style.display = "none";
+
+                                            code.value = '';
+                                            discount.value = '';
+                                            uses.value = '';
+                                            orderAmount.value = '';
+                                            expDate.value = '';
+
+                                            excludedProducts.forEach(item => {
+                                                item.checked = false;
+                                            })
+
+                                        }, 400)
+
+                                    } else {
+                                        alert("Error creating coupon!");
+                                    }
+                                })
+                                .catch(err => console.log(err))
+
+                        })
+
+
+                    })
+
+                })
+                .catch(err => console.log(err))
+        }
+    })
 
 
     const manageAccountsBtn = document.querySelector('.manage-accounts-btn');

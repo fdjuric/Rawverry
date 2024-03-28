@@ -238,6 +238,10 @@ a {
   color: var(--red-color);
 }
 
+.placeholder::-webkit-input-placeholder {
+  color: var(--red-color);
+}
+
 body {
   display: flex;
   flex-direction: column;

@@ -326,6 +326,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         totalPrice();
 
+                        const applyCouponButton = document.querySelector('.coupon-wrapper .button');
+
+                        applyCouponButton.addEventListener('click', () => {
+                            const couponCode = document.querySelector('.coupon-wrapper .coupon').value;
+
+                            const quantity = document.querySelectorAll('.quantity-wrapper input');
+
+                            let quantityAmount = 0;
+
+                            quantity.forEach(item => {
+                                quantityAmount += +item.value;
+                            })
+
+                            console.log(quantityAmount);
+                            console.log(couponCode);
+
+                            const itemCount = document.querySelectorAll('.cart-item');
+
+                            console.log(itemCount.length);
+
+                            let totalCartPrice = 0;
+
+                            const productName = []
+
+                            data.forEach((item, index) => {
+
+                                productName.push(item.product_name);
+
+                                if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
+                                    totalCartPrice += (item.product_price_reduced * quantity[index].value)
+                                } else {
+                                    totalCartPrice += (item.product_price * quantity[index].value)
+                                }
+                            })
+
+                            console.log(totalCartPrice);
+                            console.log(productName);
+
+                            const formData = new FormData();
+
+                            formData.append('code', couponCode);
+                            formData.append('quantity', quantityAmount);
+                            formData.append('productCount', itemCount.length);
+                            for (let i = 0; i < productName.length; i++) {
+                                formData.append('name', productName[i]);
+                            }
+                            formData.append('total', totalCartPrice);
+
+                            fetch(`/applyCoupon`, {
+                                method: 'POST',
+                                body: formData
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log(data)
+
+                                    if (data === 'Invalid coupon code!') {
+                                        const coupon = document.querySelector('.coupon-wrapper input');
+                                        coupon.addEventListener('click', () => {
+                                            coupon.removeAttribute("style");
+                                            coupon.classList.remove('placeholder');
+                                        })
+                                        coupon.value = "";
+                                        coupon.classList.add('placeholder');
+                                        coupon.setAttribute("placeholder", `${data}`);
+                                        coupon.style.borderColor = "var(--red-color)";
+
+                                    } else {
+
+                                        const subtotal = document.querySelector('.subtotal-price');
+                                        const total = document.querySelector('.total-price');
+
+                                        subtotal.textContent = `$${data.toFixed(2)}`;
+                                        total.textContent = `$${data.toFixed(2)}`;
+
+                                    }
+
+                                })
+                                .catch(err => console.log(err))
+                        })
+
                         const checkoutButton = document.querySelector('.checkout-box2 .button');
 
                         checkoutButton.addEventListener('click', () => {
@@ -458,6 +539,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     row.style.opacity = 0;
                     setTimeout(() => {
                         row.remove();
+
+                        window.location.reload();
 
                         totalPrice();
 

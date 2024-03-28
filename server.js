@@ -5,8 +5,8 @@ if (process.env.NODE_ENV !== 'production') {
 const dbService = require('./database.js');
 const crypto = require('crypto');
 
-const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions', '/test'];
-const validFetchPaths = ['/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/test', '/sendEmail', '/login', '/panel', '/forgot-password', '/sessionCount', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
+const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -87,11 +87,10 @@ app.use((req, res, next) => {
 
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
-
     if (newPath && newPath !== '/blog') {
       // Redirect to the URL without the common prefixes and with the valid HTML path
       res.redirect(newPath);
@@ -184,12 +183,84 @@ const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 
+app.post('/applyCoupon', upload.none(), (req, res) => {
+
+  let { code, quantity, productCount, name, total } = req.body;
+
+  console.log(code, quantity, productCount, name, total);
+
+  const db = dbService.getDbServiceInstance();
+
+  if (code && quantity && productCount && name && total) {
+
+    db.getCoupon(code)
+      .then(data => {
+        console.log(data);
+
+        if (data) {
+
+          let restricted = false;
+
+          const splitProducts = data.product_restrictions.split('/');
+
+          for (let i = 0; i < name.length; i++) {
+            if (splitProducts.includes(name[i]))
+              restricted = true;
+            else
+              restricted = false;
+          }
+
+          console.log(restricted);
+
+          if (data.redemption_status === 'Active') {
+            if ((data.maximum_uses - data.amount_used) > 0) {
+              if (data.maximum_order_amount >= productCount && data.maximum_order_amount >= quantity) {
+                if (!restricted) {
+                  req.session.cart = req.session.cart || [];
+                  req.session.discount = data.discount_amount;
+                  console.log(req.session.discount);
+                  req.session.save(session.discount);
+
+                  if (data.discount_amount.includes('%')) {
+                    console.log("percent")
+                    let percentValue = parseFloat(data.discount_amount.match(/\d+/)[0])
+                    total = total * (1 - (percentValue / 100));
+                    console.log("test1", total);
+                    res.json(total)
+                  } else {
+                    total = total - data.discount_amount;
+                    console.log("test2", total);
+                    res.json(total)
+                  }
+                } else
+                  res.status(404).json("Invalid coupon code!");
+              } else
+                res.status(404).json("Invalid coupon code!");
+            } else
+              res.status(404).json("Invalid coupon code!");
+          } else
+            res.status(404).json("Invalid coupon code!");
+        } else
+          res.status(404).json("Invalid coupon code!");
+
+      })
+      .catch(err => console.log(err))
+  }
+})
 
 app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
 
   const checkoutData = req.body;
 
   console.log(checkoutData, "192");
+
+  let totalQuantity = 0;
+
+  checkoutData.forEach(item => {
+    totalQuantity += +item.quantity;
+  })
+
+  console.log(totalQuantity);
 
   const db = dbService.getDbServiceInstance();
 
@@ -209,6 +280,19 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
         price = item.product_price;
       }
 
+      let discount = req.session.discount;
+
+      console.log(discount);
+
+      if (discount.includes('%')) {
+        let percentValue = parseFloat(discount.match(/\d+/)[0])
+        price = price * (1 - (percentValue / 100));
+        console.log("test1", price);
+      } else {
+        price = price - (discount / totalQuantity);
+        console.log("test2", price);
+      }
+
       items.push({
         price_data: {
           currency: "eur",
@@ -216,7 +300,7 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
             name: item.product_name,
             images: [`http://localhost:3001/${item.image_url}`],
           },
-          unit_amount: Math.round(price*100), // Use unit_amount instead of price
+          unit_amount: Math.round(price * 100), // Use unit_amount instead of price
         },
         quantity: item.quantity
       });
@@ -1189,6 +1273,105 @@ app.get('/panel/newsletter', checkPermission(['Admin', 'Editor']), (req, res) =>
   const getAccounts = db.getAccountData();
 
   console.log("Have access!")
+
+})
+
+app.get('/panel/coupon', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const coupons = db.getCoupons();
+
+  coupons
+    .then(data => {
+      console.log(data)
+      res.json(data)
+    })
+    .catch(err => console.log(err))
+})
+
+app.get('/panel/coupon/getProductNames', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const productNames = db.getProductNames();
+
+  productNames
+    .then(data => {
+      console.log(data)
+      res.json(data)
+    })
+    .catch(err => console.log(err))
+})
+
+app.post('/panel/coupon/createCoupon', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
+
+  const { code, discount, uses, orderAmount, expDate, excluded } = req.body;
+
+  console.log(code, discount, uses, orderAmount, expDate, excluded);
+
+  let excludedString;
+
+  if (excluded) {
+    excludedString = excluded.join('/');
+  }
+
+
+  const currentDate = new Date();
+  const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+  console.log(formattedDate);
+
+  console.log(excludedString);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.createCoupon(code, discount, uses, orderAmount, formattedDate, expDate, excludedString)
+    .then(() => {
+      console.log("success");
+      res.status(200).json("Success");
+    })
+    .catch(err => console.log(err))
+})
+
+app.post('/panel/coupon/editCoupon', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
+
+  const { id, code, discount, uses, orderAmount, expDate, excluded } = req.body;
+
+  console.log(id, code, discount, uses, orderAmount, expDate, excluded.length);
+
+  let excludedString;
+
+  if (excluded && Array.isArray(excluded)) {
+    excludedString = excluded.join('/');
+  } else
+    excludedString = excluded;
+
+  console.log(excludedString);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.editCoupon(id, code, discount, uses, orderAmount, expDate, excludedString)
+    .then(() => {
+      console.log("success");
+      res.status(200).json("Success");
+    })
+    .catch(err => console.log(err))
+})
+
+app.get('/panel/coupon/removeCoupon/:id', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const id = req.params.id;
+
+  console.log(id);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.removeCoupon(id)
+    .then(() => {
+      res.status(200).json("Success");
+
+    })
+    .catch(err => console.log(err))
 
 })
 

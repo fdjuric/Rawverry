@@ -148,6 +148,124 @@ class dbService {
         }
     }
 
+    async getCoupons() {
+        try{
+
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT id, coupon_code, discount_amount, DATE_FORMAT(Coupon.expiration_date, '%H:%i:%s %d.%m.%Y') AS expiration_date, maximum_uses, product_restrictions, maximum_order_amount, redemption_status FROM coupon`;
+
+                db.query(query, (err,results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve(results);
+                })
+            })
+
+            return response;
+        }catch(error) {
+            console.log(error)
+        }
+    }
+
+    async getProductNames() {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT product_name FROM product`;
+
+                db.query(query, (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve(results)
+                })
+            })
+
+            return response;
+        }catch(error) {
+            console.log(error)
+        }
+    }
+
+    async createCoupon(code, discount, uses, orderAmount, curDate, expDate, excluded) {
+
+        try{
+            const response = await new Promise((resolve, reject) => {
+                const query = `INSERT INTO coupon(coupon_code, discount_amount, start_date, expiration_date, maximum_uses, product_restrictions, maximum_order_amount, redemption_status, amount_used) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+                db.query(query, [code, discount, curDate, expDate, uses, excluded || null, orderAmount, 'Active', 0], (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve()
+                })
+            })
+
+            return response;
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+
+    async editCoupon(id, code, discount, uses, orderAmount, expDate, excluded) {
+
+        console.log(code, discount, uses, orderAmount, expDate, excluded)
+        try{
+            const response = await new Promise((resolve, reject) => {
+                const query = `UPDATE coupon SET coupon_code = ?, discount_amount = ?, expiration_date = ?, maximum_uses = ?, product_restrictions = ?, maximum_order_amount = ? WHERE id = ?`;
+
+                db.query(query, [code, discount, expDate, uses, excluded || null, orderAmount, id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve()
+                })
+            })
+
+            return response;
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+
+    async removeCoupon(id) {
+        try {
+
+            const response = await new Promise((resolve, reject) => {
+                const query = `DELETE FROM coupon WHERE id = ?`
+
+                db.query(query, [id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve()
+                })
+            })
+
+            return response;
+
+        } catch(error){
+            console.log(error)
+        }
+    }
+
+    async getCoupon(code) {
+        try {
+
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT * FROM coupon WHERE coupon_code = ?`;
+
+                db.query(query, [code], (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve(results[0])
+                })
+            })
+
+            return response;
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+
 
     async registerUser(username, password, token) {
         try {
