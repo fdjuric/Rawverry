@@ -504,8 +504,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             })
-
-
     }
 
     function isElementVisible(el) {
@@ -522,7 +520,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function removeFromCart(item, removeButton) {
-        const productToRemove = [{ id: item.product_id, product_name: item.product_name, size_value: item.size_value }];
+        const productToRemove = [{ product_id: item.product_id, product_name: item.product_name, size_value: item.size_value }];
+
+        console.log(productToRemove);
+        console.log("TEST");
 
         fetch('/remove-from-cart', {
             method: 'POST',
@@ -539,8 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     row.style.opacity = 0;
                     setTimeout(() => {
                         row.remove();
-
-                        window.location.reload();
 
                         totalPrice();
 
@@ -562,6 +561,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             cartEmpty.appendChild(galleryButton);
                             cartWrapper.appendChild(cartEmpty);
                         }
+
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000)
                     }, 400)
                 }
             })

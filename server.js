@@ -203,11 +203,11 @@ app.post('/applyCoupon', upload.none(), (req, res) => {
 
           const splitProducts = data.product_restrictions.split('/');
 
+          console.log("206", splitProducts);
+
           for (let i = 0; i < name.length; i++) {
             if (splitProducts.includes(name[i]))
               restricted = true;
-            else
-              restricted = false;
           }
 
           console.log(restricted);
@@ -330,16 +330,21 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
 app.post('/remove-from-cart', upload.none(), (req, res) => {
   const productToRemove = req.body;
 
+  console.log("333", productToRemove);
+
   if (productToRemove) {
 
     const cartItemIndex = req.session.cart.findIndex((item) => {
 
       let temp;
 
+      console.log("341", item);
+
       item.forEach((element) => {
 
+        console.log("345", element);
 
-        console.log(element.quantity, productToRemove[0].quantity);
+        console.log("347", element.quantity, productToRemove[0].product_id);
 
         if (element.product_id === productToRemove[0].product_id &&
           element.product_name === productToRemove[0].product_name &&
@@ -352,6 +357,7 @@ app.post('/remove-from-cart', upload.none(), (req, res) => {
       return temp;
     });
 
+    console.log(cartItemIndex);
     req.session.cart = req.session.cart || [];
 
     console.log("213", req.session.cart);
