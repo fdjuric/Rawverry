@@ -149,20 +149,20 @@ class dbService {
     }
 
     async getCoupons() {
-        try{
+        try {
 
             const response = await new Promise((resolve, reject) => {
                 const query = `SELECT id, coupon_code, discount_amount, DATE_FORMAT(Coupon.expiration_date, '%H:%i:%s %d.%m.%Y') AS expiration_date, maximum_uses, product_restrictions, maximum_order_amount, redemption_status FROM coupon`;
 
-                db.query(query, (err,results) => {
-                    if(err) reject(new Error(err.message))
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message))
 
                     resolve(results);
                 })
             })
 
             return response;
-        }catch(error) {
+        } catch (error) {
             console.log(error)
         }
     }
@@ -173,26 +173,26 @@ class dbService {
                 const query = `SELECT product_name FROM product`;
 
                 db.query(query, (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve(results)
                 })
             })
 
             return response;
-        }catch(error) {
+        } catch (error) {
             console.log(error)
         }
     }
 
     async createCoupon(code, discount, uses, orderAmount, curDate, expDate, excluded) {
 
-        try{
+        try {
             const response = await new Promise((resolve, reject) => {
                 const query = `INSERT INTO coupon(coupon_code, discount_amount, start_date, expiration_date, maximum_uses, product_restrictions, maximum_order_amount, redemption_status, amount_used) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
                 db.query(query, [code, discount, curDate, expDate, uses, excluded || null, orderAmount, 'Active', 0], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve()
                 })
@@ -200,7 +200,7 @@ class dbService {
 
             return response;
 
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -208,12 +208,12 @@ class dbService {
     async editCoupon(id, code, discount, uses, orderAmount, expDate, excluded) {
 
         console.log(code, discount, uses, orderAmount, expDate, excluded)
-        try{
+        try {
             const response = await new Promise((resolve, reject) => {
                 const query = `UPDATE coupon SET coupon_code = ?, discount_amount = ?, expiration_date = ?, maximum_uses = ?, product_restrictions = ?, maximum_order_amount = ? WHERE id = ?`;
 
                 db.query(query, [code, discount, expDate, uses, excluded || null, orderAmount, id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve()
                 })
@@ -221,7 +221,7 @@ class dbService {
 
             return response;
 
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -233,7 +233,7 @@ class dbService {
                 const query = `DELETE FROM coupon WHERE id = ?`
 
                 db.query(query, [id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve()
                 })
@@ -241,7 +241,7 @@ class dbService {
 
             return response;
 
-        } catch(error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -253,7 +253,7 @@ class dbService {
                 const query = `SELECT * FROM coupon WHERE coupon_code = ?`;
 
                 db.query(query, [code], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve(results[0])
                 })
@@ -261,7 +261,7 @@ class dbService {
 
             return response;
 
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -575,10 +575,24 @@ class dbService {
         }
     }
 
-    async getFavourites() {
+    async getCategoryData(name) {
         try {
-            const response = await new Promise((resolve, reject) => {
-                const query = `SELECT 
+
+            const pageData = await new Promise((resolve, reject) => {
+
+                const query = 'SELECT * FROM product_category WHERE category_name = ?';
+
+                db.query(query, [name], (err, results) => {
+                    if (err) reject(new Error(err.message))
+                    resolve(results[0])
+                })
+            })
+
+            console.log(pageData);
+
+            const productData = await new Promise((resolve, reject) => {
+
+                const query1 = `SELECT 
                 main.product_id, 
                 main.product_name, 
                 MIN(Product_size_link.product_price) AS product_price,
@@ -587,7 +601,8 @@ class dbService {
                 main.size_id,
                 product_size.size_value,
                 img1.image_url AS image_url_1,
-                img2.image_url AS image_url_2
+                img2.image_url AS image_url_2,
+                GROUP_CONCAT(pc.category_name) AS category_names
             FROM (
                 SELECT 
                     Product.product_id, 
@@ -632,8 +647,97 @@ class dbService {
                 ) AS img_subquery
                 WHERE img_rn = 2
             ) AS img2 ON main.product_id = img2.product_id
+            JOIN product_category_link pcl ON main.product_id = pcl.product_id
+            JOIN product_category pc ON pc.category_id = pcl.category_id
+            WHERE pcl.category_id = ?
             GROUP BY main.product_id, main.product_name, main.product_price_reduced, main.in_stock, main.size_id, product_size.size_value, img1.image_url, img2.image_url;
-            
+            `;
+
+                db.query(query1, [pageData.category_id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+                    resolve(results);
+                })
+            })
+
+            const data = [];
+
+            data.push(pageData);
+
+            productData.forEach(item => {
+                data.push(item);
+            })
+
+            console.log(data);
+
+            return data;
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    async getCatalogProducts() {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT 
+                main.product_id, 
+                main.product_name, 
+                MIN(Product_size_link.product_price) AS product_price,
+                main.product_price_reduced, 
+                main.in_stock, 
+                main.size_id,
+                product_size.size_value,
+                img1.image_url AS image_url_1,
+                img2.image_url AS image_url_2,
+                GROUP_CONCAT(pc.category_name) AS category_names
+            FROM (
+                SELECT 
+                    Product.product_id, 
+                    Product.product_name, 
+                    Product_size_link.product_price_reduced, 
+                    Product.in_stock, 
+                    Product_size_link.size_id AS size_id
+                FROM Product
+                LEFT JOIN Product_size_link ON Product.product_id = Product_size_link.product_id
+            ) AS main
+            LEFT JOIN (
+                SELECT 
+                    product_id,
+                    product_price,
+                    ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY product_price) AS rn
+                FROM Product_size_link
+            ) AS Product_size_link ON main.product_id = Product_size_link.product_id AND Product_size_link.rn = 1
+            LEFT JOIN product_size ON main.size_id = product_size.size_id
+            LEFT JOIN (
+                SELECT 
+                    product_id,
+                    image_url
+                FROM (
+                    SELECT 
+                        Product_Images.product_id,
+                        Product_Images.image_url,
+                        ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
+                    FROM Product_Images
+                ) AS img_subquery
+                WHERE img_rn = 1
+            ) AS img1 ON main.product_id = img1.product_id
+            LEFT JOIN (
+                SELECT 
+                    product_id,
+                    image_url
+                FROM (
+                    SELECT 
+                        Product_Images.product_id,
+                        Product_Images.image_url,
+                        ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
+                    FROM Product_Images
+                ) AS img_subquery
+                WHERE img_rn = 2
+            ) AS img2 ON main.product_id = img2.product_id
+            JOIN product_category_link pcl ON main.product_id = pcl.product_id
+            JOIN product_category pc ON pc.category_id = pcl.category_id
+            WHERE pcl.category_id = 3
+            GROUP BY main.product_id, main.product_name, main.product_price_reduced, main.in_stock, main.size_id, product_size.size_value, img1.image_url, img2.image_url;
             `;
 
                 db.query(query, (err, results) => {
@@ -953,9 +1057,9 @@ class dbService {
                         resolve(results);
                     });
                 });
-                
+
                 const sizeId = sizeResults[0].size_id;
-    
+
                 const priceQuery = 'SELECT product_price, product_price_reduced FROM product_size_link WHERE product_id = ? AND size_id = ?';
                 const priceResults = await new Promise((resolve, reject) => {
                     db.query(priceQuery, [item.product_id, sizeId], (err, results) => {
@@ -963,7 +1067,7 @@ class dbService {
                         resolve(results);
                     });
                 });
-    
+
                 const imageQuery = 'SELECT image_url FROM product_images WHERE product_id = ?';
                 const imageResults = await new Promise((resolve, reject) => {
                     db.query(imageQuery, [item.product_id], (err, results) => {
@@ -971,7 +1075,7 @@ class dbService {
                         resolve(results);
                     });
                 });
-    
+
                 responseData.push({
                     product_id: item.product_id,
                     product_name: item.product_name,
@@ -982,7 +1086,7 @@ class dbService {
                     image_url: imageResults[0].image_url
                 });
             }));
-    
+
             return responseData;
 
         } catch (error) {
@@ -1003,9 +1107,9 @@ class dbService {
                         resolve(results);
                     });
                 });
-                
+
                 const sizeId = sizeResults[0].size_id;
-    
+
                 const priceQuery = 'SELECT product_price, product_price_reduced FROM product_size_link WHERE product_id = ? AND size_id = ?';
                 const priceResults = await new Promise((resolve, reject) => {
                     db.query(priceQuery, [item.id, sizeId], (err, results) => {
@@ -1013,7 +1117,7 @@ class dbService {
                         resolve(results);
                     });
                 });
-    
+
                 const imageQuery = 'SELECT image_url FROM product_images WHERE product_id = ?';
                 const imageResults = await new Promise((resolve, reject) => {
                     db.query(imageQuery, [item.id], (err, results) => {
@@ -1021,7 +1125,7 @@ class dbService {
                         resolve(results);
                     });
                 });
-    
+
                 responseData.push({
                     product_id: item.id,
                     product_name: item.product_name,
@@ -1032,7 +1136,7 @@ class dbService {
                     image_url: imageResults[0].image_url
                 });
             }));
-    
+
             return responseData;
 
         } catch (error) {
@@ -1344,7 +1448,7 @@ class dbService {
 
                 dataArray.sizes.forEach((item, index) => {
 
-                    db.query(query2, [response2, item, price[index].price, price[index].priceReduced || 0.00], (err, results) => {
+                    db.query(query2, [response2, item, price[index].price, price[index].priceReduced || null], (err, results) => {
                         if (err) reject(new Error(err.message));
 
                         resolve(results);
@@ -1446,7 +1550,7 @@ class dbService {
                             try {
                                 const query = `DELETE FROM product_size_link WHERE product_id = ? AND size_id = ? AND product_price = ? AND product_price_reduced = ?`;
 
-                                db.query(query, [id, sizeId, item.price, item.priceReduced || 0.00], (err, results) => {
+                                db.query(query, [id, sizeId, item.price, item.priceReduced || null], (err, results) => {
                                     if (err) reject(new Error(err.message))
                                     console.log("Successfully removed size: ", item.size);
                                     resolve(results);
@@ -1491,7 +1595,7 @@ class dbService {
 
                             // Continue with the next query
                             await new Promise((resolve, reject) => {
-                                db.query(query1, [id, sizeId, item.price, item.priceReduced || 0.00], (err, results) => {
+                                db.query(query1, [id, sizeId, item.price, item.priceReduced || null], (err, results) => {
                                     if (err) reject(new Error(err.message));
                                     console.log("Successfully added: " + item);
                                     resolve();
@@ -1531,7 +1635,7 @@ class dbService {
                             console.log(sizeId + " ID");
 
                             await new Promise((resolve, reject) => {
-                                db.query(query1, [item.price, item.priceReduced || 0.00, sizeId, id, item.id], (err, results) => {
+                                db.query(query1, [item.price, item.priceReduced || null, sizeId, id, item.id], (err, results) => {
                                     if (err) reject(new Error(err.message))
                                     console.log("Successfuly changed size: " + item.id);
                                     resolve();

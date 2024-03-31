@@ -5,8 +5,8 @@ if (process.env.NODE_ENV !== 'production') {
 const dbService = require('./database.js');
 const crypto = require('crypto');
 
-const validHTMLPaths = ['/index', '/about', '/abstract-art', '/blog-entry', '/blog', '/cart', '/contact', '/favourites', '/figure-drawing', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategory', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
+const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -87,13 +87,15 @@ app.use((req, res, next) => {
 
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
-    if (newPath && newPath !== '/blog') {
+    if (newPath && newPath !== '/blog' && newPath !== '/gallery') {
       // Redirect to the URL without the common prefixes and with the valid HTML path
       res.redirect(newPath);
+    } if (urlPath.startsWith('/gallery/')) {
+      res.sendFile(`${__dirname}/public/product-category.html`);
     } else {
       next();
     }
@@ -408,7 +410,6 @@ app.post('/add-to-cart', upload.none(), (req, res) => {
 
     item.forEach((element) => {
 
-
       console.log(element.quantity, cart[0].quantity);
 
       if (element.product_id === cart[0].product_id &&
@@ -480,12 +481,48 @@ app.post('/getCartData', upload.none(), (req, res) => {
 
 })
 
+app.get('/getCategories', (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  const categories = db.getCategories();
+
+  categories
+    .then((data) => {
+      console.log(data);
+      res.send(data);
+    })
+    .catch(err => console.log(err));
+
+})
+
+app.get('/getGalleryData/:name', (req, res) => {
+
+  const name = req.params.name;
+
+  const formatedName = name.split('-').join(' ');
+  console.log(formatedName);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.getCategoryData(formatedName)
+    .then(data => {
+      console.log("509", data);
+      if (data) {
+        res.json(data);
+      }else
+      res.render('404notfound.ejs');
+  })
+  .catch(err => console.log(err))
+
+})
+
 
 app.get('/getFavourites', (req, res) => {
 
   const db = dbService.getDbServiceInstance();
 
-  const favourites = db.getFavourites();
+  const favourites = db.getCatalogProducts();
 
   favourites
     .then((data) => {
