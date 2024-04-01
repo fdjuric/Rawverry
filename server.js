@@ -179,11 +179,27 @@ const productPicStorage = multer.diskStorage({
   }
 });
 
+const categoryPicStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const categoryName = req.body.value;
+    console.log(categoryName);
+    const categoryFolderPath = path.join(__dirname, 'public', 'images', 'categories', categoryName);
+
+    fs.mkdirSync(categoryFolderPath, { recursive: true});
+
+    cb(null, categoryFolderPath);
+  },
+  filename: function(req, file, cb){
+    cb(null, file.originalname);
+  }
+});
+
 
 
 const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
+const categoryUpload = multer({ storage: categoryPicStorage, fileFilter: fileFilter });
 
 app.post('/applyCoupon', upload.none(), (req, res) => {
 
@@ -285,14 +301,16 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
       let discount = req.session.discount;
 
       console.log(discount);
+      if(discount){
+        if (discount.includes('%')) {
+          let percentValue = parseFloat(discount.match(/\d+/)[0])
+          price = price * (1 - (percentValue / 100));
+          console.log("test1", price);
+        } else {
+          price = price - (discount / totalQuantity);
+          console.log("test2", price);
+        }
 
-      if (discount.includes('%')) {
-        let percentValue = parseFloat(discount.match(/\d+/)[0])
-        price = price * (1 - (percentValue / 100));
-        console.log("test1", price);
-      } else {
-        price = price - (discount / totalQuantity);
-        console.log("test2", price);
       }
 
       items.push({
@@ -974,20 +992,46 @@ app.get('/panel/products/getProductCategory', checkPermission(['Admin', 'Editor'
 
 })
 
-app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor']), (req, res) => {
+app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor']), categoryUpload.single('file'), (req, res) => {
 
-  const category = req.body.category;
+  const {value, header, subheader } = req.body;
 
-  console.log(category);
+  if (req.file) {
 
-  const db = dbService.getDbServiceInstance();
+    const categoryPicDir = 'public/images/categories'
+    const fileName = categoryPicDir.substring('public/'.length) + "/" + req.file.originalname;
 
-  db.addProductCategory(category)
-    .then(() => {
-      console.log("Successfully added product category!");
-    })
-    .catch((err) => console.log(err));
+    console.log("File name:" + fileName);
 
+    const db = dbService.getDbServiceInstance();
+
+    db.addProductCategory(value, header, subheader, fileName)
+      .then(() => {
+        console.log("Successfully added product category!");
+      })
+      .catch((err) => console.log(err));
+  }
+})
+
+app.post('/panel/products/editProductCategory', checkPermission(['Admin', 'Editor']), categoryUpload.single('file'), (req, res) => {
+
+  const {value, header, subheader } = req.body;
+
+  if (req.file) {
+
+    const categoryPicDir = 'public/images/categories'
+    const fileName = categoryPicDir.substring('public/'.length) + "/" + req.file.originalname;
+
+    console.log("File name:" + fileName);
+
+    const db = dbService.getDbServiceInstance();
+
+    db.addProductCategory(value, header, subheader, fileName)
+      .then(() => {
+        console.log("Successfully added product category!");
+      })
+      .catch((err) => console.log(err));
+  }
 })
 
 app.post('/panel/products/removeCategories', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {

@@ -953,12 +953,12 @@ class dbService {
         }
     }
 
-    async addProductCategory(category) {
+    async addProductCategory(name, header, subheader, path) {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = `INSERT INTO product_category (category_name) VALUES (?)`;
+                const query = `INSERT INTO product_category (category_name, category_header, category_subheader, category_image) VALUES (?, ?, ?, ?)`;
 
-                db.query(query, [category], (err, results) => {
+                db.query(query, [name, header, subheader, path], (err, results) => {
                     if (err) reject(new Error(err.message));
                     resolve(results);
                 })

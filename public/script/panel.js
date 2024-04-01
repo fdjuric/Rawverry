@@ -1002,6 +1002,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     })
 
+                    const editCategoryWrapper = document.querySelector('.edit-category-wrapper');
+                    const selectWrapper = document.querySelector('.edit-category-wrapper .select-wrapper');
+                    const categoriesWrapper = document.querySelector('.edit-category-wrapper .select-wrapper .categories');
+                    const editWrapper = document.querySelector('.edit-category-wrapper .edit-wrapper');
+
+                    data.categories.forEach((item) => {
+                        const input = document.createElement('input');
+                        input.type = 'button';
+                        input.value = item.category_name;
+
+                        input.addEventListener('click', () => {
+
+                            const value = document.querySelector('.edit-category-wrapper .edit-wrapper .product-category-value');
+                            const header = document.querySelector('.edit-category-wrapper .edit-wrapper .product-category-header');
+                            const subheader = document.querySelector('.edit-category-wrapper .edit-wrapper .product-category-subheader');
+
+                            value.value = item.category_name;
+                            header.value = item.category_header;
+                            subheader.value = item.category_subheader;
+
+                            selectWrapper.style.opacity = 0;
+                            setTimeout(() => {
+                                selectWrapper.style.display = "none";
+
+                                editWrapper.style.display = "flex";
+                                editWrapper.style.opacity = 1
+
+                                const editCategory = document.querySelector('.edit-category-wrapper .edit-wrapper .button');
+
+                                editCategory.addEventListener('click', editCategoryHandler(item.category_id))
+
+                            }, 400)
+                        })
+
+                        categoriesWrapper.appendChild(input);
+                    })
+
                     const removeProductButton = document.querySelectorAll('.products .products-table .product-settings svg:nth-child(2)');
 
                     removeProductButton.forEach((item, index) => {
@@ -1465,8 +1502,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     const addProductButton = document.querySelector('.add-a-product');
 
-
-
                     addProductButton.addEventListener('click', () => {
 
                         const productCreation = document.querySelector('.product-creation');
@@ -1497,10 +1532,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         const addCategory = document.querySelector('.product-creation .add-category');
                         const removeCategory = document.querySelector('.product-creation .remove-category');
+                        const editCategory = document.querySelector('.product-creation .edit-category');
 
                         const addCategoryWrapper = document.querySelector('.add-category-wrapper');
                         const removeCategoryWrapper = document.querySelector('.remove-category-wrapper');
-
+                        const editCategoryWrapper = document.querySelector('.edit-category-wrapper');
                         const removeCategoryInputs = document.querySelector('.remove-category-inputs');
 
                         addCategory.addEventListener('click', () => {
@@ -1520,6 +1556,22 @@ document.addEventListener('DOMContentLoaded', function () {
                             const submitBtn = document.querySelector('.add-category-wrapper .button');
 
                             submitBtn.addEventListener('click', addCategoryHandler);
+                        })
+
+                        editCategory.addEventListener('click', () => {
+                            editCategoryWrapper.style.display = "flex";
+                            editCategoryWrapper.style.opacity = 1;
+
+                            const closeBtn = document.querySelector('.edit-category-wrapper .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+                                addCategoryWrapper.style.opacity = 0;
+
+                                setTimeout(() => {
+                                    addCategoryWrapper.style.display = "none";
+                                }, 400);
+                            })
+
                         })
 
                         removeCategory.addEventListener('click', () => {
@@ -2966,20 +3018,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function addCategoryHandler(event) {
 
-        const categoryValue = document.querySelector('.product-category-value');
-
+        const categoryValue = document.querySelector('.add-category-wrapper .product-category-value');
+        const categoryHeader = document.querySelector('.add-category-wrapper .product-category-header');
+        const categorySubheader = document.querySelector('.add-category-wrapper .product-category-subheader');
+        const categoryImage = document.querySelector('.add-category-wrapper .product-category-image');
+        const picture = categoryImage.files[0];
+        
         const url = '/panel/products/addProductCategory';
 
-        const data = {
-            category: categoryValue.value.trim()
-        };
+        const formData = new FormData();
+
+        formData.append('value', categoryValue.value);
+        formData.append('header', categoryHeader.value);
+        formData.append('subheader', categorySubheader.value);
+        formData.append('file', picture);
+
 
         fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
+            body: formData
         })
             .then(response => {
                 const status = document.querySelector('.status-category');
@@ -2989,6 +3046,77 @@ document.addEventListener('DOMContentLoaded', function () {
                     status.classList.remove('out-of-stock');
                 } else {
                     status.textContent = "Error adding  category!";
+                    status.classList.remove('in-stock');
+                    status.classList.add('out-of-stock');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+
+        const inputWrapper = document.querySelectorAll('.product-category-wrapper');
+
+        inputWrapper.forEach((item) => {
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.name = 'category';
+            input.value = categoryValue.value;
+            const label = document.createElement('label');
+            label.textContent = categoryValue.value;
+            label.setAttribute("for", "category");
+            const div = document.createElement('div');
+            div.appendChild(input);
+            div.appendChild(label);
+            item.appendChild(div);
+        })
+
+        const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+
+        setTimeout(() => {
+
+            addCategoryWrapper.style.opacity = 0;
+
+            setTimeout(() => {
+                addCategoryWrapper.style.display = "none";
+            }, 400);
+
+        }, 800);
+
+    }
+
+    function editCategoryHandler(event, id) {
+
+        const categoryValue = document.querySelector('.product-category-value');
+        const categoryHeader = document.querySelector('.product-category-header');
+        const categorySubheader = document.querySelector('.product-category-subheader');
+        const categoryImage = document.querySelector('.product-category-image');
+        const picture = categoryImage.files[0];
+        
+        const url = '/panel/products/editProductCategory';
+
+        const formData = new FormData();
+
+        formData.append('value', categoryValue.value);
+        formData.append('id', id)
+        formData.append('header', categoryHeader.value);
+        formData.append('subheader', categorySubheader.value);
+        formData.append('file', picture);
+
+
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                const status = document.querySelector('.status-category');
+                if (response.ok) {
+                    status.textContent = "Successfully edited category!";
+                    status.classList.add('in-stock');
+                    status.classList.remove('out-of-stock');
+                } else {
+                    status.textContent = "Error editing  category!";
                     status.classList.remove('in-stock');
                     status.classList.add('out-of-stock');
                 }

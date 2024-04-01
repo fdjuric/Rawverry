@@ -379,7 +379,7 @@ td div {
 }
 
 
-.add-size-wrapper, .add-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper, .remove-coupon-wrapper, .remove-account-wrapper, .remove-blog-wrapper {
+.add-size-wrapper, .add-category-wrapper, .edit-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper, .remove-coupon-wrapper, .remove-account-wrapper, .remove-blog-wrapper {
     display: none;
     flex-direction: column;
     gap: 40px;
@@ -395,6 +395,31 @@ td div {
     border: 1px solid var(--accent-color);
     z-index: 100;
     transition: all 0.4s ease;
+}
+
+.edit-category-wrapper .edit-wrapper {
+    display: none;
+    opacity: 0;
+    transition: all 0.4s ease;
+}
+
+.select-wrapper {
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.select-wrapper .categories {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.edit-wrapper {
+    flex-direction: column;
+    gap: 10px;
+    align-items: start;
+
 }
 
 .remove-product-wrapper div{
@@ -668,12 +693,16 @@ td div {
     transform-origin: left;
 }
 
-.add-product:hover div {
+.add-product:hover div, .add-product:hover div svg:nth-child(2) {
     background-color: var(--accent-color);
 }
 
-.add-product:hover svg path{
+.add-product:nth-child(2):hover svg path, .add-product:last-child:hover svg path{
     fill: var(--primary-color);
+}
+
+.add-product:nth-child(3):hover div svg path {
+    stroke: var(--primary-color);
 }
 
 .products-table {
