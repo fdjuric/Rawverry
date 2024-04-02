@@ -31,7 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const backgroundImg = document.querySelector('.hero-wrapper');
 
-        backgroundImg.style.backgroundImage = `url(../${data[0].category_image})`
+        console.log(data[0].category_image);
+
+        backgroundImg.style.backgroundImage = `url(../${data[0].category_image})`;
         backgroundImg.style.backgroundSize = 'cover';
         backgroundImg.style.backgroundRepeat = 'no-repeat';
         backgroundImg.style.backgroundPosition = 'left';

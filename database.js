@@ -970,6 +970,25 @@ class dbService {
         }
     }
 
+    async editProductCategory(id, value, header, subheader, path){
+        try{
+            const response = await new Promise((resolve,reject) => {
+                const query = `UPDATE product_category SET category_name = ?, category_header = ?, category_subheader = ?, category_image = ? WHERE category_id = ?`;
+
+                db.query(query, [value, header, subheader, path, id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+                    resolve();
+                })
+            })
+
+            
+            return response;
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+
     async removeProductCategories(categories) {
         try {
             const categoriesArray = [];

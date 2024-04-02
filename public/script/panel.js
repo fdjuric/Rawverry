@@ -1006,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const selectWrapper = document.querySelector('.edit-category-wrapper .select-wrapper');
                     const categoriesWrapper = document.querySelector('.edit-category-wrapper .select-wrapper .categories');
                     const editWrapper = document.querySelector('.edit-category-wrapper .edit-wrapper');
-
+                    
                     data.categories.forEach((item) => {
                         const input = document.createElement('input');
                         input.type = 'button';
@@ -1018,6 +1018,20 @@ document.addEventListener('DOMContentLoaded', function () {
                             const header = document.querySelector('.edit-category-wrapper .edit-wrapper .product-category-header');
                             const subheader = document.querySelector('.edit-category-wrapper .edit-wrapper .product-category-subheader');
 
+                            const closeBtn = document.querySelector('.edit-category-wrapper .close-btn');
+                            closeBtn.addEventListener('click', () => {
+                                editCategoryWrapper.style.opacity = 0;
+                                setTimeout(() => {
+                                    editCategoryWrapper.style.display = "none"
+                                    value.value = '';
+                                    header.value = '';
+                                    subheader.value = '';
+                                    editWrapper.style.opacity = 0;
+                                    editWrapper.style.display = "none";
+                                    selectWrapper.style.opacity = 1;
+                                    selectWrapper.style.display = "flex";
+                                }, 400)
+                            })
                             value.value = item.category_name;
                             header.value = item.category_header;
                             subheader.value = item.category_subheader;
@@ -1031,7 +1045,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 const editCategory = document.querySelector('.edit-category-wrapper .edit-wrapper .button');
 
-                                editCategory.addEventListener('click', editCategoryHandler(item.category_id))
+                                editCategory.addEventListener('click', () => {
+                                    editCategoryHandler(item)
+                                })
 
                             }, 400)
                         })
@@ -1159,9 +1175,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             const addCategory = document.querySelector('.product-edit .add-category');
                             const addCategoryWrapper = document.querySelector('.add-category-wrapper');
+                            const editCategory = document.querySelector('.product-edit .edit-category');
 
                             const removeCategory = document.querySelector('.product-edit .remove-category');
                             const removeCategoryWrapper = document.querySelector('.remove-category-wrapper');
+                            const editCategoryWrapper = document.querySelector('.edit-category-wrapper');
                             const removeCategoryInputs = document.querySelector('.remove-category-inputs');
 
                             addCategory.addEventListener('click', () => {
@@ -1177,6 +1195,22 @@ document.addEventListener('DOMContentLoaded', function () {
                                         addCategoryWrapper.style.display = "none";
                                     }, 400);
                                 })
+                            })
+
+                            editCategory.addEventListener('click', () => {
+                                editCategoryWrapper.style.display = "flex";
+                                editCategoryWrapper.style.opacity = 1;
+    
+                                const closeBtn = document.querySelector('.edit-category-wrapper .close-btn');
+    
+                                closeBtn.addEventListener('click', () => {
+                                    addCategoryWrapper.style.opacity = 0;
+    
+                                    setTimeout(() => {
+                                        addCategoryWrapper.style.display = "none";
+                                    }, 400);
+                                })
+    
                             })
 
                             removeCategory.addEventListener('click', () => {
@@ -3018,6 +3052,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function addCategoryHandler(event) {
 
+        const form = document.querySelector('.edit-category-wrapper');
+
+        if(form.checkValidity()){
+
         const categoryValue = document.querySelector('.add-category-wrapper .product-category-value');
         const categoryHeader = document.querySelector('.add-category-wrapper .product-category-header');
         const categorySubheader = document.querySelector('.add-category-wrapper .product-category-subheader');
@@ -3084,24 +3122,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }, 800);
 
+    }else 
+    alert("Fill the Remaining fields!");
+
     }
 
-    function editCategoryHandler(event, id) {
+    function editCategoryHandler(item) {
 
-        const categoryValue = document.querySelector('.product-category-value');
+
+        const form = document.querySelector('.edit-category-wrapper');
+
+        if(form.checkValidity()){
+
+            const categoryValue = document.querySelector('.product-category-value');
         const categoryHeader = document.querySelector('.product-category-header');
         const categorySubheader = document.querySelector('.product-category-subheader');
         const categoryImage = document.querySelector('.product-category-image');
         const picture = categoryImage.files[0];
+
+        console.log(categoryHeader.value, categoryValue.value, categorySubheader.value);
         
         const url = '/panel/products/editProductCategory';
 
         const formData = new FormData();
 
         formData.append('value', categoryValue.value);
-        formData.append('id', id)
+        formData.append('oldValue', item.category_name);
+        formData.append('id', item.category_id)
         formData.append('header', categoryHeader.value);
         formData.append('subheader', categorySubheader.value);
+        formData.append('oldFile', item.category_image);
         formData.append('file', picture);
 
 
@@ -3154,6 +3204,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 400);
 
         }, 800);
+
+        }else 
+        alert("Fill the Remaining fields!");
 
     }
 

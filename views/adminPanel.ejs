@@ -347,20 +347,26 @@
                 </form>
 
                 <form class="edit-category-wrapper">
+                    <h2 class="close-btn">X</h2>
 
                     <div class="select-wrapper">
                         <h2>Select category to edit</h2>
                         <div class="categories"></div>
 
-
                     </div>
 
                     <div class="edit-wrapper">
-                        <h2 class="close-btn">X</h2>
                         <h2>Edit a Category</h2>
-                        <input class="product-category-value" placeholder="ex. Abstract Art" required>
-                        <input class="product-category-header" type="text" placeholder="ex. Abstract Art" required>
-                        <input class="product-category-subheader" type="text" placeholder="ex. Abstract Art" required>
+                        <div class="input-wrapper">
+                            <p class="subheader">Category name</p><input class="product-category-value" placeholder="ex. Abstract Art" required>
+                        </div>
+                        <div class="input-wrapper">
+                            <p class="subheader">Header</p><textarea class="product-category-header" type="text" placeholder="ex. Abstract Art" required></textarea>
+                        </div>
+                        <div class="input-wrapper">
+                            <p class="subheader">Subheader</p>                        <textarea class="product-category-subheader" type="text" placeholder="ex. Abstract Art" required></textarea>
+                        </div>
+            
                         <input type="file" class="product-category-image" name="fileInput" required>
                         <p class="button">Edit Category</p>
                         <p class="status-category"></p>

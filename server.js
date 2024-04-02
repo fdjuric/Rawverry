@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -185,11 +185,11 @@ const categoryPicStorage = multer.diskStorage({
     console.log(categoryName);
     const categoryFolderPath = path.join(__dirname, 'public', 'images', 'categories', categoryName);
 
-    fs.mkdirSync(categoryFolderPath, { recursive: true});
+    fs.mkdirSync(categoryFolderPath, { recursive: true });
 
     cb(null, categoryFolderPath);
   },
-  filename: function(req, file, cb){
+  filename: function (req, file, cb) {
     cb(null, file.originalname);
   }
 });
@@ -301,7 +301,7 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
       let discount = req.session.discount;
 
       console.log(discount);
-      if(discount){
+      if (discount) {
         if (discount.includes('%')) {
           let percentValue = parseFloat(discount.match(/\d+/)[0])
           price = price * (1 - (percentValue / 100));
@@ -528,10 +528,10 @@ app.get('/getGalleryData/:name', (req, res) => {
       console.log("509", data);
       if (data) {
         res.json(data);
-      }else
-      res.render('404notfound.ejs');
-  })
-  .catch(err => console.log(err))
+      } else
+        res.render('404notfound.ejs');
+    })
+    .catch(err => console.log(err))
 
 })
 
@@ -994,11 +994,17 @@ app.get('/panel/products/getProductCategory', checkPermission(['Admin', 'Editor'
 
 app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor']), categoryUpload.single('file'), (req, res) => {
 
-  const {value, header, subheader } = req.body;
+  const { value, header, subheader } = req.body;
 
   if (req.file) {
 
-    const categoryPicDir = 'public/images/categories'
+    if (value.includes(" ")) {
+      console.log("true");
+      value.split(" ").join('%20')
+      console.log(value);
+    }
+
+    const categoryPicDir = 'public/images/categories/' + value;
     const fileName = categoryPicDir.substring('public/'.length) + "/" + req.file.originalname;
 
     console.log("File name:" + fileName);
@@ -1015,23 +1021,63 @@ app.post('/panel/products/addProductCategory', checkPermission(['Admin', 'Editor
 
 app.post('/panel/products/editProductCategory', checkPermission(['Admin', 'Editor']), categoryUpload.single('file'), (req, res) => {
 
-  const {value, header, subheader } = req.body;
+  const { value, oldValue, id, header, subheader, oldFile } = req.body;
+
+  console.log(value, oldValue, header, id, subheader, oldFile);
+
+  let newValue;
+
+  if (value.includes(" ")) {
+    console.log("true");
+    newValue = value.replace(/ /g, "%20");
+    console.log(newValue);
+  } else
+    newValue = value;
+
+  let fileName;
+  const categoryPicDir = 'public/images/categories/';
 
   if (req.file) {
 
-    const categoryPicDir = 'public/images/categories'
-    const fileName = categoryPicDir.substring('public/'.length) + "/" + req.file.originalname;
+    fileName = categoryPicDir.substring('public/'.length) + "/" + newValue + "/" + req.file.originalname;
+    
+    const categoryPicPath = "public/images/categories/" + value;
 
-    console.log("File name:" + fileName);
-
-    const db = dbService.getDbServiceInstance();
-
-    db.addProductCategory(value, header, subheader, fileName)
-      .then(() => {
-        console.log("Successfully added product category!");
-      })
-      .catch((err) => console.log(err));
+    console.log("Category pic path: " + categoryPicPath);
+    fs.unlink(categoryPicPath, (err) => {
+      if (err) {
+        console.log("Error deleting file: ", err.message);
+        return;
+      }
+      console.log("File deleted successfully!");
+    });
   }
+  else
+    fileName = categoryPicDir.substring('public/'.length) + newValue + oldFile.substring(oldFile.lastIndexOf('/'));
+
+  console.log("File name:" + fileName);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.editProductCategory(id, value, header, subheader, fileName)
+    .then(() => {
+      console.log("Successfully added product category!");
+      if (oldValue !== value) {
+        const CategoryPicDirOld = `public/images/categories/${oldValue}/`;
+        const CategoryPicDirNew = `public/images/categories/${value}/`;
+
+        fs.rename(CategoryPicDirOld, CategoryPicDirNew, (err) => {
+          if (err) {
+            console.error(`Error renaming folder: ${err.message}`);
+          } else {
+            console.log('Folder renamed successfully');
+          }
+        })
+
+      }
+    })
+    .catch((err) => console.log(err));
+
 })
 
 app.post('/panel/products/removeCategories', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
