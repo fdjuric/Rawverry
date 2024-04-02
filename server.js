@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -588,6 +588,19 @@ app.get('/getProduct/:name', (req, res) => {
       res.json(productArray);
     })
     .catch(err => console.log(err));
+})
+
+app.get('/getBlogs', (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  db.getBlogs()
+  .then(data => {
+    console.log(data)
+    res.json(data);
+
+  })
+  .catch(err => console.log(err))
 })
 
 

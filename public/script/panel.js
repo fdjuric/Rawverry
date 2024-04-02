@@ -1312,8 +1312,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                         checkbox.style.display = "none";
                                         checkbox.style.opacity = "0";
                                         const image = document.createElement('img');
-                                        image.width = "100";
-                                        image.height = "100";
+                                        image.width = "80";
+                                        image.height = "80";
                                         image.src = item;
 
                                         div.appendChild(checkbox);
