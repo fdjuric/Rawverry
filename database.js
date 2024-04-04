@@ -558,7 +558,8 @@ class dbService {
                 Blog.author, 
                 Blog.image_url, 
                 Blog.author_picture, 
-                DATE_FORMAT(Blog.updated_at, '%d.%m.%Y') AS updated_at 
+                DATE_FORMAT(Blog.updated_at, '%d.%m.%Y') AS updated_at,
+                Blog.description
                 FROM blog`;
 
                 db.query(query, (err, results) => {
