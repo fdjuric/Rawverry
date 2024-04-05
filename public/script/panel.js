@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Create and populate table data (td) for each field
             const idCell = createTableCell(blog.id, 'blog-id');
-            const contentCell = createTableCell(blog.content, 'blog-content');
+            const descriptionCell = createTableCell(blog.description, 'blog-description');
             const createDateCell = createTableCell(blog.created_at, 'blog-created');
             const changedDateCell = createTableCell(blog.updated_at, 'blog-updated');
 
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             row.appendChild(idCell);
             row.appendChild(titleCellWrapper);
-            row.appendChild(contentCell);
+            row.appendChild(descriptionCell);
             row.appendChild(titleCellAuthorWrapper);
             row.appendChild(createDateCell);
             row.appendChild(changedDateCell);
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const blogTitle = document.querySelectorAll('.blog-title');
                 console.log(blogTitle[index].textContent);
 
-                const blogContent = document.querySelectorAll('.blog-content');
+                const blogContent = document.querySelectorAll('.blog-description');
                 console.log(blogContent[index].textContent);
 
                 blogEditWrapper.style.display = "flex";
@@ -707,6 +707,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const blogFormTitle = document.querySelector('.blog-creation .blog-form-title');
         const title = blogFormTitle.value;
 
+        const description = document.querySelector('.blog-creation .input-wrapper .blog-form-description');
+
         // console.log(picture.name);
 
         const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
@@ -721,6 +723,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('content', content); // Append content
             formData.append('file', picture); // Append picture
             formData.append('date', formattedDate);
+            formData.append('description', description.value);
 
             fetch('/panel/blog/createBlog', {
                 method: 'POST',
@@ -746,8 +749,15 @@ document.addEventListener('DOMContentLoaded', function () {
         let contentWithTags = getEditedText();
         console.log(contentWithTags); // Output: All text with <p> and <h1> tags
 
+        const blogImg = document.querySelector('.edit-blog #blogPicture');
+        console.log(blogImg);
+
+        const picture = blogImg.files[0];
+
         const blogIdElement = document.querySelector('.blog-form-id');
         const blogFormTitleElement = document.querySelector('.blog-edit .blog-form-title');
+
+        const description = document.querySelector('.edit-blog .input-wrapper .blog-form-description');
 
         const url = '/panel/blog/editBlog';
 
@@ -757,10 +767,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formData = new FormData();
 
-        formData.append('id', blogIdElement.textContent);
         formData.append('title', blogFormTitleElement.value);
+        formData.append('id', blogIdElement.textContent);
+        formData.append('file', picture);
         formData.append('content', contentWithTags);
         formData.append('date', formattedDate);
+        formData.append('description', description.value);
 
         fetch(url, {
             method: 'POST',

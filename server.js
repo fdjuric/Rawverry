@@ -157,7 +157,14 @@ const profilePicStorage = multer.diskStorage({
 // Define storage location and filename for profile picture
 const blogPicStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, blogPicDir); // Save files to the 'images/profile' folder
+    const title = req.body.title; // Assuming 'title' is the product title field in the form
+    console.log(title);
+    const blogFolderPath = path.join(__dirname, 'public', 'images', 'blog', title);
+
+    // Create the directory if it doesn't exist
+    fs.mkdirSync(blogFolderPath, { recursive: true });
+
+    cb(null, blogFolderPath); // Save files to the 'public/images/products/{productTitle}' folder
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // Save file with its original name
@@ -1370,7 +1377,7 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
 app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 
 
-  const { title, content, date } = req.body;
+  const { title, content, date, description} = req.body;
   const picture = req.file;
 
   console.log(picture);
@@ -1383,8 +1390,9 @@ app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpl
   if (picture) {
     const fileName = blogPicDir.substring('public/'.length) + "/" + req.file.originalname;
     const db = dbService.getDbServiceInstance();
+    console.log(fileName);
 
-    db.createBlog(title, content, req.session.passport.user.username, fileName, date, req.session.passport.user.picture)
+    db.createBlog(title, content, req.session.passport.user.username, fileName, date, req.session.passport.user.picture, description)
       .then(() => {
         console.log("Successfully created blog!");
       })
@@ -1393,16 +1401,32 @@ app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpl
 
 })
 
-app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), upload.none(), (req, res) => {
+app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 
-  const { id, title, content, date } = req.body;
+  const { id, title, content, date, description } = req.body;
+
+  const picture = req.file;
 
   // Process the received data (perform database updates, etc.)
-  console.log(`Received data: id=${id}, title=${title}, content=${content}`);
+  console.log(`Received data: ${picture.originalname}, id=${id}, title=${title}, content=${content}, ${description}`);
+
+  if(picture){
+    const blogPicDir = `public/images/blog/${title}/${picture.originalname}`;
+
+          fs.unlink(blogPicDir, (err) => {
+            if (err) {
+              console.error(`Error deleting file: ${err.message}`);
+            } else {
+              console.log('File deleted successfully');
+            }
+          })
+  }
+
+  const fileName = blogPicDir.substring('public/'.length) + "/" + req.file.originalname;
 
   const db = dbService.getDbServiceInstance();
 
-  db.editBlog(id, title, content, req.session.passport.user.username, date, req.session.passport.user.picture)
+  db.editBlog(id, title, content, req.session.passport.user.username, date, req.session.passport.user.picture, fileName)
     .then(() => {
       console.log("Successfully Updated blog!");
       res.status(200).json("Success!");
