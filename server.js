@@ -84,10 +84,12 @@ app.use((req, res, next) => {
 
     res.sendFile(`${__dirname}/public/${url}.html`);
 
+  } else if (urlPath.startsWith('/blog/')){
+    res.sendFile(`${__dirname}/public/blog-entry.html`);
 
-  } else if (validFetchPaths.includes(urlPath)) {
+  }else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if ( urlPath.startsWith('/getBlog/') || urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
@@ -603,7 +605,19 @@ app.get('/getBlogs', (req, res) => {
   .catch(err => console.log(err))
 })
 
+app.get('/getBlog/:name', (req, res) => {
+  const name = req.params.name;
+  console.log(name);
 
+  const db = dbService.getDbServiceInstance();
+
+  db.getSpecificBlog(name)
+  .then(data => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err))
+})
 
 
 app.get('/panel/createBackup', checkPermission(['Admin']), (req, res) => {

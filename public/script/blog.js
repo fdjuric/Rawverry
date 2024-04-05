@@ -109,6 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Append blog entry container to the document body or any other desired parent element
                     blogMain.appendChild(blogEntry);
 
+                    blogEntry.addEventListener('click', () => {
+                       window.location.href = `/blog/${item.title}`; 
+                    })
+
                 } else {
 
                     // Create blog entry container

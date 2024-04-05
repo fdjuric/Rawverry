@@ -1,0 +1,44 @@
+document.addEventListener('DOMContentLoaded', () => {
+
+    const url = window.location.href;
+
+    const parsedUrl = new URL(url);
+    const path = parsedUrl.pathname;
+
+    const fetchUrl = path.substring(path.lastIndexOf("/") + 1);
+
+    console.log(fetchUrl);
+
+    fetch(`/getBlog/${fetchUrl}`)
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+
+        const image = document.querySelector('.blog-image');
+        image.src = '../' + data.image_url;
+
+        const title = document.querySelector('.blog-title');
+        title.textContent = data.title;
+
+        const accountPicture = document.querySelector('.account-picture');
+        if (data.author_picture === null)
+            accountPicture.innerHTML = `<svg class="acc-default" xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none" style="display: block;">
+                <path d="M17.4987 17.5C15.8945 17.5 14.5213 16.9288 13.3789 15.7864C12.2365 14.6441 11.6654 13.2708 11.6654 11.6666C11.6654 10.0625 12.2365 8.68922 13.3789 7.54685C14.5213 6.40449 15.8945 5.83331 17.4987 5.83331C19.1029 5.83331 20.4761 6.40449 21.6185 7.54685C22.7609 8.68922 23.332 10.0625 23.332 11.6666C23.332 13.2708 22.7609 14.6441 21.6185 15.7864C20.4761 16.9288 19.1029 17.5 17.4987 17.5ZM5.83203 29.1666V25.0833C5.83203 24.2569 6.04495 23.4971 6.47078 22.8039C6.89661 22.1107 7.46148 21.5823 8.16536 21.2187C9.67231 20.4653 11.2036 19.8999 12.7591 19.5227C14.3147 19.1455 15.8945 18.9573 17.4987 18.9583C19.1029 18.9583 20.6827 19.1469 22.2383 19.5241C23.7938 19.9014 25.3251 20.4662 26.832 21.2187C27.5369 21.5833 28.1022 22.1122 28.5281 22.8054C28.9539 23.4986 29.1663 24.2579 29.1654 25.0833V29.1666H5.83203ZM8.7487 26.25H26.2487V25.0833C26.2487 24.816 26.1816 24.5729 26.0474 24.3541C25.9133 24.1354 25.7373 23.9653 25.5195 23.8437C24.207 23.1875 22.8824 22.6955 21.5456 22.3679C20.2088 22.0403 18.8598 21.876 17.4987 21.875C16.1376 21.875 14.7886 22.0393 13.4518 22.3679C12.115 22.6965 10.7904 23.1885 9.47786 23.8437C9.25911 23.9653 9.08266 24.1354 8.94849 24.3541C8.81432 24.5729 8.74773 24.816 8.7487 25.0833V26.25ZM17.4987 14.5833C18.3008 14.5833 18.9877 14.2975 19.5593 13.7258C20.131 13.1541 20.4163 12.4678 20.4154 11.6666C20.4154 10.8646 20.1295 10.1777 19.5579 9.60602C18.9862 9.03435 18.2998 8.74901 17.4987 8.74998C16.6966 8.74998 16.0097 9.03581 15.4381 9.60748C14.8664 10.1791 14.5811 10.8655 14.582 11.6666C14.582 12.4687 14.8679 13.1556 15.4395 13.7273C16.0112 14.2989 16.6976 14.5843 17.4987 14.5833Z" fill="var(--accent-color)"></path>
+            </svg>`;
+        else {
+            const authorPic = document.createElement('img');
+            authorPic.src = '../' + item.author_picture;
+            accountPicture.appendChild(authorPic);
+        }
+        const author = document.querySelector('.author-wrapper .author-name');
+        author.textContent = data.author;
+
+        const date = document.querySelector('.date-wrapper .date');
+        date.textContent = data.updated_at;
+
+        const content = document.querySelector('.blog-content');
+
+        content.innerHTML = data.content;
+    })
+    
+})

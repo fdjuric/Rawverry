@@ -574,6 +574,33 @@ class dbService {
             console.log(error);
         }
     }
+
+    async getSpecificBlog(name) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT Blog.id, 
+                Blog.title, 
+                Blog.content, 
+                Blog.author, 
+                Blog.image_url, 
+                Blog.author_picture, 
+                DATE_FORMAT(Blog.updated_at, '%d.%m.%Y') AS updated_at,
+                Blog.description
+                FROM blog
+                WHERE Blog.title = ?`;
+
+                db.query(query, [name], (err, results) => {
+                    if (err) reject(new Error(err.message));
+
+                    resolve(results[0]);
+                });
+            });
+
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
     async getBlogData() {
         try {
             const response = await new Promise((resolve, reject) => {
