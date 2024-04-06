@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const removePrices = [];
     const sizeIds = [];
 
+    const blogTitles = [];
+
     const navElement = document.querySelectorAll('nav div:not(:last-child)');
     const navSvg = document.querySelectorAll('nav div svg path');
     const navSvgCoupon = document.querySelectorAll('nav .coupon-btn svg path');
@@ -294,6 +296,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     createBlog.addEventListener('click', () => {
 
+        const blogTitle = document.querySelector('.blog-creation .blog-form-title');
+
         blogCreateWrapper.style.display = "flex";
 
         setTimeout(() => {
@@ -307,10 +311,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
             setTimeout(() => {
                 blogCreateWrapper.style.display = "none";
-                const blogTitle = document.querySelector('.blog-creation .blog-form-title');
+                const blogDescription = document.querySelector('.blog-creation .blog-form-description');
+
                 blogTitle.value = "";
+                blogDescription.value = "";
+
                 editor.setContents(null);
             }, 400)
+        })
+
+        blogTitle.addEventListener('change', () => {
+            if (blogTitles.includes(blogTitle.value)) {
+                blogTitle.classList.add('placeholder');
+                blogTitle.style.borderColor = "var(--red-color)";
+            } else {
+                blogTitle.classList.remove('placeholder');
+                blogTitle.removeAttribute("style");
+            }
         })
     })
 
@@ -430,62 +447,61 @@ document.addEventListener('DOMContentLoaded', function () {
             settingsCell.appendChild(settingsEditIcons);
             row.appendChild(settingsCell);
 
-            // Append the row to the table body
-            tbody.appendChild(row);
-        });
+            settingsEditIcons.firstChild.addEventListener('click', () => {
 
-        table.appendChild(tbody);
-
-        //Adding event listeners to settings buttons
-
-        const editButton = document.querySelector('.blog-edit .edit-button');
-
-        const blogSettings = document.querySelectorAll('.blog .edit');
-
-        blogSettings.forEach((parent, index) => {
-            const editBlog = parent.firstElementChild;
-            //console.log(editBlog);
-
-            editBlog.addEventListener('click', () => {
-
-                const blogId = document.querySelectorAll('.blog-id');
-                const blogFormId = document.querySelector('.blog-form-id');
-                const blogTitle = document.querySelectorAll('.blog-title');
-                console.log(blogTitle[index].textContent);
-
-                const blogContent = document.querySelectorAll('.blog-description');
-                console.log(blogContent[index].textContent);
+                const blogTitle = document.querySelector('.blog-edit .blog-form-title');
+                const blogContent = document.querySelector('.blog-edit .blog-form-description');
 
                 blogEditWrapper.style.display = "flex";
                 blogEditWrapper.style.opacity = 1;
 
-                const blogFormTitle = document.querySelector('.blog-edit .blog-form-title');
-
-                console.log(blogFormTitle);
-
                 const blogEditor = document.querySelector('.blog-edit .editor-container #editor2');
 
-                console.log(blogEditor);
-
-                blogFormId.textContent = blogId[index].textContent;
-                blogFormTitle.value = blogTitle[index].textContent;
-                //blogEditor.textContent = blogContent[index].textContent;
-
-                // Convert HTML to Quill delta format
-                const delta = editor2.clipboard.convert(blogContent[index].textContent);
-
-                // Insert the delta into the Quill editor
-                editor2.setContents(delta);
+                blogTitle.value = blog.title;
+                blogContent.value = blog.description
+                editor2.root.innerHTML = blog.content;
 
                 //insertTextIntoQuill(blogContent[index].textContent);
+
+                const blogCloseBtn = document.querySelector('.blog-edit .close-btn');
+
+                blogCloseBtn.addEventListener('click', () => {
+                    blogCreateWrapper.style.opacity = 0;
+
+                    setTimeout(() => {
+                        blogCreateWrapper.style.display = "none";
+                        const blogTitle = document.querySelector('.blog-edit .blog-form-title');
+                        const blogDescription = document.querySelector('.blog-creation .blog-form-description');
+
+                        blogTitle.value = "";
+                        blogDescription.value = "";
+
+                        editor.setContents(null);
+                    }, 400)
+                })
+
+                blogTitle.addEventListener('change', () => {
+                    if (blogTitles.includes(blogTitle.value) && blogTitle.value !== blog.title) {
+                        blogTitle.classList.add('placeholder');
+                        blogTitle.style.borderColor = "var(--red-color)";
+                    } else {
+                        blogTitle.classList.remove('placeholder');
+                        blogTitle.removeAttribute("style");
+                    }
+                })
+
+                const editButton = document.querySelector('.blog-edit .edit-button');
+
+                editButton.addEventListener('click', () => {
+                    handleBlogEditing(blog);
+                });
+
             })
 
-            const deleteBlog = parent.lastElementChild;
-
-            deleteBlog.addEventListener('click', () => {
+            settingsEditIcons.lastChild.addEventListener('click', () => {
                 const removeBlogWrapper = document.querySelector('.remove-blog-wrapper');
 
-                const row = parent.closest('tr');
+                const row = settingsEditIcons.closest('tr');
 
                 console.log(row);
 
@@ -539,8 +555,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 })
 
-
-
                 const cancelButton = document.querySelector('.remove-blog-wrapper .button:last-child');
                 cancelButton.addEventListener('click', () => {
                     removeBlogWrapper.style.opacity = 0;
@@ -550,12 +564,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     }, 400);
                 })
             })
-        })
-        // const editBlog = blogSettings.querySelectorAll(':first-child');
 
-        //console.log(editBlog);
+            // Append the row to the table body
+            tbody.appendChild(row);
+        });
 
-        editButton.addEventListener('click', handleBlogEditing);
+        table.appendChild(tbody);
+
     }
 
     function createSettingsEditIcons() {
@@ -688,6 +703,9 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 console.log(data);
+                data.forEach(item => {
+                    blogTitles.push(item.title);
+                })
                 createTable(data);
             })
     })
@@ -706,46 +724,56 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const blogFormTitle = document.querySelector('.blog-creation .blog-form-title');
         const title = blogFormTitle.value;
-
         const description = document.querySelector('.blog-creation .input-wrapper .blog-form-description');
 
         // console.log(picture.name);
 
-        const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
+        if (picture && title && description.value && content) {
 
-        const isValidFileType = allowedTypes.some(ext => picture.name.endsWith(ext));
+            const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
 
-        if (isValidFileType) {
+            const isValidFileType = allowedTypes.some(ext => picture.name.endsWith(ext));
 
-            const formData = new FormData(); // Create a FormData object
+            if (isValidFileType) {
 
-            formData.append('title', title); // Append title
-            formData.append('content', content); // Append content
-            formData.append('file', picture); // Append picture
-            formData.append('date', formattedDate);
-            formData.append('description', description.value);
+                if (blogFormTitle.classList.contains('placeholder')) {
+                    alert("That Blog title already exists!")
+                    return;
+                }
 
-            fetch('/panel/blog/createBlog', {
-                method: 'POST',
-                body: formData // Set the body of the request as FormData
-            })
-                .then(response => {
-                    if (response.ok) {
-                        alert('Blog created successfully!');
-                    } else {
-                        alert('Error creating Blog!');
-                    }
+                const formData = new FormData(); // Create a FormData object
+
+                formData.append('title', title); // Append title
+                formData.append('content', content); // Append content
+                formData.append('file', picture); // Append picture
+                formData.append('date', formattedDate);
+                formData.append('description', description.value);
+
+                fetch('/panel/blog/createBlog', {
+                    method: 'POST',
+                    body: formData // Set the body of the request as FormData
                 })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Blog created successfully!');
+                        } else {
+                            alert('Error creating Blog!');
+                        }
+                    })
 
+            } else {
+                alert('The file is not a picture!');
+            }
         } else {
-            alert('The file is not a picture!');
+            alert('Please fill in the remaining fields!');
         }
+
 
 
     }
 
     //Blog Editing
-    function handleBlogEditing(event) {
+    function handleBlogEditing(blog) {
         let contentWithTags = getEditedText();
         console.log(contentWithTags); // Output: All text with <p> and <h1> tags
 
@@ -754,7 +782,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const picture = blogImg.files[0];
 
-        const blogIdElement = document.querySelector('.blog-form-id');
         const blogFormTitleElement = document.querySelector('.blog-edit .blog-form-title');
 
         const description = document.querySelector('.edit-blog .input-wrapper .blog-form-description');
@@ -765,29 +792,55 @@ document.addEventListener('DOMContentLoaded', function () {
         const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
         console.log(formattedDate);
 
-        const formData = new FormData();
+        if (blogFormTitleElement.value && description.value && contentWithTags) {
 
-        formData.append('title', blogFormTitleElement.value);
-        formData.append('id', blogIdElement.textContent);
-        formData.append('file', picture);
-        formData.append('content', contentWithTags);
-        formData.append('date', formattedDate);
-        formData.append('description', description.value);
+            let isValidFileType;
 
-        fetch(url, {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => {
-                if (response.ok) {
-                    alert('Blog updated successfully');
-                } else {
-                    alert('Error updating Blog');
+            const allowedTypes = ['.jpeg', '.jpg', '.png', '.webp', '.gif'];
+
+            if (picture)
+                isValidFileType = allowedTypes.some(ext => picture.name.endsWith(ext));
+            else
+                isValidFileType = true;
+
+            if (isValidFileType) {
+
+                if (blogFormTitleElement.classList.contains('placeholder')) {
+                    alert("That Blog title already exists!")
+                    return;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+
+                const formData = new FormData();
+
+                formData.append('title', blogFormTitleElement.value);
+                formData.append('oldTitle', blog.title);
+                formData.append('id', blog.id);
+                formData.append('file', picture);
+                formData.append('content', contentWithTags);
+                formData.append('date', formattedDate);
+                formData.append('description', description.value);
+
+                fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Blog updated successfully');
+                        } else {
+                            alert('Error updating Blog');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+
+            } else
+                alert('The file is not an image type!');
+
+        } else {
+            alert('Fill in the remaining fields');
+        }
     }
 
 
@@ -1018,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const selectWrapper = document.querySelector('.edit-category-wrapper .select-wrapper');
                     const categoriesWrapper = document.querySelector('.edit-category-wrapper .select-wrapper .categories');
                     const editWrapper = document.querySelector('.edit-category-wrapper .edit-wrapper');
-                    
+
                     data.categories.forEach((item) => {
                         const input = document.createElement('input');
                         input.type = 'button';
@@ -1212,17 +1265,17 @@ document.addEventListener('DOMContentLoaded', function () {
                             editCategory.addEventListener('click', () => {
                                 editCategoryWrapper.style.display = "flex";
                                 editCategoryWrapper.style.opacity = 1;
-    
+
                                 const closeBtn = document.querySelector('.edit-category-wrapper .close-btn');
-    
+
                                 closeBtn.addEventListener('click', () => {
                                     addCategoryWrapper.style.opacity = 0;
-    
+
                                     setTimeout(() => {
                                         addCategoryWrapper.style.display = "none";
                                     }, 400);
                                 })
-    
+
                             })
 
                             removeCategory.addEventListener('click', () => {
@@ -2010,32 +2063,32 @@ document.addEventListener('DOMContentLoaded', function () {
                                         method: 'POST',
                                         body: formData
                                     })
-                                    .then(response => {
-                                        if (response.ok) {
-                                            alert("Successfully edited coupon!");
-    
-                                            editCouponWrapper.style.opacity = 0;
-    
-                                            setTimeout(() => {
-                                                editCouponWrapper.style.display = "none";
-    
-                                                code.value = '';
-                                                discount.value = '';
-                                                uses.value = '';
-                                                orderAmount.value = '';
-                                                expDate.value = '';
-    
-                                                excludedProducts.forEach(item => {
-                                                    item.checked = false;
-                                                })
-    
-                                            }, 400)
-    
-                                        } else {
-                                            alert("Error creating coupon!");
-                                        }
-                                    })
-                                    .catch(err => console.log(err))
+                                        .then(response => {
+                                            if (response.ok) {
+                                                alert("Successfully edited coupon!");
+
+                                                editCouponWrapper.style.opacity = 0;
+
+                                                setTimeout(() => {
+                                                    editCouponWrapper.style.display = "none";
+
+                                                    code.value = '';
+                                                    discount.value = '';
+                                                    uses.value = '';
+                                                    orderAmount.value = '';
+                                                    expDate.value = '';
+
+                                                    excludedProducts.forEach(item => {
+                                                        item.checked = false;
+                                                    })
+
+                                                }, 400)
+
+                                            } else {
+                                                alert("Error creating coupon!");
+                                            }
+                                        })
+                                        .catch(err => console.log(err))
 
                                 })
 
@@ -3066,76 +3119,76 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = document.querySelector('.edit-category-wrapper');
 
-        if(form.checkValidity()){
+        if (form.checkValidity()) {
 
-        const categoryValue = document.querySelector('.add-category-wrapper .product-category-value');
-        const categoryHeader = document.querySelector('.add-category-wrapper .product-category-header');
-        const categorySubheader = document.querySelector('.add-category-wrapper .product-category-subheader');
-        const categoryImage = document.querySelector('.add-category-wrapper .product-category-image');
-        const picture = categoryImage.files[0];
-        
-        const url = '/panel/products/addProductCategory';
+            const categoryValue = document.querySelector('.add-category-wrapper .product-category-value');
+            const categoryHeader = document.querySelector('.add-category-wrapper .product-category-header');
+            const categorySubheader = document.querySelector('.add-category-wrapper .product-category-subheader');
+            const categoryImage = document.querySelector('.add-category-wrapper .product-category-image');
+            const picture = categoryImage.files[0];
 
-        const formData = new FormData();
+            const url = '/panel/products/addProductCategory';
 
-        formData.append('value', categoryValue.value);
-        formData.append('header', categoryHeader.value);
-        formData.append('subheader', categorySubheader.value);
-        formData.append('file', picture);
+            const formData = new FormData();
+
+            formData.append('value', categoryValue.value);
+            formData.append('header', categoryHeader.value);
+            formData.append('subheader', categorySubheader.value);
+            formData.append('file', picture);
 
 
-        fetch(url, {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => {
-                const status = document.querySelector('.status-category');
-                if (response.ok) {
-                    status.textContent = "Successfully added category!";
-                    status.classList.add('in-stock');
-                    status.classList.remove('out-of-stock');
-                } else {
-                    status.textContent = "Error adding  category!";
-                    status.classList.remove('in-stock');
-                    status.classList.add('out-of-stock');
-                }
+            fetch(url, {
+                method: 'POST',
+                body: formData
             })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                .then(response => {
+                    const status = document.querySelector('.status-category');
+                    if (response.ok) {
+                        status.textContent = "Successfully added category!";
+                        status.classList.add('in-stock');
+                        status.classList.remove('out-of-stock');
+                    } else {
+                        status.textContent = "Error adding  category!";
+                        status.classList.remove('in-stock');
+                        status.classList.add('out-of-stock');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
 
 
-        const inputWrapper = document.querySelectorAll('.product-category-wrapper');
+            const inputWrapper = document.querySelectorAll('.product-category-wrapper');
 
-        inputWrapper.forEach((item) => {
+            inputWrapper.forEach((item) => {
 
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.name = 'category';
-            input.value = categoryValue.value;
-            const label = document.createElement('label');
-            label.textContent = categoryValue.value;
-            label.setAttribute("for", "category");
-            const div = document.createElement('div');
-            div.appendChild(input);
-            div.appendChild(label);
-            item.appendChild(div);
-        })
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'category';
+                input.value = categoryValue.value;
+                const label = document.createElement('label');
+                label.textContent = categoryValue.value;
+                label.setAttribute("for", "category");
+                const div = document.createElement('div');
+                div.appendChild(input);
+                div.appendChild(label);
+                item.appendChild(div);
+            })
 
-        const addCategoryWrapper = document.querySelector('.add-category-wrapper');
-
-        setTimeout(() => {
-
-            addCategoryWrapper.style.opacity = 0;
+            const addCategoryWrapper = document.querySelector('.add-category-wrapper');
 
             setTimeout(() => {
-                addCategoryWrapper.style.display = "none";
-            }, 400);
 
-        }, 800);
+                addCategoryWrapper.style.opacity = 0;
 
-    }else 
-    alert("Fill the Remaining fields!");
+                setTimeout(() => {
+                    addCategoryWrapper.style.display = "none";
+                }, 400);
+
+            }, 800);
+
+        } else
+            alert("Fill the Remaining fields!");
 
     }
 
@@ -3144,81 +3197,81 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = document.querySelector('.edit-category-wrapper');
 
-        if(form.checkValidity()){
+        if (form.checkValidity()) {
 
             const categoryValue = document.querySelector('.product-category-value');
-        const categoryHeader = document.querySelector('.product-category-header');
-        const categorySubheader = document.querySelector('.product-category-subheader');
-        const categoryImage = document.querySelector('.product-category-image');
-        const picture = categoryImage.files[0];
+            const categoryHeader = document.querySelector('.product-category-header');
+            const categorySubheader = document.querySelector('.product-category-subheader');
+            const categoryImage = document.querySelector('.product-category-image');
+            const picture = categoryImage.files[0];
 
-        console.log(categoryHeader.value, categoryValue.value, categorySubheader.value);
-        
-        const url = '/panel/products/editProductCategory';
+            console.log(categoryHeader.value, categoryValue.value, categorySubheader.value);
 
-        const formData = new FormData();
+            const url = '/panel/products/editProductCategory';
 
-        formData.append('value', categoryValue.value);
-        formData.append('oldValue', item.category_name);
-        formData.append('id', item.category_id)
-        formData.append('header', categoryHeader.value);
-        formData.append('subheader', categorySubheader.value);
-        formData.append('oldFile', item.category_image);
-        formData.append('file', picture);
+            const formData = new FormData();
+
+            formData.append('value', categoryValue.value);
+            formData.append('oldValue', item.category_name);
+            formData.append('id', item.category_id)
+            formData.append('header', categoryHeader.value);
+            formData.append('subheader', categorySubheader.value);
+            formData.append('oldFile', item.category_image);
+            formData.append('file', picture);
 
 
-        fetch(url, {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => {
-                const status = document.querySelector('.status-category');
-                if (response.ok) {
-                    status.textContent = "Successfully edited category!";
-                    status.classList.add('in-stock');
-                    status.classList.remove('out-of-stock');
-                } else {
-                    status.textContent = "Error editing  category!";
-                    status.classList.remove('in-stock');
-                    status.classList.add('out-of-stock');
-                }
+            fetch(url, {
+                method: 'POST',
+                body: formData
             })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                .then(response => {
+                    const status = document.querySelector('.status-category');
+                    if (response.ok) {
+                        status.textContent = "Successfully edited category!";
+                        status.classList.add('in-stock');
+                        status.classList.remove('out-of-stock');
+                    } else {
+                        status.textContent = "Error editing  category!";
+                        status.classList.remove('in-stock');
+                        status.classList.add('out-of-stock');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
 
 
-        const inputWrapper = document.querySelectorAll('.product-category-wrapper');
+            const inputWrapper = document.querySelectorAll('.product-category-wrapper');
 
-        inputWrapper.forEach((item) => {
+            inputWrapper.forEach((item) => {
 
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.name = 'category';
-            input.value = categoryValue.value;
-            const label = document.createElement('label');
-            label.textContent = categoryValue.value;
-            label.setAttribute("for", "category");
-            const div = document.createElement('div');
-            div.appendChild(input);
-            div.appendChild(label);
-            item.appendChild(div);
-        })
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'category';
+                input.value = categoryValue.value;
+                const label = document.createElement('label');
+                label.textContent = categoryValue.value;
+                label.setAttribute("for", "category");
+                const div = document.createElement('div');
+                div.appendChild(input);
+                div.appendChild(label);
+                item.appendChild(div);
+            })
 
-        const addCategoryWrapper = document.querySelector('.add-category-wrapper');
-
-        setTimeout(() => {
-
-            addCategoryWrapper.style.opacity = 0;
+            const addCategoryWrapper = document.querySelector('.add-category-wrapper');
 
             setTimeout(() => {
-                addCategoryWrapper.style.display = "none";
-            }, 400);
 
-        }, 800);
+                addCategoryWrapper.style.opacity = 0;
 
-        }else 
-        alert("Fill the Remaining fields!");
+                setTimeout(() => {
+                    addCategoryWrapper.style.display = "none";
+                }, 400);
+
+            }, 800);
+
+        } else
+            alert("Fill the Remaining fields!");
 
     }
 

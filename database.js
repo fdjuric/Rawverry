@@ -514,10 +514,20 @@ class dbService {
 
     async editBlog(id, title, content, author, date, author_pic, pic, description) {
         try {
+
+            const picPath = await new Promise((resolve, reject) => {
+                const query = 'SELECT image_url FROM blog WHERE id = ?';
+
+                db.query(query, [id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+                    resolve(results[0])
+                })
+            })
+
             const response = await new Promise((resolve, reject) => {
                 const query = 'UPDATE blog SET title = ?, content = ?, author = ?, updated_at = ?, author_picture = ?, image_url = ?, description = ? WHERE id = ?';
 
-                db.query(query, [title, content, author, date, author_pic, pic, description, id], (err, results) => {
+                db.query(query, [title, content, author, date, author_pic, pic || picPath.image_url, description, id], (err, results) => {
                     if (err) {
                         reject(new Error(err.message));
                     } else {
@@ -526,7 +536,7 @@ class dbService {
                 });
             });
 
-            return response;
+            return picPath;
         } catch (error) {
             console.log(error);
         }
@@ -535,6 +545,15 @@ class dbService {
     async removeBlog(id) {
         try {
 
+            const blogName = await new Promise((resolve, reject) => {
+                const query = `SELECT title FROM blog WHERE id = ?`;
+
+                db.query(query, [id], (err, results) => {
+                    if (err) reject(new Error(err.message))
+                    resolve(results[0])
+                })
+
+            })
             const response = await new Promise((resolve, reject) => {
                 const query = `DELETE FROM blog WHERE id = ?`;
 
@@ -543,13 +562,13 @@ class dbService {
                     resolve();
                 });
             });
-            return response;
+            return blogName;
         } catch (error) {
             console.log(error);
         }
     }
 
-    async getBlogs(){
+    async getBlogs() {
         try {
             const response = await new Promise((resolve, reject) => {
                 const query = `SELECT Blog.id, 
@@ -707,7 +726,7 @@ class dbService {
             `;
 
                 db.query(query1, [pageData.category_id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
                     resolve(results);
                 })
             })
@@ -1023,21 +1042,21 @@ class dbService {
         }
     }
 
-    async editProductCategory(id, value, header, subheader, path){
-        try{
-            const response = await new Promise((resolve,reject) => {
+    async editProductCategory(id, value, header, subheader, path) {
+        try {
+            const response = await new Promise((resolve, reject) => {
                 const query = `UPDATE product_category SET category_name = ?, category_header = ?, category_subheader = ?, category_image = ? WHERE category_id = ?`;
 
                 db.query(query, [value, header, subheader, path, id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
                     resolve();
                 })
             })
 
-            
+
             return response;
 
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
     }

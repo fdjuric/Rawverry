@@ -637,7 +637,7 @@ td div {
     height: 100%;
 }
 
- #editor, #editorDescCreate, #editorDetailsCreate, #editorDescEdit, #editorDetailsEdit {
+ #editor, #editor2, #editorDescCreate, #editorDetailsCreate, #editorDescEdit, #editorDetailsEdit {
     min-height: 500px;
     height: 100%;
 }

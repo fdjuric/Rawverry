@@ -84,12 +84,12 @@ app.use((req, res, next) => {
 
     res.sendFile(`${__dirname}/public/${url}.html`);
 
-  } else if (urlPath.startsWith('/blog/')){
+  } else if (urlPath.startsWith('/blog/')) {
     res.sendFile(`${__dirname}/public/blog-entry.html`);
 
-  }else if (validFetchPaths.includes(urlPath)) {
+  } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if ( urlPath.startsWith('/getBlog/') || urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/getBlog/') || urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
@@ -604,12 +604,12 @@ app.get('/getBlogs', (req, res) => {
   const db = dbService.getDbServiceInstance();
 
   db.getBlogs()
-  .then(data => {
-    console.log(data)
-    res.json(data);
+    .then(data => {
+      console.log(data)
+      res.json(data);
 
-  })
-  .catch(err => console.log(err))
+    })
+    .catch(err => console.log(err))
 })
 
 app.get('/getBlog/:name', (req, res) => {
@@ -619,11 +619,11 @@ app.get('/getBlog/:name', (req, res) => {
   const db = dbService.getDbServiceInstance();
 
   db.getSpecificBlog(name)
-  .then(data => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err))
+    .then(data => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err))
 })
 
 
@@ -1074,7 +1074,7 @@ app.post('/panel/products/editProductCategory', checkPermission(['Admin', 'Edito
   if (req.file) {
 
     fileName = categoryPicDir.substring('public/'.length) + "/" + newValue + "/" + req.file.originalname;
-    
+
     const categoryPicPath = "public/images/categories/" + value;
 
     console.log("Category pic path: " + categoryPicPath);
@@ -1377,7 +1377,7 @@ app.get('/panel/blog', checkPermission(['Admin', 'Editor']), (req, res) => {
 app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 
 
-  const { title, content, date, description} = req.body;
+  const { title, content, date, description } = req.body;
   const picture = req.file;
 
   console.log(picture);
@@ -1388,7 +1388,7 @@ app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpl
   console.log(req.session.passport.user.picture);
 
   if (picture) {
-    const fileName = blogPicDir.substring('public/'.length) + "/" + req.file.originalname;
+    const fileName = blogPicDir.substring('public/'.length) + "/" + title + "/" + req.file.originalname;
     const db = dbService.getDbServiceInstance();
     console.log(fileName);
 
@@ -1403,32 +1403,47 @@ app.post('/panel/blog/createBlog', checkPermission(['Admin', 'Editor']), blogUpl
 
 app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), blogUpload.single('file'), (req, res) => {
 
-  const { id, title, content, date, description } = req.body;
+  const { title, oldTitle, id, content, date, description } = req.body;
 
   const picture = req.file;
 
-  // Process the received data (perform database updates, etc.)
-  console.log(`Received data: ${picture.originalname}, id=${id}, title=${title}, content=${content}, ${description}`);
+  let fileName;
 
-  if(picture){
-    const blogPicDir = `public/images/blog/${title}/${picture.originalname}`;
+  console.log(id);
 
-          fs.unlink(blogPicDir, (err) => {
-            if (err) {
-              console.error(`Error deleting file: ${err.message}`);
-            } else {
-              console.log('File deleted successfully');
-            }
-          })
-  }
-
-  const fileName = blogPicDir.substring('public/'.length) + "/" + req.file.originalname;
+  if (picture)
+    fileName = blogPicDir.substring('public/'.length) + "/" + title + "/" + req.file.originalname;
 
   const db = dbService.getDbServiceInstance();
 
-  db.editBlog(id, title, content, req.session.passport.user.username, date, req.session.passport.user.picture, fileName)
-    .then(() => {
-      console.log("Successfully Updated blog!");
+  db.editBlog(id, title, content, req.session.passport.user.username, date, req.session.passport.user.picture, fileName, description)
+    .then((data) => {
+
+      const blogPicDir = `public/${data.image_url}`;
+      
+      if (fileName !== undefined && fileName !== data.image_url) {
+
+        fs.unlink(blogPicDir, (err) => {
+          if (err) {
+            console.error(`Error deleting file: ${err.message}`);
+          } else {
+            console.log('File deleted successfully');
+          }
+        })
+      }
+
+      if (oldTitle !== title) {
+        const blogDirOld = `public/images/blog/${oldTitle}/`;
+        const blogPicDirNew = `public/images/blog/${title}/`;
+
+        fs.rename(blogDirOld, blogPicDirNew, (err) => {
+          if (err) {
+            console.error(`Error renaming folder: ${err.message}`);
+          } else {
+            console.log('Folder renamed successfully');
+          }
+        })
+      }
       res.status(200).json("Success!");
     })
     .catch((err) => console.log(err));
@@ -1443,8 +1458,22 @@ app.get('/panel/blog/removeBlog/:id', checkPermission('Admin'), (req, res) => {
   const db = dbService.getDbServiceInstance();
 
   db.removeBlog(blogId)
-    .then(() => {
-      res.status(200).json("Success!");
+    .then((data) => {
+      const blogPicDir = `public/images/blog/${data.title}`;
+
+      console.log(data.title);
+
+      fs.rm(blogPicDir, { recursive: true }, (err) => {
+        if (err) {
+          console.error(`Error deleting folder: ${err.message}`);
+        } else {
+          console.log('Folder deleted successfully');
+        }
+      })
+
+      console.log("Successfully deleted product: " + blogId);
+
+      res.status(200).send("Product deleted successfully!");
     })
     .catch(err => console.log(err))
 })
