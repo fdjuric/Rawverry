@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const sizeIds = [];
 
     const blogTitles = [];
+    const productNames = [];
+    const couponCodes = [];
 
     const navElement = document.querySelectorAll('nav div:not(:last-child)');
     const navSvg = document.querySelectorAll('nav div svg path');
@@ -217,7 +219,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const changePicWindow = document.querySelector('.change-profile-pic');
 
-    const uploadButton = document.querySelector('.change-profile-pic form button');
+    const closeBtn = document.querySelector('.change-profile-pic .close-btn');
+
+    const uploadButton = document.querySelector('.change-profile-pic form .button');
 
     profilePic.addEventListener('click', () => {
 
@@ -227,7 +231,14 @@ document.addEventListener('DOMContentLoaded', function () {
             changePicWindow.style.opacity = 1;
         }, 100)
 
+    })
 
+    closeBtn.addEventListener('click', () => {
+        changePicWindow.style.opacity = 0;
+
+        setTimeout(() => {
+            changePicWindow.style.display = "none";
+        }, 400)
     })
 
     uploadButton.addEventListener('click', uploadFile);
@@ -886,6 +897,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         const row = document.createElement('tr');
 
                         if (temp != product.product_id) {
+
+                            productNames.push(product.product_name);
                             // Create and populate table data (td) for each field
                             const idCell = createTableCell(product.product_id, 'product-id');
                             const titleCellWrapper = document.createElement('td');
@@ -1169,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                             console.log(removeProductId);
 
 
-                                            windows.location.reload();
+                                            window.location.reload();
                                         } else {
                                             const status = document.querySelector('.remove-product-wrapper .status-category');
                                             status.textContent = "Error removing product!";
@@ -1330,6 +1343,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                     const editTitle = document.querySelector('.edit-product .product-form-title');
                                     const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input');
+
+                                    editTitle.addEventListener('change', () => {
+                                        if (productNames.includes(editTitle.value) && editTitle.value !== dat[0].product_name) {
+                                            editTitle.classList.add('placeholder');
+                                            editTitle.style.borderColor = "var(--red-color)";
+                                        } else {
+                                            editTitle.classList.remove('placeholder');
+                                            editTitle.removeAttribute("style");
+                                        }
+                                    })
 
                                     editTitle.value = dat[0].product_name;
 
@@ -1507,87 +1530,106 @@ document.addEventListener('DOMContentLoaded', function () {
                                             }
                                         })
 
-                                        formData.append('title', oldTitle);
-                                        formData.append('newTitle', editTitle.value);
-
-                                        formData.append('id', productId);
-                                        for (let i = 0; i < picture.length; i++) {
-                                            const file = picture[i];
-                                            formData.append('file', file); // Append each file to the FormData object
+                                        if (editTitle.classList.contains('placeholder')) {
+                                            alert("That title already exists!")
+                                            return;
                                         }
 
-                                        for (let i = 0; i < removeImagesArray.length; i++) {
-                                            formData.append('removePics', removeImagesArray[i]);
-                                        }
+                                        const categories = document.querySelectorAll('.product-edit .product-category-wrapper div input');
 
-                                        removePrices.forEach(item => {
-                                            formData.append('removePrices[]', JSON.stringify(item));
-                                        })
+                                        const isChecked = Array.from(categories).some(checkbox => checkbox.checked);
 
-                                        newSizes.forEach(item => {
-                                            formData.append('newSizes[]', JSON.stringify(item))
-                                        })
+                                        const price = document.querySelector('.edit-product .product-form-price');
 
-                                        changedSizes.forEach(item => {
-                                            formData.append('changedSizes[]', JSON.stringify(item));
-                                        })
+                                        const testEditorValue = "<p><br></p>";
 
-                                        categoryValueArray.forEach(item => {
-                                            formData.append('oldCategories', item)
-                                        })
+                                        console.log(isChecked);
 
-                                        categoryArray.forEach(item => {
-                                            formData.append('categories', item);
-                                        })
+                                        if (isChecked && editTitle.value !== null && price.value !== null && getText(editorDescEdit) !== testEditorValue && getText(editorDetailsEdit) !== testEditorValue) {
 
-                                        formData.append('description', editorDescEdit.root.innerHTML);
-                                        formData.append('details', editorDetailsEdit.root.innerHTML);
+                                            formData.append('title', oldTitle);
+                                            formData.append('newTitle', editTitle.value);
 
-                                        const currentDate = new Date();
-                                        const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
-                                        console.log(formattedDate);
+                                            formData.append('id', productId);
+                                            for (let i = 0; i < picture.length; i++) {
+                                                const file = picture[i];
+                                                formData.append('file', file); // Append each file to the FormData object
+                                            }
 
-                                        formData.append('date', formattedDate);
+                                            for (let i = 0; i < removeImagesArray.length; i++) {
+                                                formData.append('removePics', removeImagesArray[i]);
+                                            }
 
-                                        console.log(formData);
-
-                                        fetch('/panel/products/editProduct', {
-                                            method: 'POST',
-                                            body: formData,
-                                        })
-                                            .then(response => {
-                                                if (response.ok) {
-                                                    alert('Product edited successfully!');
-
-                                                    productEdit.style.opacity = 0;
-
-                                                    setTimeout(() => {
-                                                        productEdit.style.display = "none";
-
-                                                        const editSizes = document.querySelectorAll('.edit-product .product-form-price-wrapper');
-                                                        const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input')
-
-                                                        editSizes.forEach(item => {
-                                                            item.remove();
-                                                        })
-                                                        editCategories.forEach(input => {
-
-                                                            input.checked = false;
-
-                                                        })
-
-                                                        const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
-
-                                                        while (productPictures.firstChild) {
-                                                            productPictures.removeChild(productPictures.firstChild);
-                                                        }
-                                                    }, 400);
-
-                                                } else {
-                                                    alert('Error editing product!');
-                                                }
+                                            removePrices.forEach(item => {
+                                                formData.append('removePrices[]', JSON.stringify(item));
                                             })
-                                            .catch(err => console.log(err));
+
+                                            newSizes.forEach(item => {
+                                                formData.append('newSizes[]', JSON.stringify(item))
+                                            })
+
+                                            changedSizes.forEach(item => {
+                                                formData.append('changedSizes[]', JSON.stringify(item));
+                                            })
+
+                                            categoryValueArray.forEach(item => {
+                                                formData.append('oldCategories', item)
+                                            })
+
+                                            categoryArray.forEach(item => {
+                                                formData.append('categories', item);
+                                            })
+
+                                            formData.append('description', editorDescEdit.root.innerHTML);
+                                            formData.append('details', editorDetailsEdit.root.innerHTML);
+
+                                            const currentDate = new Date();
+                                            const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+                                            console.log(formattedDate);
+
+                                            formData.append('date', formattedDate);
+
+                                            console.log(formData);
+
+                                            fetch('/panel/products/editProduct', {
+                                                method: 'POST',
+                                                body: formData,
+                                            })
+                                                .then(response => {
+                                                    if (response.ok) {
+                                                        alert('Product edited successfully!');
+
+                                                        productEdit.style.opacity = 0;
+
+                                                        setTimeout(() => {
+                                                            productEdit.style.display = "none";
+
+                                                            const editSizes = document.querySelectorAll('.edit-product .product-form-price-wrapper');
+                                                            const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input')
+
+                                                            editSizes.forEach(item => {
+                                                                item.remove();
+                                                            })
+                                                            editCategories.forEach(input => {
+
+                                                                input.checked = false;
+
+                                                            })
+
+                                                            const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
+
+                                                            while (productPictures.firstChild) {
+                                                                productPictures.removeChild(productPictures.firstChild);
+                                                            }
+                                                        }, 400);
+
+                                                    } else {
+                                                        alert('Error editing product!');
+                                                    }
+                                                })
+                                                .catch(err => console.log(err));
+                                        } else
+                                            alert('Fill the remaining fields!');
                                     });
                                 })
                                 .catch(err => console.log(err));
@@ -1604,6 +1646,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     addProductButton.addEventListener('click', () => {
 
                         const productCreation = document.querySelector('.product-creation');
+
+                        const title = document.querySelector('.product-creation .product-form-title');
+
+                        title.addEventListener('change', () => {
+                            if (productNames.includes(title.value)) {
+                                title.classList.add('placeholder');
+                                title.style.borderColor = "var(--red-color)";
+                            } else {
+                                title.classList.remove('placeholder');
+                                title.removeAttribute("style");
+                            }
+                        })
 
                         productCreation.style.display = "block";
                         productCreation.style.opacity = 1;
@@ -1738,15 +1792,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const title = document.querySelector('.create-product .product-form-title');
         const price = document.querySelector('.create-product .product-form-price');
 
+        console.log(editorDesc.root.innerHTML);
+        if (title.classList.contains('placeholder')) {
+            alert("That Blog title already exists!")
+            return;
+        }
+
         const categories = document.querySelectorAll('.product-creation .product-category-wrapper div input');
 
         const isChecked = Array.from(categories).some(checkbox => checkbox.checked);
 
+        const testEditorValue = "<p><br></p>";
+
         console.log(isChecked);
 
-        if (isChecked && title.value !== null && price.value !== null) {
-            const productPicture = document.getElementById("productPicture");
-            const picture = productPicture.files;
+        const productPicture = document.getElementById("productPicture");
+        const picture = productPicture.files;
+
+        if (productPicture.files.length > 0 && isChecked && title.value !== null && price.value !== null && getText(editorDesc) !== testEditorValue && getText(editorDetails) !== testEditorValue) {
 
             const pictureArray = [];
             for (let i = 0; i < picture.length; i++) {
@@ -1935,6 +1998,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             const titleCell = document.createElement('p');
                             titleCell.classList.add('coupon-name');
                             titleCell.textContent = coupon.coupon_code;
+                            couponCodes.push(coupon.coupon_code);
+
                             const discountCell = createTableCell(coupon.discount_amount, 'discount-amount');
                             const usesCell = createTableCell(coupon.maximum_uses, 'maximum-uses');
                             const orderAmountCell = createTableCell(coupon.maximum_order_amount, 'maximum-order-amount');
@@ -2164,7 +2229,28 @@ document.addEventListener('DOMContentLoaded', function () {
                         couponCreation.style.opacity = 1;
 
                         const code = document.querySelector('.coupon-creation .coupon-form-code');
+                        code.addEventListener('change', () => {
+                            if (couponCodes.includes(code.value)) {
+                                code.classList.add('placeholder');
+                                code.style.borderColor = "var(--red-color)";
+                            } else {
+                                code.classList.remove('placeholder');
+                                code.removeAttribute("style");
+                            }
+                        })
+
                         const discount = document.querySelector('.coupon-creation .coupon-form-discount');
+                        discount.addEventListener('change', () => {
+                            const regex = /[0-9.%]/;
+                            if (!regex.test(discount.value)) {
+                                discount.classList.add('placeholder');
+                                discount.style.borderColor = "var(--red-color)";
+                            } else {
+                                discount.classList.remove('placeholder');
+                                discount.removeAttribute("style");
+                            }
+                        })
+
                         const uses = document.querySelector('.coupon-creation .coupon-form-uses');
                         const orderAmount = document.querySelector('.coupon-creation .coupon-form-max-amount');
                         const expDate = document.querySelector('.coupon-creation .coupon-form-exp-date');
@@ -2199,61 +2285,94 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             const excludedArray = [];
 
+                            const isChecked = false;
+
                             excludedProducts.forEach(item => {
                                 if (item.checked) {
                                     excludedArray.push(item.value)
+                                    isChecked = true;
                                 }
                             })
 
                             console.log(excludedArray);
 
                             const currentDate = new Date();
+                            const year = currentDate.getFullYear();
+                            const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Adding 1 because months are zero-based
+                            const day = String(currentDate.getDate()).padStart(2, '0');
+
+                            const formattedCurDate = `${year}-${month}-${day}`;
                             const formattedTime = currentDate.toTimeString().slice(0, 8);
 
-                            const expirationDate = expDate.value + " " + formattedTime;
-
-
-                            const formData = new FormData();
-
-                            formData.append('code', code.value);
-                            formData.append('discount', discount.value);
-                            formData.append('uses', uses.value);
-                            formData.append('orderAmount', orderAmount.value);
-                            formData.append('expDate', expirationDate);
-                            for (let i = 0; i < excludedArray.length; i++) {
-                                formData.append('excluded', excludedArray[i])
+                            if (code.classList.contains('placeholder')) {
+                                alert('The code already exists!');
+                                return;
                             }
 
-                            fetch('/panel/coupon/createCoupon', {
-                                method: 'POST',
-                                body: formData
-                            })
-                                .then(response => {
-                                    if (response.ok) {
-                                        alert("Successfully added coupon!");
+                            let expirationDate;
 
-                                        couponCreation.style.opacity = 0;
+                            console.log(formattedCurDate, expDate.value);
 
-                                        setTimeout(() => {
-                                            couponCreation.style.display = "none";
+                            if (expDate.value)
+                                if (formattedCurDate < expDate.value)
+                                    expirationDate = expDate.value + " " + formattedTime;
+                                else {
+                                    alert("The date can't be current date or passed date!")
+                                    return;
+                                }
+                            else
+                                expirationDate = expDate.value;
 
-                                            code.value = '';
-                                            discount.value = '';
-                                            uses.value = '';
-                                            orderAmount.value = '';
-                                            expDate.value = '';
+                            if (discount.classList.contains('placeholder')) {
+                                alert('Amount can only contain 0-9 . and %')
+                                return;
+                            }
 
-                                            excludedProducts.forEach(item => {
-                                                item.checked = false;
-                                            })
+                            if (code.value && discount.value && (uses.value || orderAmount.value || expDate.value)) {
 
-                                        }, 400)
+                                const formData = new FormData();
 
-                                    } else {
-                                        alert("Error creating coupon!");
-                                    }
+                                formData.append('code', code.value);
+                                formData.append('discount', discount.value);
+                                formData.append('uses', uses.value);
+                                formData.append('orderAmount', orderAmount.value);
+                                formData.append('expDate', expirationDate);
+                                for (let i = 0; i < excludedArray.length; i++) {
+                                    formData.append('excluded', excludedArray[i])
+                                }
+
+                                fetch('/panel/coupon/createCoupon', {
+                                    method: 'POST',
+                                    body: formData
                                 })
-                                .catch(err => console.log(err))
+                                    .then(response => {
+                                        if (response.ok) {
+                                            alert("Successfully added coupon!");
+
+                                            couponCreation.style.opacity = 0;
+
+                                            setTimeout(() => {
+                                                couponCreation.style.display = "none";
+
+                                                code.value = '';
+                                                discount.value = '';
+                                                uses.value = '';
+                                                orderAmount.value = '';
+                                                expDate.value = '';
+
+                                                excludedProducts.forEach(item => {
+                                                    item.checked = false;
+                                                })
+
+                                            }, 400)
+
+                                        } else {
+                                            alert("Error creating coupon!");
+                                        }
+                                    })
+                                    .catch(err => console.log(err))
+                            } else
+                                alert('Fill in coupon, amount and max uses or max order amount or expiration date!');
 
                         })
 
@@ -2421,8 +2540,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                             console.log(removeAccountId);
 
-
-                                            windows.location.reload();
                                         } else {
                                             const status = document.querySelector('.remove-account-wrapper .status-category');
                                             status.textContent = "Error removing account!";
@@ -2665,6 +2782,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then((response) => {
                     if (response.ok) {
                         alert('Successfully created account!')
+                        const wrapper = document.querySelector('.account-creation');
+                        wrapper.style.opacity = 0;
+                        setTimeout(() => {
+                            wrapper.style.display = "none";
+                            const email = document.querySelector('.account-creation .account-form-email');
+                            email.value = '';
+
+                        }, 400)
                     } else {
                         response.json().then((data) => {
                             alert(data.message);

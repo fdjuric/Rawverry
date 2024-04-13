@@ -80,9 +80,26 @@ nav div:hover {
     z-index: 99;
     top: 50%;
     left: 50%;
+    transform: translate(-50%, -50%);
     background-color: var(--primary-color);
     border: 1px solid var(--accent-color);
 
+}
+#uploadForm {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+#uploadForm .close-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: var(--padding-20);
 }
 
 .content-wrapper {

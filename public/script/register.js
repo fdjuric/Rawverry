@@ -21,7 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             body: formData,
         })
-        .then()
+        .then(response => {
+            if(response.ok){
+                alert('Account created successfully!');
+                window.location.href = '/login';
+            }else {
+                alert('Account name already exists!')
+            }
+        })
         .catch(error => {
             console.error('Error:', error);
         });

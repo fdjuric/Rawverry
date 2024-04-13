@@ -3,6 +3,24 @@ import { loadStripe } from "https://cdn.skypack.dev/@stripe/stripe-js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    const euCountries = [ "Select a country",
+        "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
+        "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
+        "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands",
+        "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"
+      ];
+    
+      // Get the dropdown element
+      const dropdown = document.getElementById("euCountryDropdown");
+    
+      // Populate the dropdown with EU country options
+      euCountries.forEach(country => {
+        const option = document.createElement("option");
+        option.text = country;
+        option.value = country; // You can set the value to the country name or any other identifier
+        dropdown.appendChild(option);
+      });
+
     fetch('/getCart')
         .then(response => response.json())
         .then((data) => {
@@ -411,6 +429,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         checkoutButton.addEventListener('click', () => {
 
+                            const orderData = document.querySelector('.order-data');
+
+                            orderData.style.display = "flex";
+                            orderData.style.opacity = 1;
+
+                            const button = document.querySelector('.order-data .button');
+
+                            button.addEventListener('click', () => {
+
                             let cartVisible = false;
                             let cartVisiblePhone = false;
 
@@ -425,7 +452,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
 
                             })
-
 
                             cartItemsPhone.forEach(item => {
                                 if (isElementVisible(item)) {
@@ -456,8 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     quantityArray.push(item.value);
                                 })
                                 checkoutHandler(quantityArray, data);
-
-                            }
+                            }  
+                            })
 
                         })
 
@@ -468,42 +494,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
         })
 
-
-
     async function checkoutHandler(quantity, data) {
-        console.log(quantity, data);
 
-        const checkoutData = [];
+        const name = document.querySelector('.order-data .user-name');
+        const address = document.querySelector('.order-data .user-address');
+        const country = document.querySelector('.order-data #euCountryDropdown');
+        const postal = document.querySelector('.order-data .user-postal');
+        const phone = document.querySelector('.order-data .user-phone');
 
-        quantity.forEach((item, index) => {
-            checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
-        })
+        if(name.value && address.value && country.value && postal.value && phone.value){
+            console.log(quantity, data);
 
-        console.log(checkoutData);
+            const checkoutData = [];
 
-        const stripe = await loadStripe("pk_test_51Oz0TyP1klN1xJaKPs3Ca1DKd2WE1c4u9GnPq7JpDBgdCWaOhR2rqOhfpY9fq2ntoeD3WCTKmh3s4JvHrEGXozPU00R7JTxQyJ");
-
-        fetch('/proceed-to-checkout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(checkoutData)
-        })
-            .then(response => response.json())
-            .then((data) => {
-                console.log(data.id)
-
-
-                const result = stripe.redirectToCheckout({
-                    sessionId: data.id
-                })
-
-                if (result.error) {
-                    console.log(results.error);
-                }
-
+            checkoutData.push({name: name.value, address: address.value,country: country.value, postal: postal.value, phone: phone.value});
+    
+            quantity.forEach((item, index) => {
+                checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
             })
+            console.log(checkoutData);
+            const stripe = await loadStripe("pk_test_51Oz0TyP1klN1xJaKPs3Ca1DKd2WE1c4u9GnPq7JpDBgdCWaOhR2rqOhfpY9fq2ntoeD3WCTKmh3s4JvHrEGXozPU00R7JTxQyJ");
+    
+            fetch('/proceed-to-checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(checkoutData)
+            })
+                .then(response => response.json())
+                .then((data) => {
+                    console.log(data.id)
+    
+    
+                    const result = stripe.redirectToCheckout({
+                        sessionId: data.id
+                    })
+    
+                    if (result.error) {
+                        console.log(results.error);
+                    }
+    
+                })
+        }else {
+            alert('Fill in the remaining fields!');
+            return;
+        }
     }
 
     function isElementVisible(el) {

@@ -191,7 +191,7 @@ class dbService {
             const response = await new Promise((resolve, reject) => {
                 const query = `INSERT INTO coupon(coupon_code, discount_amount, start_date, expiration_date, maximum_uses, product_restrictions, maximum_order_amount, redemption_status, amount_used) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-                db.query(query, [code, discount, curDate, expDate, uses, excluded || null, orderAmount, 'Active', 0], (err, results) => {
+                db.query(query, [code, discount, curDate, expDate || null, uses || null, excluded || null, orderAmount || null, 'Active', 0], (err, results) => {
                     if (err) reject(new Error(err.message))
 
                     resolve()
@@ -296,6 +296,30 @@ class dbService {
         } catch (error) {
             console.log(error);
         }
+    }
+
+    async checkUsername(username) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `SELECT 
+                CASE
+                    WHEN COUNT(*) > 0 THEN 'true'  
+                    ELSE 'false'
+                END AS result
+            FROM 
+                account
+            WHERE 
+                user_name = ?`;
+                db.query(query, [username], (err, results) => {
+                    if (err) reject(new Error(err.message))
+                    resolve(results[0].result)
+                })
+            })
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+
     }
 
     async getAccountEmail(email) {
@@ -519,7 +543,7 @@ class dbService {
                 const query = 'SELECT image_url FROM blog WHERE id = ?';
 
                 db.query(query, [id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
                     resolve(results[0])
                 })
             })
@@ -1129,6 +1153,26 @@ class dbService {
             }))
         } catch (error) {
             console.error(error);
+        }
+    }
+
+    async insertOrderData(data, date, token, names, total){
+        try {
+
+            const response = await new Promise((resolve, reject) => {
+
+                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', names, total, token], (err, results) => {
+                    if(err) reject(new Error(err.message))
+                    resolve();
+                })
+            })
+
+            return response;
+
+        }catch(error){
+            console.log(error);
         }
     }
 

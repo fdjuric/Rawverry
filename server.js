@@ -147,7 +147,14 @@ const fileFilter = (req, file, cb) => {
 // Define storage location and filename for profile picture
 const profilePicStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, profilePicDir); // Save files to the 'images/profile' folder
+    const user = req.session.passport.user.username; // Assuming 'title' is the product title field in the form
+    console.log(user);
+    const profileFolderPath = path.join(__dirname, 'public', 'images', 'profile', user);
+
+    // Create the directory if it doesn't exist
+    fs.mkdirSync(profileFolderPath, { recursive: true });
+
+    cb(null, profileFolderPath); // Save files to the 'public/images/products/{productTitle}' folder
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // Save file with its original name
@@ -216,6 +223,9 @@ app.post('/applyCoupon', upload.none(), (req, res) => {
 
   console.log(code, quantity, productCount, name, total);
 
+  const currentDate = new Date();
+  const formattedDateTime = currentDate.toISOString();
+
   const db = dbService.getDbServiceInstance();
 
   if (code && quantity && productCount && name && total) {
@@ -239,37 +249,49 @@ app.post('/applyCoupon', upload.none(), (req, res) => {
 
           console.log(restricted);
 
-          if (data.redemption_status === 'Active') {
-            if ((data.maximum_uses - data.amount_used) > 0) {
-              if (data.maximum_order_amount >= productCount && data.maximum_order_amount >= quantity) {
-                if (!restricted) {
-                  req.session.cart = req.session.cart || [];
-                  req.session.discount = data.discount_amount;
-                  console.log(req.session.discount);
-                  req.session.save(session.discount);
-
-                  if (data.discount_amount.includes('%')) {
-                    console.log("percent")
-                    let percentValue = parseFloat(data.discount_amount.match(/\d+/)[0])
-                    total = total * (1 - (percentValue / 100));
-                    console.log("test1", total);
-                    res.json(total)
-                  } else {
-                    total = total - data.discount_amount;
-                    console.log("test2", total);
-                    res.json(total)
-                  }
-                } else
-                  res.status(404).json("Invalid coupon code!");
-              } else
-                res.status(404).json("Invalid coupon code!");
-            } else
-              res.status(404).json("Invalid coupon code!");
-          } else
+          if (data.redemption_status === 'Used') {
             res.status(404).json("Invalid coupon code!");
-        } else
-          res.status(404).json("Invalid coupon code!");
+            return;
+          }
 
+          if ((data.maximum_uses - data.amount_used) <= 0) {
+            res.status(404).json("Invalid coupon code!");
+            return;
+          }
+
+          if (data.maximum_order_amount <= productCount && data.maximum_order_amount <= quantity) {
+            res.status(404).json("Invalid coupon code!");
+            return;
+          }
+
+          if (formattedDateTime >= data.expiration_date) {
+            res.status(404).json("Invalid coupon code!");
+            return;
+          }
+
+          if (restricted) {
+            res.status(404).json("Invalid coupon code!");
+            return;
+          }
+
+          req.session.cart = req.session.cart || [];
+          req.session.discount = data.discount_amount;
+          console.log(req.session.discount);
+          req.session.save(session.discount);
+
+          if (data.discount_amount.includes('%')) {
+            console.log("percent")
+            let percentValue = parseFloat(data.discount_amount.match(/\d+/)[0])
+            total = total * (1 - (percentValue / 100));
+            console.log("test1", total);
+            res.json(total)
+          } else {
+            total = total - data.discount_amount;
+            console.log("test2", total);
+            res.json(total)
+          }
+
+        }
       })
       .catch(err => console.log(err))
   }
@@ -281,10 +303,20 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
 
   console.log(checkoutData, "192");
 
-  let totalQuantity = 0;
+  productData = [];
 
-  checkoutData.forEach(item => {
+  checkoutData.forEach((item, index) => {
+    if (index > 0)
+      productData.push(item);
+  })
+
+  let totalQuantity = 0;
+  let totalPrice = 0;
+  let itemNames;
+
+  productData.forEach(item => {
     totalQuantity += +item.quantity;
+    itemNames += '/' + item.product_name;
   })
 
   console.log(totalQuantity);
@@ -293,8 +325,11 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
 
   const items = [];
 
+  const tokenLength = 64;
+  const tokenValue = generateRandomToken(tokenLength);
+
   try {
-    const productCheckoutData = await db.getCheckoutProducts(checkoutData);
+    const productCheckoutData = await db.getCheckoutProducts(productData);
 
     console.log(productCheckoutData, "197");
 
@@ -303,8 +338,10 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
 
       if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
         price = item.product_price_reduced;
+        totalPrice += +item.product_price_reduced;
       } else {
         price = item.product_price;
+        totalPrice += +item.product_price;
       }
 
       let discount = req.session.discount;
@@ -321,7 +358,6 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
         }
 
       }
-
       items.push({
         price_data: {
           currency: "eur",
@@ -342,12 +378,25 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
       payment_method_types: ["card"],
       line_items: items,
       mode: "payment",
+      metadata: {
+        order_id: tokenValue, // Pass the orderId as metadata
+      },
       success_url: "http://localhost:3001/index",
       cancel_url: "http://localhost:3001/index"
     });
 
     // Once the session is created, return its id in the response
-    console.log(session.id)
+    console.log("383", session.id)
+    console.log(tokenValue);
+
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+    console.log(formattedDate);
+
+    db.insertOrderData(checkoutData[0], formattedDate, tokenValue, itemNames, totalPrice)
+      .then(() => console.log("success"))
+      .catch(err => console.log(err))
+
     res.json({ id: session.id });
   } catch (err) {
     console.error(err);
@@ -834,7 +883,7 @@ app.post('/change-profile-pic', upload.single('file'), (req, res) => {
   const db = dbService.getDbServiceInstance();
 
   if (req.file) {
-    const fileName = profilePicDir.substring('public/'.length) + "/" + req.file.originalname;
+    const fileName = profilePicDir.substring('public/'.length) + "/" + req.session.passport.user.username + "/" + req.file.originalname;
 
     console.log("File name:" + fileName);
     console.log(req.session.passport.user.username);
@@ -875,25 +924,36 @@ app.post('/register/:token', upload.none(), async (req, res) => {
 
   console.log(token, req.body.username, req.body.password);
 
-  try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const db = dbService.getDbServiceInstance();
-    if (req.body.username && hashedPassword != null) {
+  const db = dbService.getDbServiceInstance();
 
-      db.registerUser(req.body.username, hashedPassword, token)
-        .then(() => {
-          res.redirect('/login');
-        })
-        .catch((error) => {
-          console.log(error);
-          res.json({ success: false });
-        })
-    } else {
-      console.log("Wrong email!");
-    }
-  } catch {
-    res.redirect('/register')
-  }
+  db.checkUsername(req.body.username)
+    .then(async data => {
+
+      if (data === 'true') {
+        res.status(500).send('Username already exists!');
+      } else {
+        try {
+          const hashedPassword = await bcrypt.hash(req.body.password, 10);
+          if (req.body.username && hashedPassword != null) {
+
+            db.registerUser(req.body.username, hashedPassword, token)
+              .then(() => {
+                res.status(200).send('Success!');
+              })
+              .catch((error) => {
+                console.log(error);
+                res.json({ success: false });
+              })
+          } else {
+            console.log("Wrong email!");
+          }
+        } catch {
+          res.redirect('/register')
+        }
+
+      }
+
+    })
 })
 
 app.get('/register/:token', (req, res) => {
@@ -1420,7 +1480,7 @@ app.post('/panel/blog/editBlog', checkPermission(['Admin', 'Editor']), blogUploa
     .then((data) => {
 
       const blogPicDir = `public/${data.image_url}`;
-      
+
       if (fileName !== undefined && fileName !== data.image_url) {
 
         fs.unlink(blogPicDir, (err) => {
@@ -1735,10 +1795,10 @@ app.post('/panel/manageAccounts/createAccount', checkPermission('Admin'), upload
         transporter.sendMail(mailOptions, (error, info) => {
           if (error) {
             console.log(error);
-            response.status(500).send("Error sending email");
+            res.status(500).send("Error sending email");
           } else {
             console.log(info);
-            response.status(200).send("Email sent successfully");
+            res.status(200).send("Email sent successfully");
           }
         });
 
