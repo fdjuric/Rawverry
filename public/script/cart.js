@@ -3,23 +3,23 @@ import { loadStripe } from "https://cdn.skypack.dev/@stripe/stripe-js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const euCountries = [ "Select a country",
+    const euCountries = ["Select a country",
         "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
         "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
         "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands",
         "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"
-      ];
-    
-      // Get the dropdown element
-      const dropdown = document.getElementById("euCountryDropdown");
-    
-      // Populate the dropdown with EU country options
-      euCountries.forEach(country => {
+    ];
+
+    // Get the dropdown element
+    const dropdown = document.getElementById("euCountryDropdown");
+
+    // Populate the dropdown with EU country options
+    euCountries.forEach(country => {
         const option = document.createElement("option");
         option.text = country;
         option.value = country; // You can set the value to the country name or any other identifier
         dropdown.appendChild(option);
-      });
+    });
 
     fetch('/getCart')
         .then(response => response.json())
@@ -430,59 +430,94 @@ document.addEventListener('DOMContentLoaded', () => {
                         checkoutButton.addEventListener('click', () => {
 
                             const orderData = document.querySelector('.order-data');
+                            const orderBackground = document.querySelector('.order-background');
+
+                            orderBackground.style.display = "flex";
+                            orderBackground.style.opacity = 1;
 
                             orderData.style.display = "flex";
                             orderData.style.opacity = 1;
+
+                            const closeBtn = document.querySelector('.order-data .close-btn');
+
+                            closeBtn.addEventListener('click', () => {
+
+                                orderData.style.opacity = 0;
+                                orderBackground.style.opacity = 0;
+
+                                setTimeout(() => {
+
+                                    orderData.style.display = "none";
+                                    orderBackground.style.display = "none";
+
+                                    const name = document.querySelector('.order-data .user-name');
+                                    const email = document.querySelector('.order-data .user-email');
+                                    const address = document.querySelector('.order-data .user-address');
+                                    const country = document.querySelector('.order-data #euCountryDropdown');
+                                    const city = document.querySelector('.order-data .user-city');
+                                    const postal = document.querySelector('.order-data .user-postal');
+                                    const phone = document.querySelector('.order-data .user-phone');
+
+                                    name.value = '';
+                                    email.value = '';
+                                    address.value = '';
+                                    country.value = '';
+                                    city.value = '';
+                                    postal.value = '';
+                                    phone.value = '';
+
+                                }, 400)
+                            })
 
                             const button = document.querySelector('.order-data .button');
 
                             button.addEventListener('click', () => {
 
-                            let cartVisible = false;
-                            let cartVisiblePhone = false;
+                                let cartVisible = false;
+                                let cartVisiblePhone = false;
 
-                            const cartItems = document.querySelectorAll('.cart-item');
-                            const cartItemsPhone = document.querySelectorAll('.cart-item-phone');
+                                const cartItems = document.querySelectorAll('.cart-item');
+                                const cartItemsPhone = document.querySelectorAll('.cart-item-phone');
 
-                            cartItems.forEach(item => {
-                                if (isElementVisible(item)) {
-                                    cartVisible = true;
-                                } else {
-                                    cartVisible = false;
-                                }
+                                cartItems.forEach(item => {
+                                    if (isElementVisible(item)) {
+                                        cartVisible = true;
+                                    } else {
+                                        cartVisible = false;
+                                    }
 
-                            })
-
-                            cartItemsPhone.forEach(item => {
-                                if (isElementVisible(item)) {
-                                    cartVisiblePhone = true;
-                                } else {
-                                    cartVisiblePhone = false;
-                                }
-
-                                console.log(cartVisiblePhone)
-                            })
-                            if (cartVisible) {
-                                const quantity = document.querySelectorAll('.cart-item .quantity-wrapper input');
-
-                                console.log("cartVisible");
-
-                                const quantityArray = [];
-                                quantity.forEach(item => {
-                                    quantityArray.push(item.value);
                                 })
-                                checkoutHandler(quantityArray, data);
 
-                            } else if (cartVisiblePhone) {
+                                cartItemsPhone.forEach(item => {
+                                    if (isElementVisible(item)) {
+                                        cartVisiblePhone = true;
+                                    } else {
+                                        cartVisiblePhone = false;
+                                    }
 
-                                const quantity = document.querySelectorAll('.cart-item-phone .row input');
-
-                                const quantityArray = [];
-                                quantity.forEach(item => {
-                                    quantityArray.push(item.value);
+                                    console.log(cartVisiblePhone)
                                 })
-                                checkoutHandler(quantityArray, data);
-                            }  
+                                if (cartVisible) {
+                                    const quantity = document.querySelectorAll('.cart-item .quantity-wrapper input');
+
+                                    console.log("cartVisible");
+
+                                    const quantityArray = [];
+                                    quantity.forEach(item => {
+                                        quantityArray.push(item.value);
+                                    })
+                                    checkoutHandler(quantityArray, data);
+
+                                } else if (cartVisiblePhone) {
+
+                                    const quantity = document.querySelectorAll('.cart-item-phone .row input');
+
+                                    const quantityArray = [];
+                                    quantity.forEach(item => {
+                                        quantityArray.push(item.value);
+                                    })
+                                    checkoutHandler(quantityArray, data);
+                                }
                             })
 
                         })
@@ -497,24 +532,26 @@ document.addEventListener('DOMContentLoaded', () => {
     async function checkoutHandler(quantity, data) {
 
         const name = document.querySelector('.order-data .user-name');
+        const email = document.querySelector('.order-data .user-email');
         const address = document.querySelector('.order-data .user-address');
         const country = document.querySelector('.order-data #euCountryDropdown');
+        const city = document.querySelector('.order-data .user-city');
         const postal = document.querySelector('.order-data .user-postal');
         const phone = document.querySelector('.order-data .user-phone');
 
-        if(name.value && address.value && country.value && postal.value && phone.value){
+        if (name.value && address.value && country.value && city.value && postal.value && phone.value) {
             console.log(quantity, data);
 
             const checkoutData = [];
 
-            checkoutData.push({name: name.value, address: address.value,country: country.value, postal: postal.value, phone: phone.value});
-    
+            checkoutData.push({ name: name.value, email: email.value, address: address.value, country: country.value, city: city.value, postal: postal.value, phone: phone.value });
+
             quantity.forEach((item, index) => {
                 checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
             })
             console.log(checkoutData);
             const stripe = await loadStripe("pk_test_51Oz0TyP1klN1xJaKPs3Ca1DKd2WE1c4u9GnPq7JpDBgdCWaOhR2rqOhfpY9fq2ntoeD3WCTKmh3s4JvHrEGXozPU00R7JTxQyJ");
-    
+
             fetch('/proceed-to-checkout', {
                 method: 'POST',
                 headers: {
@@ -525,18 +562,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(response => response.json())
                 .then((data) => {
                     console.log(data.id)
-    
-    
+
+
                     const result = stripe.redirectToCheckout({
                         sessionId: data.id
                     })
-    
+
                     if (result.error) {
                         console.log(results.error);
                     }
-    
+
                 })
-        }else {
+        } else {
             alert('Fill in the remaining fields!');
             return;
         }

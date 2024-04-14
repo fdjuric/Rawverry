@@ -1161,9 +1161,9 @@ class dbService {
 
             const response = await new Promise((resolve, reject) => {
 
-                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, token, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', names, total, token], (err, results) => {
+                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', names, total, token, data.city], (err, results) => {
                     if(err) reject(new Error(err.message))
                     resolve();
                 })
