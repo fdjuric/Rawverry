@@ -242,6 +242,11 @@ a {
   color: var(--red-color);
 }
 
+html {
+  scroll-behavior:auto;
+  transition: all 0.1s ease;
+}
+
 body {
   display: flex;
   flex-direction: column;

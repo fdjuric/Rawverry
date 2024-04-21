@@ -200,7 +200,7 @@ body {
 
 .coupon-wrapper .coupon {
     width: 100%;
-    max-width: 300px;
+    max-width: 250px;
     padding-inline: var(--padding-20);
     border: 1px solid var(--gray-accent);
     font-family: var(--primary-font);
@@ -333,11 +333,31 @@ body {
 
     .checkout-wrapper {
         align-items: start;
+        flex-direction: column-reverse;
+    }
+
+    .coupon-wrapper {
+        justify-content: space-between;
+
+    }
+    .coupon-wrapper .coupon {
+        width: 100%;
+        max-width: 300px;
+    }
+    .coupon-wrapper div {
+        max-width: 250px;
+        width: 100%;
+    }
+    .coupon-wrapper div a {
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .checkout-box2 {
         padding: 0;
     }
+
+    
 
 
 
@@ -392,10 +412,24 @@ body {
 
     .checkout-wrapper {
         align-items: start;
+        flex-direction: column-reverse;
     }
 
     .coupon-wrapper {
         flex-direction: column;
+        width: 100%;
+    }
+
+    .coupon-wrapper .coupon {
+        width: 100%;
+        max-width: 480px;
+    }
+    .coupon-wrapper div {
+        width: 100%;
+        max-width: 480px;
+    }
+    .coupon-wrapper div a {
+        box-sizing: border-box;
         width: 100%;
     }
 
@@ -413,4 +447,23 @@ body {
         text-align: center;
     }
 
+}
+
+@media (min-width: 768px) and (max-width: 1024px){
+    .coupon-wrapper {
+        flex-direction: column;
+        align-items: end;
+
+    }
+    .coupon-wrapper .coupon {
+        width: 100%;
+    }
+    .coupon-wrapper div {
+        max-width: 250px;
+        width: 100%;
+    }
+    .coupon-wrapper div a {
+        box-sizing: border-box;
+        width: 100%;
+    }
 }

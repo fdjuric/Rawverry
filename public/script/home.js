@@ -4,10 +4,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     let movePosition = 0;
+    let movePositionY = 0;
 
 
     //Favourites Carousel
-    
+
     fetch('/getFavourites')
         .then(response => response.json())
         .then((data) => {
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 mainDiv.addEventListener('touchend', () => {
 
-                    if (movePosition === 0) {
+                    if (movePosition === 0 && movePositionY === 0) {
 
                         console.log("test " + item.product_id);
 
@@ -129,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     movePosition = 0;
+                    movePositionY = 0;
 
                 })
 
@@ -242,12 +244,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 // set up our state
                 let isDragging = false,
                     startPos = 0,
+                    startPosY = 0,
                     currentTranslate = 0,
                     prevTranslate = 0,
                     animationID,
                     currentIndex = 0,
                     currentPosition = 0,
-                    prevProduct = 0;
+                    prevProduct = 0,
+                    posY = 0,
+                    lastPosition = 0,
+                    hasMovedY = false;
                 let hasMoved = false;
 
                 // add our event listeners
@@ -285,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         event.preventDefault()
                         currentIndex = index
                         startPos = event.touches[0].clientX
+                        startPosY = event.touches[0].clientY
                         isDragging = true
                         animationID = requestAnimationFrame(animation)
                         hasMoved = false;
@@ -295,15 +302,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     event.preventDefault();
                     if (isDragging) {
                         currentPosition = event.touches[0].clientX
-                        currentTranslate = prevTranslate + currentPosition - startPos
-                        movePosition = currentTranslate;
-                        console.log(movePosition)
+                        posY = event.touches[0].clientY - startPosY;
+                        movePositionY = posY;
+                        const posX = event.touches[0].clientX - startPos;
+                        if (Math.abs(posX) > Math.abs((posY + 7) * 10)) {
+                            currentTranslate = prevTranslate + currentPosition - startPos
+                            movePosition = currentTranslate;
+                        } else {
+                            window.scrollBy(0, -posY* 1.5);
+                            startPosY = event.touches[0].clientY
+                        }
                     }
                 }
 
                 function pointerUp() {
                     cancelAnimationFrame(animationID)
-                    isDragging = false
+                    isDragging = false;
+                    hasMovedY = false;
                     const movedBy = currentTranslate - prevTranslate
 
                     // if moved enough negative then snap to next slide if there is one
@@ -342,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         hasMoved = true;
                         setElementAtributes();
                     }
+
                     prevTranslate = currentTranslate
 
                     setSliderPosition()
