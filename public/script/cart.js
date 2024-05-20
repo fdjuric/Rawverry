@@ -21,10 +21,144 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdown.appendChild(option);
     });
 
+    const checkoutData = [];
+
     fetch('/getCart')
         .then(response => response.json())
         .then((data) => {
             console.log(data);
+
+            window.paypal
+                .Buttons({
+                    async createOrder() {
+                        try {
+
+                            let cartVisible = false;
+                            let cartVisiblePhone = false;
+
+                            const cartItems = document.querySelectorAll('.cart-item');
+                            const cartItemsPhone = document.querySelectorAll('.cart-item-phone');
+
+                            cartItems.forEach(item => {
+                                if (isElementVisible(item)) {
+                                    cartVisible = true;
+                                } else {
+                                    cartVisible = false;
+                                }
+
+                            })
+                            cartItemsPhone.forEach(item => {
+                                if (isElementVisible(item)) {
+                                    cartVisiblePhone = true;
+                                } else {
+                                    cartVisiblePhone = false;
+                                }
+
+                                console.log(cartVisiblePhone)
+                            })
+                            if (cartVisible) {
+                                const quantity = document.querySelectorAll('.cart-item .quantity-wrapper input');
+
+                                console.log("cartVisible");
+
+                                const quantityArray = [];
+                                quantity.forEach(item => {
+                                    quantityArray.push(item.value);
+                                })
+                                checkoutHandlerPaypal(quantityArray, data);
+
+                            } else if (cartVisiblePhone) {
+
+                                const quantity = document.querySelectorAll('.cart-item-phone .row input');
+
+                                const quantityArray = [];
+                                quantity.forEach(item => {
+                                    quantityArray.push(item.value);
+                                })
+                                checkoutHandlerPaypal(quantityArray, data);
+                            }
+
+                            console.log(checkoutData);
+                            const response = await fetch("/api/orders", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                // use the "body" param to optionally pass additional order information
+                                // like product ids and quantities
+                                body: JSON.stringify(checkoutData),
+                              });
+                              
+                              const orderData = await response.json();
+                              checkoutData.splice(1, checkoutData.length);
+
+                              console.log(orderData.id)
+                              
+                              if (orderData.id) {
+                                return orderData.id;
+                              } else {
+                                const errorDetail = orderData?.details?.[0];
+                                const errorMessage = errorDetail
+                                  ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
+                                  : JSON.stringify(orderData);
+                                
+                                throw new Error(errorMessage);
+                              }
+
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    },
+                    async onApprove(data, actions) {
+                        try {
+                            const response = await fetch(`/api/orders/${data.orderID}/capture`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                            });
+
+                            const orderData = await response.json();
+                            // Three cases to handle:
+                            //   (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
+                            //   (2) Other non-recoverable errors -> Show a failure message
+                            //   (3) Successful transaction -> Show confirmation or thank you message
+
+                            const errorDetail = orderData?.details?.[0];
+
+                            if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
+                                // (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
+                                // recoverable state, per https://developer.paypal.com/docs/checkout/standard/customize/handle-funding-failures/
+                                return actions.restart();
+                            } else if (errorDetail) {
+                                // (2) Other non-recoverable errors -> Show a failure message
+                                throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
+                            } else if (!orderData.purchase_units) {
+                                throw new Error(JSON.stringify(orderData));
+                            } else {
+                                // (3) Successful transaction -> Show confirmation or thank you message
+                                // Or go to another URL:  actions.redirect('thank_you.html');
+                                const transaction =
+                                    orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
+                                    orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
+                                resultMessage(
+                                    `Transaction ${transaction.status}: ${transaction.id}<br><br>See console for all available details`,
+                                );
+                                console.log(
+                                    "Capture result",
+                                    orderData,
+                                    JSON.stringify(orderData, null, 2),
+                                );
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            resultMessage(
+                                `Sorry, your transaction could not be processed...<br><br>${error}`,
+                            );
+                        }
+                    },
+                })
+                .render("#paypal-button-container");
 
             if (data.length == 0) {
                 var cartEmpty = document.createElement("div");
@@ -449,6 +583,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                     orderData.style.display = "none";
                                     orderBackground.style.display = "none";
+                                    const paymentOptions = document.querySelector('.order-data .payment-options');
+                                    const dataForm = document.querySelector('.order-data .data-form');
+                                    dataForm.style.opacity = 1;
+                                    dataForm.style.display = "flex";
+                                    paymentOptions.style.display = "none";
+                                    paymentOptions.style.opacity = 0;
+
 
                                     const name = document.querySelector('.order-data .user-name');
                                     const email = document.querySelector('.order-data .user-email');
@@ -469,54 +610,81 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }, 400)
                             })
 
-                            const button = document.querySelector('.order-data .button');
+                            const nextStep = document.querySelector('.order-data .button');
+                            nextStep.addEventListener('click', () => {
+                                const dataForm = document.querySelector('.order-data .data-form');
+                                const name = document.querySelector('.order-data .user-name');
+                                const email = document.querySelector('.order-data .user-email');
+                                const address = document.querySelector('.order-data .user-address');
+                                const country = document.querySelector('.order-data #euCountryDropdown');
+                                const city = document.querySelector('.order-data .user-city');
+                                const postal = document.querySelector('.order-data .user-postal');
+                                const phone = document.querySelector('.order-data .user-phone');
 
-                            button.addEventListener('click', () => {
+                                if (name.value && address.value && country.value && city.value && postal.value && phone.value) {
 
-                                let cartVisible = false;
-                                let cartVisiblePhone = false;
+                                    checkoutData.push({ name: name.value, email: email.value, address: address.value, country: country.value, city: city.value, postal: postal.value, phone: phone.value });
+                                    console.log(checkoutData);
+                                    dataForm.style.opacity = 0;
+                                    setTimeout(() => {
+                                        const paymentOptions = document.querySelector('.order-data .payment-options');
+                                        paymentOptions.style.display = "flex";
+                                        paymentOptions.style.opacity = 1;
+                                        dataForm.style.display = "none"
+                                    }, 400)
 
-                                const cartItems = document.querySelectorAll('.cart-item');
-                                const cartItemsPhone = document.querySelectorAll('.cart-item-phone');
+                                    const button = document.querySelector('.order-data .stripe-checkout');
+                                    button.addEventListener('click', () => {
 
-                                cartItems.forEach(item => {
-                                    if (isElementVisible(item)) {
-                                        cartVisible = true;
-                                    } else {
-                                        cartVisible = false;
-                                    }
+                                        let cartVisible = false;
+                                        let cartVisiblePhone = false;
 
-                                })
+                                        const cartItems = document.querySelectorAll('.cart-item');
+                                        const cartItemsPhone = document.querySelectorAll('.cart-item-phone');
 
-                                cartItemsPhone.forEach(item => {
-                                    if (isElementVisible(item)) {
-                                        cartVisiblePhone = true;
-                                    } else {
-                                        cartVisiblePhone = false;
-                                    }
+                                        cartItems.forEach(item => {
+                                            if (isElementVisible(item)) {
+                                                cartVisible = true;
+                                            } else {
+                                                cartVisible = false;
+                                            }
 
-                                    console.log(cartVisiblePhone)
-                                })
-                                if (cartVisible) {
-                                    const quantity = document.querySelectorAll('.cart-item .quantity-wrapper input');
+                                        })
+                                        cartItemsPhone.forEach(item => {
+                                            if (isElementVisible(item)) {
+                                                cartVisiblePhone = true;
+                                            } else {
+                                                cartVisiblePhone = false;
+                                            }
 
-                                    console.log("cartVisible");
+                                            console.log(cartVisiblePhone)
+                                        })
+                                        if (cartVisible) {
+                                            const quantity = document.querySelectorAll('.cart-item .quantity-wrapper input');
 
-                                    const quantityArray = [];
-                                    quantity.forEach(item => {
-                                        quantityArray.push(item.value);
+                                            console.log("cartVisible");
+
+                                            const quantityArray = [];
+                                            quantity.forEach(item => {
+                                                quantityArray.push(item.value);
+                                            })
+                                            checkoutHandlerStripe(quantityArray, data);
+
+                                        } else if (cartVisiblePhone) {
+
+                                            const quantity = document.querySelectorAll('.cart-item-phone .row input');
+
+                                            const quantityArray = [];
+                                            quantity.forEach(item => {
+                                                quantityArray.push(item.value);
+                                            })
+                                            checkoutHandlerStripe(quantityArray, data);
+                                        }
                                     })
-                                    checkoutHandler(quantityArray, data);
 
-                                } else if (cartVisiblePhone) {
-
-                                    const quantity = document.querySelectorAll('.cart-item-phone .row input');
-
-                                    const quantityArray = [];
-                                    quantity.forEach(item => {
-                                        quantityArray.push(item.value);
-                                    })
-                                    checkoutHandler(quantityArray, data);
+                                } else {
+                                    alert('Fill in the remaining fields!');
+                                    return;
                                 }
                             })
 
@@ -529,54 +697,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
         })
 
-    async function checkoutHandler(quantity, data) {
+    async function checkoutHandlerStripe(quantity, data) {
 
-        const name = document.querySelector('.order-data .user-name');
-        const email = document.querySelector('.order-data .user-email');
-        const address = document.querySelector('.order-data .user-address');
-        const country = document.querySelector('.order-data #euCountryDropdown');
-        const city = document.querySelector('.order-data .user-city');
-        const postal = document.querySelector('.order-data .user-postal');
-        const phone = document.querySelector('.order-data .user-phone');
+        const stripe = await loadStripe("pk_test_51Oz0TyP1klN1xJaKPs3Ca1DKd2WE1c4u9GnPq7JpDBgdCWaOhR2rqOhfpY9fq2ntoeD3WCTKmh3s4JvHrEGXozPU00R7JTxQyJ");
 
-        if (name.value && address.value && country.value && city.value && postal.value && phone.value) {
-            console.log(quantity, data);
+        quantity.forEach((item, index) => {
+            checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
+        })
 
-            const checkoutData = [];
-
-            checkoutData.push({ name: name.value, email: email.value, address: address.value, country: country.value, city: city.value, postal: postal.value, phone: phone.value });
-
-            quantity.forEach((item, index) => {
-                checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
-            })
-            console.log(checkoutData);
-            const stripe = await loadStripe("pk_test_51Oz0TyP1klN1xJaKPs3Ca1DKd2WE1c4u9GnPq7JpDBgdCWaOhR2rqOhfpY9fq2ntoeD3WCTKmh3s4JvHrEGXozPU00R7JTxQyJ");
-
-            fetch('/proceed-to-checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(checkoutData)
-            })
-                .then(response => response.json())
-                .then((data) => {
-                    console.log(data.id)
+        fetch('/proceed-to-checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(checkoutData)
+        })
+            .then(response => response.json())
+            .then((data) => {
+                console.log(data.id)
 
 
-                    const result = stripe.redirectToCheckout({
-                        sessionId: data.id
-                    })
-
-                    if (result.error) {
-                        console.log(results.error);
-                    }
-
+                const result = stripe.redirectToCheckout({
+                    sessionId: data.id
                 })
-        } else {
-            alert('Fill in the remaining fields!');
-            return;
-        }
+
+                if (result.error) {
+                    console.log(results.error);
+                }
+
+                checkoutData.splice(1, checkoutData.length);
+
+            })
+    }
+
+    async function checkoutHandlerPaypal(quantity, data) {
+
+        quantity.forEach((item, index) => {
+            checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
+        })
+
     }
 
     function isElementVisible(el) {

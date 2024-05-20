@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/api/orders', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -22,6 +22,8 @@ const flash = require('express-flash');
 const session = require('express-session');
 
 const stripe = require('stripe')(`${process.env.stripe_secret}`)
+const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT = 8888 } = process.env;
+const base = "https://api-m.sandbox.paypal.com";
 
 const multer = require('multer');
 
@@ -39,6 +41,7 @@ const path = require('path');
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+app.use(express.static("client"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -89,7 +92,7 @@ app.use((req, res, next) => {
 
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/getBlog/') || urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/getBlog/') || urlPath.includes(`${base}/v1/oauth2/token`) || urlPath.startsWith('/api/orders/') || urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
@@ -216,6 +219,202 @@ const upload = multer({ storage: profilePicStorage, fileFilter: fileFilter });
 const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 const categoryUpload = multer({ storage: categoryPicStorage, fileFilter: fileFilter });
+
+
+const generateAccessToken = async () => {
+  try {
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+      throw new Error("MISSING_API_CREDENTIALS");
+    }
+    const auth = Buffer.from(
+      PAYPAL_CLIENT_ID + ":" + PAYPAL_CLIENT_SECRET,
+    ).toString("base64");
+    const response = await fetch(`${base}/v1/oauth2/token`, {
+      method: "POST",
+      body: "grant_type=client_credentials",
+      headers: {
+        Authorization: `Basic ${auth}`,
+      },
+    });
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error) {
+    console.error("Failed to generate Access Token:", error);
+  }
+};
+
+/**
+* Create an order to start the transaction.
+* @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
+*/
+const createOrder = async (checkoutData, discount) => {
+  // use the cart information passed from the front-end to calculate the purchase unit details
+  console.log(
+    "shopping cart information passed from the frontend createOrder() callback:",
+    checkoutData,
+  );
+
+  const productData = [];
+
+  checkoutData.forEach((item, index) => {
+    if (index > 0)
+      productData.push(item);
+  })
+
+  let totalQuantity = 0;
+  let totalPrice = 0;
+  let itemNames = "";
+
+  productData.forEach(item => {
+    totalQuantity += +item.quantity;
+    itemNames += '/' + item.product_name;
+  });
+
+  console.log(totalQuantity);
+
+  const db = dbService.getDbServiceInstance();
+
+  const tokenLength = 64;
+  const tokenValue = generateRandomToken(tokenLength);
+  const productCheckoutData = await db.getCheckoutProducts(productData);
+
+  console.log(productCheckoutData, "197");
+
+  productCheckoutData.forEach((item, index) => {
+    let price = 0;
+
+    if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
+      price = item.product_price_reduced;
+      totalPrice += +(item.product_price_reduced * productData[index].quantity);
+    } else {
+      price = item.product_price;
+      totalPrice += +(item.product_price * productData[index].quantity);
+    }
+
+    console.log(productData[index].quantity);
+  })
+
+  console.log(discount);
+
+  console.log("Total: ", totalPrice)
+
+    if (discount) {
+      if (discount.includes('%')) {
+        let percentValue = parseFloat(discount.match(/\d+/)[0]);
+        totalPrice = totalPrice * (1 - (percentValue / 100));
+        console.log("test1 304", totalPrice);
+      } else {
+        totalPrice = totalPrice - (discount / totalQuantity);
+        console.log("test2 307", totalPrice);
+      }
+    }
+
+  const currentDate = new Date();
+  const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+  console.log(formattedDate);
+
+  await db.insertOrderData(checkoutData[0], formattedDate, tokenValue, itemNames, totalPrice)
+    .then(() => console.log("success"))
+    .catch(err => console.log(err));
+
+  console.log(totalPrice, "312")
+
+  const accessToken = await generateAccessToken();
+  const url = `${base}/v2/checkout/orders`;
+  const payload = {
+    intent: "CAPTURE",
+    purchase_units: [
+      {
+        amount: {
+          currency_code: "USD",
+          value: totalPrice.toFixed(2),
+        },
+      },
+    ],
+  };
+
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      // Uncomment one of these to force an error for negative testing (in sandbox mode only). Documentation:
+      // https://developer.paypal.com/tools/sandbox/negative-testing/request-headers/
+      // "PayPal-Mock-Response": '{"mock_application_codes": "MISSING_REQUIRED_PARAMETER"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "PERMISSION_DENIED"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}'
+    },
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  totalPrice = 0;
+  return handleResponse(response);
+};
+
+
+/**
+* Capture payment for the created order to complete the transaction.
+* @see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
+*/
+const captureOrder = async (orderID) => {
+  const accessToken = await generateAccessToken();
+  const url = `${base}/v2/checkout/orders/${orderID}/capture`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      // Uncomment one of these to force an error for negative testing (in sandbox mode only). Documentation:
+      // https://developer.paypal.com/tools/sandbox/negative-testing/request-headers/
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INSTRUMENT_DECLINED"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "TRANSACTION_REFUSED"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}'
+    },
+  });
+
+  return handleResponse(response);
+};
+
+async function handleResponse(response) {
+  try {
+    const jsonResponse = await response.json();
+    return {
+      jsonResponse,
+      httpStatusCode: response.status,
+    };
+  } catch (err) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage);
+  }
+}
+
+app.post("/api/orders", upload.none(), async (req, res) => {
+  try {
+    // use the cart information passed from the front-end to calculate the order amount detals
+    const checkoutData = req.body;
+
+    console.log("387", checkoutData);
+
+    let discount = req.session.discount;
+    const { jsonResponse, httpStatusCode } = await createOrder(checkoutData, discount);
+    res.status(httpStatusCode).json(jsonResponse); 
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
+});
+
+app.post("/api/orders/:orderID/capture", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
+    res.status(httpStatusCode).json(jsonResponse);
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to capture order." });
+  }
+});
 
 app.post('/applyCoupon', upload.none(), (req, res) => {
 

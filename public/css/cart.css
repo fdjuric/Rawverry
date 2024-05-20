@@ -251,8 +251,10 @@ body {
     height: 100%;
     backdrop-filter:blur(2px);
     backdrop-filter: brightness(80%);
-    position: absolute;
+    position: fixed;
     z-index: 98;
+    justify-content: center;
+    align-items: center;
 }
 
 .order-data {
@@ -292,6 +294,29 @@ body {
 .order-data .input-row {
     display: flex;
     gap: 20px;
+}
+
+.order-data .data-form {
+    transition: all 0.4s ease;
+}
+.order-data .payment-options {
+    opacity: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.4s ease;
+}
+
+.stripe-checkout {
+    max-width: 200px;
+    width:100%;
+    padding: var(--padding-20);
+    box-sizing: border-box;
+    background-color: #5433FF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .input-wrapper {
