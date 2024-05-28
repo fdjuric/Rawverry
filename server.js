@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/api/orders', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/api/orders', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -36,8 +36,48 @@ let tempAccounts = false;
 let emailArray = [];
 const registerToken = [];
 
+var orderId;
+
 const path = require('path');
 
+var axios = require("axios").default;
+
+const endpointSecret = "whsec_28efc077e25dd49ed9cbf3024bccc58b8ed0a609a869429a67693ac5e300161e";
+
+app.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    console.log("Webhook verified!");
+  } catch (err) {
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      paymentIntentSucceeded = event.data.object;
+      console.log(paymentIntentSucceeded)
+      console.log(orderId)
+      
+      const db = dbService.getDbServiceInstance();
+
+      db.insertOrderDataMethod(paymentIntentSucceeded.id, orderId, 'stripe')
+      .then(() => console.log("Success!"))
+      // Then define and call a function to handle the event payment_intent.succeeded
+      break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -221,6 +261,53 @@ const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilte
 const categoryUpload = multer({ storage: categoryPicStorage, fileFilter: fileFilter });
 
 
+//DHL INTEGRATION
+const getAccessToken = async () => {
+  const tokenUrl = 'https://api-eu.dhl.com/oauth/token';
+  const authString = Buffer.from(`${process.env.DHL_API_KEY}:${process.env.DHL_API_SECRET}`).toString('base64');
+
+  try {
+    const response = await axios.post(tokenUrl, 'grant_type=client_credentials', {
+      headers: {
+        'Authorization': `Basic ${authString}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+
+    if (response.status === 200) {
+      return response.data.access_token;
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
+  } catch (error) {
+    throw new Error(`Error obtaining access token: ${error.response ? JSON.stringify(error.response.data, null, 2) : error.message}`);
+  }
+};
+
+const createDHLShipment = async (shipmentData) => {
+  try {
+    const accessToken = await getAccessToken();
+
+    const response = await axios.post('https://api-eu.dhl.com/shipments', shipmentData, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
+  } catch (error) {
+    const errorMessage = error.response ? JSON.stringify(error.response.data, null, 2) : error.message;
+    throw new Error(`Error creating DHL shipment: ${errorMessage}`);
+  }
+};
+
+//Paypal access token generation
+
 const generateAccessToken = async () => {
   try {
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
@@ -299,16 +386,16 @@ const createOrder = async (checkoutData, discount) => {
 
   console.log("Total: ", totalPrice)
 
-    if (discount) {
-      if (discount.includes('%')) {
-        let percentValue = parseFloat(discount.match(/\d+/)[0]);
-        totalPrice = totalPrice * (1 - (percentValue / 100));
-        console.log("test1 304", totalPrice);
-      } else {
-        totalPrice = totalPrice - (discount / totalQuantity);
-        console.log("test2 307", totalPrice);
-      }
+  if (discount) {
+    if (discount.includes('%')) {
+      let percentValue = parseFloat(discount.match(/\d+/)[0]);
+      totalPrice = totalPrice * (1 - (percentValue / 100));
+      console.log("test1 304", totalPrice);
+    } else {
+      totalPrice = totalPrice - (discount / totalQuantity);
+      console.log("test2 307", totalPrice);
     }
+  }
 
   const currentDate = new Date();
   const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
@@ -398,7 +485,7 @@ app.post("/api/orders", upload.none(), async (req, res) => {
 
     let discount = req.session.discount;
     const { jsonResponse, httpStatusCode } = await createOrder(checkoutData, discount);
-    res.status(httpStatusCode).json(jsonResponse); 
+    res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);
     res.status(500).json({ error: "Failed to create order." });
@@ -584,16 +671,17 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
       cancel_url: "http://localhost:3001/index"
     });
 
-    // Once the session is created, return its id in the response
-    console.log("383", session.id)
-    console.log(tokenValue);
+
 
     const currentDate = new Date();
     const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
     console.log(formattedDate);
 
     db.insertOrderData(checkoutData[0], formattedDate, tokenValue, itemNames, totalPrice)
-      .then(() => console.log("success"))
+      .then((data) => {
+        console.log(data.insertId)
+        orderId = data.insertId;
+      })
       .catch(err => console.log(err))
 
     res.json({ id: session.id });
@@ -2099,17 +2187,6 @@ app.post('/password-reset/:token', async (request, response) => {
 
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-
-    //req.session.user = req.user;
-
-    // console.log("HIIIII");
-    /* console.log (req.user);
-     console.log(req.session.user);
-     console.log(req.user.id);
-     console.log("This is username: " + req.session.username);
-     console.log("This is id: " + req.session.user.id); */
-
-    //console.log(user.user_name);
 
     return next();
   } else

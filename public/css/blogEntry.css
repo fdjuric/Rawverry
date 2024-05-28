@@ -20,7 +20,7 @@ body {
 
 .blog-image {
     width: 100%;
-    aspect-ratio: 20/9;
+    aspect-ratio: 7/3;
     object-fit: cover;
 }
 

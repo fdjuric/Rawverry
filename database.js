@@ -106,6 +106,8 @@ class dbService {
         }
     }
 
+
+
     async unsubscribeNewsletter(token) {
         try {
             const response = await new Promise((resolve, reject) => {
@@ -1156,23 +1158,44 @@ class dbService {
         }
     }
 
-    async insertOrderData(data, date, token, names, total){
+    async insertOrderData(data, date, token, names, total) {
         try {
 
             const response = await new Promise((resolve, reject) => {
 
-                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, token, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', names, total, token, data.city], (err, results) => {
-                    if(err) reject(new Error(err.message))
-                    resolve();
+                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', names, total, data.city], (err, results) => {
+                    if (err) reject(new Error(err.message))
+                    resolve(results);
+                })
+            })
+
+            console.log("1174", response);
+
+            return response;
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async insertOrderDataMethod(payment_id, orderId, method) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = `UPDATE orders
+                SET payment_id = ?, payment_method = ?
+                WHERE id = ?`;
+
+                db.query(query, [payment_id, method, orderId], (err, results) => {
+                    if (err) reject(new Error(err.message))
+                    resolve(results);
                 })
             })
 
             return response;
-
-        }catch(error){
-            console.log(error);
+        } catch (error) {
+            console.log(error)
         }
     }
 
