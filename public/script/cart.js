@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const transaction =
                                     orderData?.purchase_units?.[0]?.payments?.captures?.[0] ||
                                     orderData?.purchase_units?.[0]?.payments?.authorizations?.[0];
-                                resultMessage(
+                                console.log(
                                     `Transaction ${transaction.status}: ${transaction.id}<br><br>See console for all available details`,
                                 );
                                 console.log(
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         } catch (error) {
                             console.error(error);
-                            resultMessage(
+                            console.log(
                                 `Sorry, your transaction could not be processed...<br><br>${error}`,
                             );
                         }

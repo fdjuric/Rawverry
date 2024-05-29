@@ -1180,14 +1180,15 @@ class dbService {
         }
     }
 
-    async insertOrderDataMethod(payment_id, orderId, method) {
+    async insertOrderDataMethod(payment_id, orderId, method, charge_id) {
         try {
+            console.log("db", charge_id)
             const response = await new Promise((resolve, reject) => {
                 const query = `UPDATE orders
-                SET payment_id = ?, payment_method = ?
+                SET payment_id = ?, payment_method = ?, charge_id = ?
                 WHERE id = ?`;
 
-                db.query(query, [payment_id, method, orderId], (err, results) => {
+                db.query(query, [payment_id, method, charge_id, orderId], (err, results) => {
                     if (err) reject(new Error(err.message))
                     resolve(results);
                 })

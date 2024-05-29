@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/api/orders', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/api/orders', '/paypal/refund', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -44,7 +44,7 @@ var axios = require("axios").default;
 
 const endpointSecret = "whsec_28efc077e25dd49ed9cbf3024bccc58b8ed0a609a869429a67693ac5e300161e";
 
-app.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
   const sig = request.headers['stripe-signature'];
 
   let event;
@@ -61,16 +61,19 @@ app.post('/webhook', express.raw({type: 'application/json'}), (request, response
   switch (event.type) {
     case 'payment_intent.succeeded':
       paymentIntentSucceeded = event.data.object;
-      console.log(paymentIntentSucceeded)
-      console.log(orderId)
-      
+      console.log("64", paymentIntentSucceeded.id, paymentIntentSucceeded.latest_charge)
+      console.log("65", orderId)
+
       const db = dbService.getDbServiceInstance();
 
-      db.insertOrderDataMethod(paymentIntentSucceeded.id, orderId, 'stripe')
-      .then(() => console.log("Success!"))
+      db.insertOrderDataMethod(paymentIntentSucceeded.id, orderId, 'stripe', paymentIntentSucceeded.latest_charge)
+        .then(() => console.log("Success!"))
       // Then define and call a function to handle the event payment_intent.succeeded
       break;
     // ... handle other event types
+    case 'charge.refunded':
+      const refunded = event.data.object;
+      console.log(refunded);
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
@@ -109,6 +112,10 @@ app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   next();
 })
+
+/*stripe.refunds.create({
+  charge: 'ch_3PLoznP1klN1xJaK1Y8EwAUs',
+}); */
 
 app.use((req, res, next) => {
   const urlPath = req.path;
@@ -402,7 +409,10 @@ const createOrder = async (checkoutData, discount) => {
   console.log(formattedDate);
 
   await db.insertOrderData(checkoutData[0], formattedDate, tokenValue, itemNames, totalPrice)
-    .then(() => console.log("success"))
+    .then((data) => {
+      console.log(data.insertId)
+      orderId = data.insertId;
+    })
     .catch(err => console.log(err));
 
   console.log(totalPrice, "312")
@@ -437,6 +447,33 @@ const createOrder = async (checkoutData, discount) => {
   totalPrice = 0;
   return handleResponse(response);
 };
+
+const refundOrder = async (paymentId) => {
+
+  const tokenLength = 36;
+  const tokenValue = generateRandomToken(tokenLength);
+
+  const accessToken = await generateAccessToken();
+  const url = `${base}/v2/payments/captures/${paymentId}/refund`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${accessToken}`,
+      'PayPal-Request-Id': `${tokenValue}`,
+      'Prefer': 'return=representation'
+      // Uncomment one of these to force an error for negative testing (in sandbox mode only). Documentation:
+      // https://developer.paypal.com/tools/sandbox/negative-testing/request-headers/
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INSTRUMENT_DECLINED"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "TRANSACTION_REFUSED"}'
+      // "PayPal-Mock-Response": '{"mock_application_codes": "INTERNAL_SERVER_ERROR"}'
+    },
+  })
+
+  console.log("475, ", response);
+  return handleResponse(response);
+}
 
 
 /**
@@ -492,10 +529,21 @@ app.post("/api/orders", upload.none(), async (req, res) => {
   }
 });
 
+app.get("/paypal/refund", async (req, res) => {
+  const { jsonResponse, httpStatusCode } = await refundOrder('64E32370MY773114M')
+  console.log("535, ", jsonResponse);
+  res.status(httpStatusCode).json(jsonResponse);
+})
 app.post("/api/orders/:orderID/capture", async (req, res) => {
   try {
     const { orderID } = req.params;
     const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
+
+    console.log("510, ", jsonResponse.purchase_units[0].payments.captures[0].id);
+
+    const db = dbService.getDbServiceInstance();
+    db.insertOrderDataMethod(orderID, orderId, 'paypal', jsonResponse.purchase_units[0].payments.captures[0].id)
+      .then(() => console.log("Success!"))
     res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);
