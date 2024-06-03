@@ -1158,20 +1158,35 @@ class dbService {
         }
     }
 
-    async insertOrderData(data, date, token, names, total) {
+    async getOrders() {
         try {
-
             const response = await new Promise((resolve, reject) => {
+                const query = `SELECT * FROM orders`;
 
-                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                db.query(query, (err, results) => {
+                    if(err) reject(new Error(err.message))
 
-                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', names, total, data.city], (err, results) => {
-                    if (err) reject(new Error(err.message))
                     resolve(results);
                 })
             })
 
-            console.log("1174", response);
+            return response;
+        }catch(error){
+            console.log(error)
+        }
+    }
+    async insertCheckoutData(data, date, items, price, payment_id, method, charge_id) {
+        try {
+
+            const response = await new Promise((resolve, reject) => {
+
+                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, payment_id, city, payment_method, charge_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', items, price, payment_id, data.city, method, charge_id], (err, results) => {
+                    if (err) reject(new Error(err.message))
+                    resolve(results);
+                })
+            })
 
             return response;
 
@@ -2042,9 +2057,6 @@ class dbService {
             console.log(error);
         }
     }
-
-
-
 
     async createBackup() {
 

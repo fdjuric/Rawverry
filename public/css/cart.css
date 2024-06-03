@@ -326,6 +326,11 @@ body {
 .input-wrapper select, .input-wrapper input {
     width: 100%;
     box-sizing: border-box;
+    box-shadow: 1px 1px 0px 0px var(--accent-color),
+    -1px -1px 0px 0px var(--accent-color),
+    1px -1px 0px 0px var(--accent-color),
+    -1px 1px 0px 0px var(--accent-color);
+    border: none;
 }
 
 .input-wrapper input, .input-wrapper textarea, .input-wrapper select {
@@ -335,7 +340,10 @@ body {
 
 }
 .input-wrapper input:focus, .input-wrapper textarea:focus, .input-wrapper select:focus {
-    border: 2px solid var(--accent-color);
+    box-shadow: 3px 3px 0px 0px var(--accent-color),
+    -3px -3px 0px 0px var(--accent-color),
+    3px -3px 0px 0px var(--accent-color),
+    -3px 3px 0px 0px var(--accent-color);
 }
 
 @media (min-width: 768px){
