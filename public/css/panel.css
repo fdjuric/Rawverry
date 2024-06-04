@@ -246,6 +246,12 @@ nav div:hover {
     height: 60%;
 }
 
+.item-cell-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}
+
 .sales-header {
     display: flex;
     justify-content: space-between;
@@ -335,7 +341,8 @@ thead tr th {
 }
 
 td {
-    padding-top: var(--padding-20);
+    padding: var(--padding-20) 0px;
+    border-bottom: 1px solid var(--primary-shade);
 }
 th, td {
     text-align: start;
@@ -356,7 +363,7 @@ td div {
     object-fit: cover;
 }
 
-.products, .coupon, .manage-accounts {
+.products, .coupon, .manage-accounts, .orders {
     box-sizing: border-box;
     padding-inline: var(--padding-40);
     display: flex;
@@ -664,7 +671,7 @@ td div {
     font-size: 14px;
 }
 
-.products-wrapper{
+.products-wrapper {
 
     display: flex;
     flex-direction: column;
@@ -793,13 +800,15 @@ td div {
 }
 
 .product-settings svg:first-child:hover path{
-    
     stroke: var(--primary-color);
+}
+
+.orders .product-settings svg:first-child:hover path{
+    fill: var(--primary-color);
 }
 
 .product-settings svg:last-child:hover path{
     fill: var(--primary-color);
-    
 }
 
 .product-name-gap {

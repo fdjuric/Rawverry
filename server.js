@@ -1740,6 +1740,7 @@ app.get('/panel/orders', checkPermission(['Admin']), (req, res) => {
   getOrders
     .then(data => {
       console.log(data);
+      res.json(data);
     })
     .catch(error => console.log(error))
 

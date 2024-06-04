@@ -631,13 +631,49 @@ document.addEventListener('DOMContentLoaded', function () {
         return pElement;
     }
 
+    function createSettingsOrdersIcons() {
+        const svgCheckmark = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgCheckmark.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svgCheckmark.setAttribute("width", "24");
+        svgCheckmark.setAttribute("height", "24");
+        svgCheckmark.setAttribute("viewBox", "0 0 24 24");
+        svgCheckmark.setAttribute("fill", "none");
+        svgCheckmark.classList.add('check');
+
+        const pathCheckmark = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathCheckmark.setAttribute("d", "M9.86106 17.9999C9.72395 17.9995 9.58838 17.9708 9.4628 17.9158C9.33722 17.8607 9.2243 17.7804 9.13106 17.6799L4.27106 12.5099C4.08939 12.3163 3.99207 12.0585 4.00051 11.7931C4.00895 11.5277 4.12245 11.2766 4.31606 11.0949C4.50967 10.9132 4.76752 10.8159 5.03288 10.8244C5.29825 10.8328 5.54939 10.9463 5.73106 11.1399L9.85106 15.5299L18.2611 6.32991C18.3464 6.22363 18.4526 6.13593 18.5731 6.07217C18.6935 6.00842 18.8258 5.96997 18.9617 5.95919C19.0975 5.94841 19.2342 5.96551 19.3632 6.00946C19.4922 6.05341 19.6109 6.12327 19.7119 6.21476C19.813 6.30624 19.8943 6.41742 19.9508 6.54145C20.0073 6.66549 20.0378 6.79977 20.0406 6.93605C20.0433 7.07233 20.0181 7.20772 19.9666 7.33392C19.9151 7.46012 19.8384 7.57446 19.7411 7.66991L10.6011 17.6699C10.5087 17.7723 10.3962 17.8544 10.2706 17.9112C10.1449 17.968 10.0089 17.9982 9.87106 17.9999H9.86106Z");
+        pathCheckmark.setAttribute("fill", "#67A329");
+
+        svgCheckmark.appendChild(pathCheckmark);
+
+        const svgCheck = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svgCheck.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svgCheck.setAttribute("width", "24");
+        svgCheck.setAttribute("height", "25");
+        svgCheck.setAttribute("viewBox", "0 0 24 25");
+        svgCheck.setAttribute("fill", "none");
+
+        const pathCheck = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathCheck.setAttribute("d", "M18 16.5H6C4.346 16.5 3 15.154 3 13.5C3 11.846 4.346 10.5 6 10.5H18C19.654 10.5 21 11.846 21 13.5C21 15.154 19.654 16.5 18 16.5ZM6 12.5C5.449 12.5 5 12.949 5 13.5C5 14.051 5.449 14.5 6 14.5H18C18.551 14.5 19 14.051 19 13.5C19 12.949 18.551 12.5 18 12.5H6Z");
+        pathCheck.setAttribute("fill", "#67A329");
+
+        svgCheck.appendChild(pathCheck);
+
+        const pElement = document.createElement("p");
+        pElement.classList.add("product-settings", "edit");
+        pElement.appendChild(svgCheckmark);
+        pElement.appendChild(svgCheck);
+
+        return pElement;
+    }
+
 
     function createTableCell(value, className) {
         const cell = document.createElement('td');
 
         const paragraph = document.createElement('p');
         if (value == null) {
-            paragraph.textContent = 0;
+            paragraph.textContent = '';
         } else {
             paragraph.textContent = value;
         }
@@ -879,6 +915,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
+
+    //Products section
 
     const productsButton = document.querySelector('.products-btn');
 
@@ -1777,6 +1815,75 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+    })
+
+    const ordersButton = document.querySelector('.orders-btn');
+
+    let areOrdersAdded = false;
+
+    ordersButton.addEventListener('click', () => {
+        if (!areOrdersAdded) {
+            fetch('/panel/orders')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.createElement('tbody');
+                    const table = document.querySelector('.orders .products-table table');
+                    let temp;
+                    data.forEach(order => {
+                        const row = document.createElement('tr');
+
+                        if (temp != order.id) {
+
+                            let items = [];
+
+                            items = order.items.replaceAll('/', ', ');
+
+                            productNames.push(order.full_name);
+                            // Create and populate table data (td) for each field
+                            const titleCellWrapper = document.createElement('td');
+                            const titleCellWrapperDiv = document.createElement('div');
+                            const titleCell = document.createElement('p');
+                            titleCell.classList.add('full-name');
+                            titleCell.textContent = order.full_name;
+
+                            console.log(items);
+
+                            const addressCell = createTableCell(order.address, 'order-address');
+                            const countryCell = createTableCell(order.country, 'order-country');
+                            const postalCell = createTableCell(order.postal, 'order-postal');
+                            const phoneCell = createTableCell(order.phone, 'order-phone');
+                            const itemsCell = createTableCell(items, 'order-items'); 
+                            const priceCell = createTableCell(order.total, 'order-price');
+
+                            // Append table data to the table row
+
+                            titleCellWrapperDiv.appendChild(titleCell);
+                            titleCellWrapper.appendChild(titleCellWrapperDiv);
+                            row.appendChild(titleCellWrapper);
+                            row.appendChild(addressCell);
+                            row.appendChild(countryCell);
+                            row.appendChild(postalCell);
+                            row.appendChild(phoneCell);
+                            row.appendChild(itemsCell);
+                            row.appendChild(priceCell);
+
+                            // Create and append the SVG icons
+                            const settingsEditIcons = createSettingsOrdersIcons(); // Function to create SVG icons
+                            const settingsCell = document.createElement('td');
+                            settingsCell.appendChild(settingsEditIcons);
+                            row.appendChild(settingsCell);
+
+                            // Append the row to the table body
+                            tbody.appendChild(row);
+
+                            temp = order.id;
+                        } else return;
+                    });
+
+                    table.appendChild(tbody);
+                })
+                areOrdersAdded = true;
+            }
     })
 
 
