@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/insertCheckoutData', '/api/orders', '/paypal/refund', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/insertCheckoutData', '/panel/orders/insertTrackingId', '/api/orders', '/paypal/refund', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -53,17 +53,17 @@ app.get("/insertCheckoutData", async (req, res) => {
     console.log(finalCheckoutData);
 
     db.insertCheckoutData(finalCheckoutData[0].data, finalCheckoutData[0].date, finalCheckoutData[0].items, finalCheckoutData[0].price, finalCheckoutData[1].payment_id, finalCheckoutData[1].method, finalCheckoutData[1].charge_id)
-    .then(() => {
-      console.log("Success!")
-      finalCheckoutData.splice(0, finalCheckoutData.length)
-    })
-    .catch((error) => {
-      console.log(error);
-      finalCheckoutData.splice(0, finalCheckoutData.length)
-    })
+      .then(() => {
+        console.log("Success!")
+        finalCheckoutData.splice(0, finalCheckoutData.length)
+      })
+      .catch((error) => {
+        console.log(error);
+        finalCheckoutData.splice(0, finalCheckoutData.length)
+      })
     res.redirect('/');
 
-  }catch(error){
+  } catch (error) {
     console.log(error);
     finalCheckoutData.splice(0, finalCheckoutData.length)
   }
@@ -87,14 +87,14 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (request, respon
       paymentIntentSucceeded = event.data.object;
       console.log("64", paymentIntentSucceeded.id, paymentIntentSucceeded.latest_charge)
       console.log("65", orderId)
-      finalCheckoutData.push({payment_id: paymentIntentSucceeded.id, method: 'stripe', charge_id: paymentIntentSucceeded.latest_charge})
+      finalCheckoutData.push({ payment_id: paymentIntentSucceeded.id, method: 'stripe', charge_id: paymentIntentSucceeded.latest_charge })
       insertCheckoutData();
       // Then define and call a function to handle the event payment_intent.succeeded
       break;
     // ... handle other event types
     case 'charge.refunded':
       const refunded = event.data.object;
-      console.log(refunded);
+      response.json(refunded);
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
@@ -133,10 +133,6 @@ app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   next();
 })
-
-/*stripe.refunds.create({
-  charge: 'ch_3PLoznP1klN1xJaK1Y8EwAUs',
-}); */
 
 app.use((req, res, next) => {
   const urlPath = req.path;
@@ -380,7 +376,7 @@ const createOrder = async (checkoutData, discount) => {
     if (index > 0) {
       productData.push(item)
       totalQuantity += +item.quantity;
-      itemNames += item.product_name + `(${item.size_value})` + '/'
+      itemNames += item.product_name + `(${item.size_value})` + `x${item.quantity}` + '/'
     }
 
   })
@@ -455,7 +451,7 @@ const createOrder = async (checkoutData, discount) => {
     body: JSON.stringify(payload),
   });
 
-  finalCheckoutData.push({data: checkoutData[0], date: formattedDate, items: itemNames, price: totalPrice})
+  finalCheckoutData.push({ data: checkoutData[0], date: formattedDate, items: itemNames, price: totalPrice })
 
   totalPrice = 0;
   return handleResponse(response);
@@ -542,11 +538,6 @@ app.post("/api/orders", upload.none(), async (req, res) => {
     res.status(500).json({ error: "Failed to create order." });
   }
 });
-
-app.get("/paypal/refund", async (req, res) => {
-  const { jsonResponse, httpStatusCode } = await refundOrder('64E32370MY773114M')
-  res.status(httpStatusCode).json(jsonResponse);
-})
 app.post("/api/orders/:orderID/capture", async (req, res) => {
   try {
     const { orderID } = req.params;
@@ -554,7 +545,7 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
 
     console.log("510, ", jsonResponse.purchase_units[0].payments.captures[0].id);
 
-    finalCheckoutData.push({payment_id: orderID, method: 'paypal', charge_id: jsonResponse.purchase_units[0].payments.captures[0].id})
+    finalCheckoutData.push({ payment_id: orderID, method: 'paypal', charge_id: jsonResponse.purchase_units[0].payments.captures[0].id })
     insertCheckoutData();
 
     res.status(httpStatusCode).json(jsonResponse);
@@ -660,7 +651,7 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
     if (index > 0) {
       productData.push(item);
       totalQuantity += +item.quantity;
-      itemNames += item.product_name + `(${item.size_value})` + '/';
+      itemNames += item.product_name + `(${item.size_value})` + `x${item.quantity}` + '/'
     }
   })
 
@@ -728,7 +719,7 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
     const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
     console.log(formattedDate);
 
-    finalCheckoutData.push({data: checkoutData[0], date: formattedDate, items: itemNames, price: totalPrice})
+    finalCheckoutData.push({ data: checkoutData[0], date: formattedDate, items: itemNames, price: totalPrice })
 
     res.json({ id: session.id });
   } catch (err) {
@@ -1746,6 +1737,43 @@ app.get('/panel/orders', checkPermission(['Admin']), (req, res) => {
 
 })
 
+app.post('/panel/orders/insertTrackingId', checkPermission(['Admin']), upload.none(), (req, res) => {
+  const { id, status, trackingId } = req.body;
+
+  console.log(id, status, trackingId);
+
+  const db = dbService.getDbServiceInstance();
+
+  db.insertTrackingId(id, status, trackingId)
+    .then(() => console.log("Success!"))
+    .catch(error => console.log(error))
+
+})
+
+app.get('/panel/orders/initiateRefund/:id', checkPermission(['Admin']), (req, res) => {
+  const id = req.params.id;
+
+  const db = dbService.getDbServiceInstance();
+
+  const retrieveRefundData = db.getRefundData(id);
+
+  retrieveRefundData
+    .then(async (data) => {
+      console.log(data);
+      if (data[0].method === 'stripe') {
+        console.log(data[0].method);
+        stripe.refunds.create({
+          charge: data[0].charge_id,
+        }); 
+
+      } else if (data[0].method === 'paypal') {
+        console.log('paypal');
+        const { jsonResponse, httpStatusCode } = await refundOrder(data[0].charge_id);
+        res.status(httpStatusCode).json(jsonResponse);
+      }
+    })
+})
+
 app.get('/panel/transactions', checkPermission(['Admin']), (req, res) => {
 
   const db = dbService.getDbServiceInstance();
@@ -2291,6 +2319,6 @@ function validateEmail(email) {
 
 function insertCheckoutData() {
   fetch('http://localhost:3001/insertCheckoutData')
-      .then(() => console.log("Success"))
-      .catch(error => console.log(error));
+    .then(() => console.log("Success"))
+    .catch(error => console.log(error));
 }

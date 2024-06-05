@@ -1836,42 +1836,172 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             let items = [];
 
-                            items = order.items.replaceAll('/', ', ');
+                            items = order.items.split('/');
 
                             productNames.push(order.full_name);
                             // Create and populate table data (td) for each field
                             const titleCellWrapper = document.createElement('td');
                             const titleCellWrapperDiv = document.createElement('div');
+                            titleCellWrapperDiv.classList.add('title-cell-wrapper');
                             const titleCell = document.createElement('p');
                             titleCell.classList.add('full-name');
                             titleCell.textContent = order.full_name;
 
                             console.log(items);
 
-                            const addressCell = createTableCell(order.address, 'order-address');
-                            const countryCell = createTableCell(order.country, 'order-country');
-                            const postalCell = createTableCell(order.postal, 'order-postal');
-                            const phoneCell = createTableCell(order.phone, 'order-phone');
-                            const itemsCell = createTableCell(items, 'order-items'); 
-                            const priceCell = createTableCell(order.total, 'order-price');
+                            const addressWrapper = document.createElement('td');
+                            const addressCellWrapperDiv = document.createElement('div');
+                            addressCellWrapperDiv.classList.add('address-cell-wrapper');
+                            const addressCell = document.createElement('p');
+                            addressCell.textContent = order.address;
+                            addressCell.classList.add('order-address');
+                            const countryCell = document.createElement('p');
+                            countryCell.textContent = order.country;
+                            countryCell.classList.add('order-country');
+                            const postalCell = document.createElement('p');
+                            postalCell.textContent = order.postal;
+                            postalCell.classList.add('order-postal');
 
+                            addressCellWrapperDiv.appendChild(countryCell);
+                            addressCellWrapperDiv.appendChild(addressCell);
+                            addressCellWrapperDiv.appendChild(postalCell);
+                            addressWrapper.appendChild(addressCellWrapperDiv);
+
+                            const phoneCell = document.createElement('p');
+                            phoneCell.textContent = order.phone;
+                            phoneCell.classList.add('order-phone');
+                            const itemsCellWrapper = document.createElement('td');
+                            const itemsCellWrapperDiv = document.createElement('div');
+                            itemsCellWrapperDiv.classList.add('order-items-wrapper');
+                            items.forEach(item => {
+                                const itemsCell = document.createElement('p');
+                                itemsCell.textContent = item;
+                                itemsCell.classList.add('order-items');
+                                itemsCellWrapperDiv.appendChild(itemsCell);
+                            })
+
+                            itemsCellWrapper.appendChild(itemsCellWrapperDiv);
+                            const priceCell = createTableCell(order.total, 'order-price');
+                            const statusCell = createTableCell(order.status, 'order-delivery-status');
+                            const trackingCell = createTableCell(order.tracking_id, 'order-tracking');
+
+                            const emailCell = document.createElement('p');
+                            emailCell.classList.add('order-email');
+                            emailCell.textContent = order.email;
                             // Append table data to the table row
 
+                            if (statusCell.textContent === 'Pending')
+                                statusCell.style.color = "var(--warning-color)";
+                            else if (statusCell.textContent === 'Sent')
+                                statusCell.style.color = "var(--accent-color)";
+                            else
+                                statusCell.style.color = "var(--red-color)";
+
                             titleCellWrapperDiv.appendChild(titleCell);
+                            titleCellWrapperDiv.appendChild(phoneCell);
+                            titleCellWrapperDiv.appendChild(emailCell);
                             titleCellWrapper.appendChild(titleCellWrapperDiv);
                             row.appendChild(titleCellWrapper);
-                            row.appendChild(addressCell);
-                            row.appendChild(countryCell);
-                            row.appendChild(postalCell);
-                            row.appendChild(phoneCell);
-                            row.appendChild(itemsCell);
+                            row.appendChild(addressWrapper);
+                            row.appendChild(itemsCellWrapper);
                             row.appendChild(priceCell);
+                            row.appendChild(statusCell);
+                            row.appendChild(trackingCell);
 
                             // Create and append the SVG icons
                             const settingsEditIcons = createSettingsOrdersIcons(); // Function to create SVG icons
                             const settingsCell = document.createElement('td');
                             settingsCell.appendChild(settingsEditIcons);
                             row.appendChild(settingsCell);
+
+                            settingsEditIcons.firstChild.addEventListener('click', () => {
+
+                                const orderWrapper = document.querySelector('.order-sent-wrapper');
+
+                                orderWrapper.style.display = "flex";
+                                orderWrapper.style.opacity = 1;
+
+                                const finishButton = document.querySelector('.order-sent-wrapper .order-sent .button');
+
+                                console.log(finishButton);
+                                finishButton.addEventListener('click', () => {
+
+                                    const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
+
+                                    if (trackingNumberField.value !== '') {
+                                        console.log(trackingNumberField.value)
+
+                                        trackingCell.firstChild.textContent = trackingNumberField.value;
+                                        statusCell.firstChild.textContent = 'Sent';
+                                        statusCell.firstChild.style.color = 'var(--accent-color)';
+
+                                        const formData = new FormData();
+
+                                        formData.append('id', order.id);
+                                        formData.append('status', 'Sent');
+                                        formData.append('trackingId', trackingNumberField.value);
+
+                                        fetch('/panel/orders/insertTrackingId', {
+                                            method: 'POST',
+                                            body: formData // Set the body of the request as FormData
+                                        })
+                                            .then(() => {
+                                                console.log("Success!")
+                                                const orderWrapper = document.querySelector('.order-sent-wrapper');
+                                                orderWrapper.style.opacity = 0;
+
+                                                const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
+
+                                                setTimeout(() => {
+                                                    orderWrapper.style.display = "flex";
+                                                    trackingNumberField.value = '';
+                                                }, 400)
+
+                                            })
+                                            .catch(error => console.log(error));
+
+                                    } else {
+                                        alert('Tracking Number Field cannot be empty!');
+                                    }
+                                })
+
+                                const cancelButton = document.querySelector('.order-sent-wrapper .order-sent .remove-button');
+
+                                cancelButton.addEventListener('click', () => {
+
+                                    const orderWrapper = document.querySelector('.order-sent-wrapper');
+                                    orderWrapper.style.opacity = 0;
+
+                                    const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
+
+                                    setTimeout(() => {
+                                        orderWrapper.style.display = "flex";
+                                        trackingNumberField.value = '';
+                                    }, 400)
+
+                                })
+
+                            })
+
+                            settingsEditIcons.lastChild.addEventListener('click', () => {
+
+                                const refundWrapper = document.querySelector('.order-refund-wrapper');
+
+                                refundWrapper.style.display = "flex";
+                                refundWrapper.style.opacity = 1;
+
+                                const confirmButton = document.querySelector('.order-refund-wrapper .order-refund .button');
+                            
+                                confirmButton.addEventListener('click', () => {
+
+                                    fetch(`/panel/orders/initiateRefund/${order.id}`)
+                                    .then(() => {
+                                        alert('Successfully refunded order!')
+                                    })
+                                    .catch(error => alert(error));
+                                })
+                            
+                            })
 
                             // Append the row to the table body
                             tbody.appendChild(row);
@@ -1882,8 +2012,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     table.appendChild(tbody);
                 })
-                areOrdersAdded = true;
-            }
+            areOrdersAdded = true;
+        }
     })
 
 
@@ -3297,6 +3427,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
+    const mainContainer = document.querySelector('.main');
+    mainContainer.style.height = window.innerHeight + "px";
+
+    if (window.innerWidth < 1240) {
+        const logo = document.querySelector('.side h1');
+        logo.textContent = "R";
+    }
+
+    window.addEventListener('resize', (e) => {
+
+        if (window.innerWidth < 1240) {
+            const logo = document.querySelector('.side h1');
+            logo.textContent = "R";
+        } else {
+            const logo = document.querySelector('.side h1');
+            logo.textContent = "Rawverry";
+        }
+        console.log(window.innerHeight);
+
+    })
+
+
     function removeSizeHandler(event) {
 
         const sizes = document.querySelectorAll('.remove-size-inputs div input');
@@ -3573,6 +3725,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     }
+
+
+
 
 
     function validateEmail(email) {

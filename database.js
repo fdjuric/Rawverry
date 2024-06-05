@@ -1161,7 +1161,7 @@ class dbService {
     async getOrders() {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = `SELECT * FROM orders`;
+                const query = `SELECT * FROM orders ORDER BY date_col DESC`;
 
                 db.query(query, (err, results) => {
                     if(err) reject(new Error(err.message))
@@ -1180,9 +1180,9 @@ class dbService {
 
             const response = await new Promise((resolve, reject) => {
 
-                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, payment_id, city, payment_method, charge_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, payment_id, city, payment_method, charge_id, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', items, price, payment_id, data.city, method, charge_id], (err, results) => {
+                db.query(query, [data.name, data.address, data.country, data.postal, data.phone, date, 'Pending', items, price, payment_id, data.city, method, charge_id, data.email], (err, results) => {
                     if (err) reject(new Error(err.message))
                     resolve(results);
                 })
@@ -1195,22 +1195,40 @@ class dbService {
         }
     }
 
-    async insertOrderDataMethod(payment_id, orderId, method, charge_id) {
+    async insertTrackingId(id, status, trackingId) {
         try {
-            console.log("db", charge_id)
-            const response = await new Promise((resolve, reject) => {
-                const query = `UPDATE orders
-                SET payment_id = ?, payment_method = ?, charge_id = ?
-                WHERE id = ?`;
 
-                db.query(query, [payment_id, method, charge_id, orderId], (err, results) => {
-                    if (err) reject(new Error(err.message))
-                    resolve(results);
+            const response = await new Promise((resolve, reject) => {
+                const query = "UPDATE orders SET status = ?, tracking_id = ? WHERE id = ?";
+
+                db.query(query, [status, trackingId, id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve();
                 })
             })
 
             return response;
-        } catch (error) {
+        }catch(error) {
+            console.log(error)
+        }
+    }
+
+    async getRefundData(id) {
+        try {
+
+            const response = await new Promise((resolve, reject) => {
+                const query = "SELECT payment_method, charge_id, email FROM orders WHERE id = ?";
+
+                db.query(query, [id], (err, results) => {
+                    if(err) reject(new Error(err.message))
+
+                    resolve(results[0]);
+                })
+            })
+
+            return response;
+        }catch(error) {
             console.log(error)
         }
     }

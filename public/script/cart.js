@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const stripe = await loadStripe("pk_test_51Oz0TyP1klN1xJaKPs3Ca1DKd2WE1c4u9GnPq7JpDBgdCWaOhR2rqOhfpY9fq2ntoeD3WCTKmh3s4JvHrEGXozPU00R7JTxQyJ");
 
         quantity.forEach((item, index) => {
-            checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
+            checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value});
         })
 
         fetch('/proceed-to-checkout', {

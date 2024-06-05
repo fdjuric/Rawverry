@@ -22,11 +22,10 @@ body {
 }
 
 .side {
-    height: 100%;
     padding: 20px 40px;
     display: flex;
     flex-direction: column;
-    position: fixed;
+    position: sticky;
     gap: 30px;
     z-index: 2;
     background-color: var(--primary-color);
@@ -119,6 +118,10 @@ nav div:hover {
     background-color: var(--primary-color);
 }
 
+.main-content {
+    height: 100%;
+    overflow-y: scroll;
+}
 .welcome div {
     display: flex;
 }
@@ -340,9 +343,12 @@ thead tr th {
     padding-bottom: var(--padding-20);
 }
 
+tbody tr {
+    border-bottom: 1px solid var(--primary-shade);
+}
+
 td {
     padding: var(--padding-20) 0px;
-    border-bottom: 1px solid var(--primary-shade);
 }
 th, td {
     text-align: start;
@@ -369,6 +375,20 @@ td div {
     display: flex;
     flex-direction: column;
     gap: 40px;
+}
+
+.order-sent {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.title-cell-wrapper, .address-cell-wrapper, .order-items-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 1px;
 }
 
 .product-form, .coupon-form, .account-form {
@@ -403,7 +423,7 @@ td div {
 }
 
 
-.add-size-wrapper, .add-category-wrapper, .edit-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper, .remove-coupon-wrapper, .remove-account-wrapper, .remove-blog-wrapper {
+.add-size-wrapper, .add-category-wrapper, .edit-category-wrapper, .remove-category-wrapper, .remove-size-wrapper, .remove-product-wrapper, .remove-coupon-wrapper, .remove-account-wrapper, .remove-blog-wrapper, .order-sent-wrapper, .order-refund-wrapper {
     display: none;
     flex-direction: column;
     gap: 40px;
@@ -490,7 +510,7 @@ td div {
     cursor: pointer;
 }
 
-.product-size-value, .product-category-value, .product-category-header, .product-category-subheader {
+.product-size-value, .product-category-value, .product-category-header, .product-category-subheader, .order-tracking-number {
     padding: 10px;
     border: 1px solid var(--accent-color);
 }
@@ -965,6 +985,22 @@ td div {
         width: 40%;
         aspect-ratio: 1/1;
         justify-self: center;
+    }
+  }
+
+  @media (max-width: 1240px) {
+
+    .side nav div p {
+        display: none;
+    }
+
+    .side {
+        padding: 40px 20px;
+        align-items: center;
+    }
+
+    nav {
+        padding: 0px;
     }
   }
 
