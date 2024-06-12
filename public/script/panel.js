@@ -21,6 +21,283 @@ document.addEventListener('DOMContentLoaded', function () {
 
     console.log(navElement);
 
+    let dashboardDataAdded = false
+
+    if (!dashboardDataAdded) {
+        fetch('/panel/dashboard')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+
+                const totalSales = document.querySelector('.dashboard .total-sales');
+                totalSales.textContent = "$" + data[0].total_sales;
+                const totalOrders = document.querySelector('.dashboard .total-orders');
+                let ordersCount = 0;
+                let totalRefunded = 0;
+                data[1].forEach(item => {
+                    ordersCount += + item.row_count;
+                    if (item.status === 'Refunded')
+                        totalRefunded = item.row_count;
+                })
+                totalOrders.textContent = ordersCount;
+                const totalReturns = document.querySelector('.dashboard .total-returns');
+                totalReturns.textContent = totalRefunded;
+                const totalProductsBought = document.querySelector('.dashboard .total-products-bought');
+                totalProductsBought.textContent = data[2].total_amount_bought;
+
+
+                //Charts
+
+                const ctx = document.querySelector('.sales-graph');
+
+                const yearctx = document.querySelector('.graph-sales-year .sales-graph');
+
+                const orderStatus = document.querySelector('.status-graph');
+
+                //Chart.defaults.font.family = 'Mitr';
+                Chart.defaults.font.size = 16;
+                Chart.defaults.font.weight = '400';
+                Chart.defaults.color = '#1A1A1A';
+                Chart.defaults.plugins.legend.position = 'bottom';
+                Chart.defaults.responsive = 'true';
+                //Chart.defaults.options.clip = false;
+
+                const legendMargin = {
+                    id: 'legendMargin',
+                    beforeInit(chart, legend, options) {
+                        const fitValue = chart.legend.fit;
+                        chart.legend.fit = function fit() {
+                            fitValue.bind(chart.legend)();
+                            return this.height += 40;
+                        }
+                    }
+                };
+
+                const chartMonth = [];
+
+                let chartMonthHighest;
+
+                data[3].forEach(item => {
+                    chartMonth.push(item.total_amount);
+                })
+
+                chartMonthHighest = Math.max(...chartMonth);
+
+                console.log(chartMonthHighest);
+
+                // Sample data for the chart
+                var chartDataMonth = {
+                    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                    datasets: [{
+                        label: 'month Values',
+                        borderColor: '#67A329',
+                        data: chartMonth,
+                        fill: false
+                    }],
+                    options: {
+                        layout: {
+                            padding: {
+                                left: 20,
+                                right: 20
+                            }
+                        },
+                        plugins: {
+                            annotation: {
+                                clip: false,
+                            },
+                        }
+                    },
+                    plugins: [legendMargin]
+                };
+
+                // Chart configuration
+                var chartConfig = {
+                    type: 'line',
+                    data: chartDataMonth,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: chartMonthHighest + (chartMonthHighest * 0.2)
+                            }
+                        },
+                        ticks: {
+                            stepSize: chartMonthHighest / 4
+                        }
+                    }
+                };
+
+                new Chart(ctx, chartConfig);
+
+                const chartDataYears = [];
+
+                const chartDataYearsSales = [];
+
+                let chartDataYearsHighest;
+
+                data[4].forEach(item => {
+                    chartDataYears.push(item.year);
+                    chartDataYearsSales.push(item.total_amount);
+                })
+
+                chartDataYearsHighest = Math.max(...chartDataYearsSales);
+
+                var chartDataYear = {
+                    labels: chartDataYears,
+                    datasets: [{
+                        label: 'year Values',
+                        borderColor: '#67A329',
+                        data: chartDataYearsSales,
+                        fill: false
+                    }]
+                };
+
+                var chartConfigYear = {
+                    type: 'line',
+                    data: chartDataYear,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: chartDataYearsHighest + (chartDataYearsHighest * 0.2)
+                            }
+                        },
+                        ticks: {
+                            stepSize: chartDataYearsHighest / 4
+                        }
+                    }
+                };
+
+                new Chart(yearctx, chartConfigYear);
+
+                let monthActive = true;
+                let yearActive = false;
+
+                const monthButton = document.querySelector('.dashboard .sales-overview .month-button');
+                const yearButton = document.querySelector('.dashboard .sales-overview .year-button');
+
+                const graphSales = document.querySelector('.dashboard .sales-overview .graph-sales');
+                const graphSalesYear = document.querySelector('.dashboard .sales-overview .graph-sales-year');
+
+
+                monthButton.addEventListener('click', () => {
+                    if (monthActive == true)
+                        return;
+
+                    graphSalesYear.style.opacity = 0;
+
+                    setTimeout(() => {
+                        graphSalesYear.style.display = "none";
+                        graphSales.style.display = 'flex';
+                        graphSales.style.opacity = 1;
+                        monthActive = true;
+                        yearActive = false;
+
+                        yearButton.classList.remove('button-active');
+                        yearButton.classList.add('button-not-active');
+                        monthButton.classList.remove('button-not-active');
+                        monthButton.classList.add('button-active');
+                    }, 400)
+                })
+
+                yearButton.addEventListener('click', () => {
+                    if (yearActive == true)
+                        return;
+
+                    graphSales.style.opacity = 0;
+
+                    setTimeout(() => {
+                        graphSales.style.display = "none";
+                        graphSalesYear.style.display = 'flex';
+                        graphSalesYear.style.opacity = 1;
+                        monthActive = false;
+                        yearActive = true;
+
+                        monthButton.classList.remove('button-active');
+                        monthButton.classList.add('button-not-active');
+                        yearButton.classList.remove('button-not-active');
+                        yearButton.classList.add('button-active');
+                    }, 400)
+                })
+
+                const chartDataOrderStatus = [];
+
+                data[1].forEach(item => {
+                    chartDataOrderStatus.push(item.row_count);
+                })
+
+                var chartDataStatus = {
+                    labels: ["Pending", "Refunded", "Sent"],
+                    datasets: [{
+                        label: ' Amount ',
+                        data: chartDataOrderStatus,
+                        backgroundColor: [
+                            '#E8995B',
+                            '#a32929',
+                            '#67A329'
+                        ],
+                        hoverOffset: 4
+                    }]
+                };
+
+                var statusChartConfig = {
+                    type: 'doughnut',
+                    data: chartDataStatus,
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    boxWidth: 20
+                                }
+                            },
+
+                        }
+                    },
+                    plugins: [legendMargin]
+                };
+
+                new Chart(orderStatus, statusChartConfig);
+
+                const table = document.querySelector('.dashboard .row3 .top-products table');
+
+                const tbody = document.querySelector('.dashboard .row3 .top-products table tbody');
+
+                data[5].forEach(item => {
+                    const row = document.createElement('tr');
+
+                    const idCell = createTableCell(item.product_id, 'product-id');
+                    const titleCellWrapper = document.createElement('td');
+                    const titleCellWrapperDiv = document.createElement('div');
+                    const titlePic = document.createElement('img');
+                    titlePic.src = item.image_url;
+                    titlePic.style.width = "50px";
+                    titlePic.style.height = "50px";
+                    const titleCell = document.createElement('p');
+                    titleCell.classList.add('product-name');
+                    titleCell.textContent = item.product_name;
+                    const totalBoughtCell = createTableCell(item.product_amount_bought_total, 'product-amount-bought-total');
+
+                    titleCellWrapperDiv.appendChild(titlePic);
+                    titleCellWrapperDiv.appendChild(titleCell);
+                    titleCellWrapper.appendChild(titleCellWrapperDiv);
+
+                    row.appendChild(idCell);
+                    row.appendChild(titleCellWrapper);
+                    row.appendChild(totalBoughtCell);
+
+                    tbody.appendChild(row);
+                })
+
+                table.appendChild(tbody);
+
+
+                dashboardDataAdded = true;
+            })
+
+    }
 
     navElement.forEach((item, index) => {
 
@@ -88,120 +365,6 @@ document.addEventListener('DOMContentLoaded', function () {
     })
 
 
-    const ctx = document.querySelector('.sales-graph');
-
-    const orderStatus = document.querySelector('.status-graph');
-
-    //Chart.defaults.font.family = 'Mitr';
-    Chart.defaults.font.size = 16;
-    Chart.defaults.font.weight = '400';
-    Chart.defaults.color = '#1A1A1A';
-    Chart.defaults.plugins.legend.position = 'bottom';
-    //Chart.defaults.options.clip = false;
-
-    const legendMargin = {
-        id: 'legendMargin',
-        beforeInit(chart, legend, options) {
-            const fitValue = chart.legend.fit;
-            chart.legend.fit = function fit() {
-                fitValue.bind(chart.legend)();
-                return this.height += 40;
-            }
-        }
-    };
-
-    // Sample data for the chart
-    var chartDataMonth = {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        datasets: [{
-            label: 'Monthly Values',
-            borderColor: '#67A329',
-            data: [500, 800, 600, 900, 700, 1100, 1000, 1100, 950, 800, 1100, 900],
-            fill: false
-        }],
-        options: {
-            layout: {
-                padding: {
-                    left: 20,
-                    right: 20
-                }
-            },
-            plugins: {
-                annotation: {
-                    clip: false,
-                },
-            }
-        },
-        plugins: [legendMargin]
-    };
-
-    var chartDataYear = {
-        labels: ["2020", "2021", "2022", "2023"],
-        datasets: [{
-            label: 'Yearly Values',
-            borderColor: '#67A329',
-            data: [600, 900, 700, 1100],
-            fill: false
-        }]
-    };
-
-    // Chart configuration
-    var chartConfig = {
-        type: 'line',
-        data: chartDataMonth,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 1200
-                }
-            },
-            ticks: {
-                stepSize: 300
-            }
-        }
-    };
-
-
-    new Chart(ctx, chartConfig);
-
-    var chartDataStatus = {
-        labels: ["Sales", "Pending", "Returns"],
-        datasets: [{
-            label: ' Amount ',
-            data: [300, 50, 100],
-            backgroundColor: [
-                '#67A329',
-                '#E8995B',
-                '#a32929'
-            ],
-            hoverOffset: 4
-        }]
-    };
-
-    var statusChartConfig = {
-        type: 'doughnut',
-        data: chartDataStatus,
-        options: {
-            responsive: false,
-            maintainAspectRatio: true,
-            aspectRatio: 1,
-            plugins: {
-                legend: {
-                    labels: {
-                        boxWidth: 20
-                    }
-                },
-
-            }
-        },
-        plugins: [legendMargin]
-    };
-
-    new Chart(orderStatus, statusChartConfig);
-
-    orderStatus.style.width = "100%";
-    orderStatus.style.height = "100%";
 
     const svgIcon = document.querySelector('.acc-default');
     const imgElement = document.querySelector('.acc-pic');
@@ -1891,11 +2054,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             // Append table data to the table row
 
                             if (statusCell.textContent === 'Pending')
-                                statusCell.style.color = "var(--warning-color)";
+                                statusCell.firstChild.style.color = "var(--warning-color)";
                             else if (statusCell.textContent === 'Sent')
-                                statusCell.style.color = "var(--accent-color)";
+                                statusCell.firstChild.style.color = "var(--accent-color)";
                             else
-                                statusCell.style.color = "var(--red-color)";
+                                statusCell.firstChild.style.color = "var(--red-color)";
 
                             titleCellWrapperDiv.appendChild(titleCell);
                             titleCellWrapperDiv.appendChild(phoneCell);
@@ -1991,16 +2154,34 @@ document.addEventListener('DOMContentLoaded', function () {
                                 refundWrapper.style.opacity = 1;
 
                                 const confirmButton = document.querySelector('.order-refund-wrapper .order-refund .button');
-                            
+
+                                console.log(order.id);
                                 confirmButton.addEventListener('click', () => {
 
                                     fetch(`/panel/orders/initiateRefund/${order.id}`)
-                                    .then(() => {
-                                        alert('Successfully refunded order!')
-                                    })
-                                    .catch(error => alert(error));
+                                        .then(() => {
+                                            alert('Successfully refunded the order!');
+                                            statusCell.firstChild.textContent = 'Refunded';
+                                            statusCell.firstChild.style.color = "var(--red-color)";
+
+                                            refundWrapper.style.opacity = 1;
+                                            setTimeout(() => {
+                                                refundWrapper.style.display = "flex";
+                                            }, 400)
+                                        })
+                                        .catch(error => alert(error));
                                 })
-                            
+
+                                const cancelButton = document.querySelector('order-refund .remove-button');
+
+                                cancelButton.addEventListener('click', () => {
+
+                                    refundWrapper.style.opacity = 1;
+                                    setTimeout(() => {
+                                        refundWrapper.style.display = "flex";
+                                    }, 400)
+                                })
+
                             })
 
                             // Append the row to the table body

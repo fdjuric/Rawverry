@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/insertCheckoutData', '/panel/orders/insertTrackingId', '/api/orders', '/paypal/refund', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/insertCheckoutData', '/getCheckoutData', '/panel/dashboard', '/panel/orders/insertTrackingId', '/api/orders', '/paypal/refund', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -29,6 +29,18 @@ const multer = require('multer');
 
 const { checkPermission } = require('./middlewares.js')
 
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: false, //set true on production so it goes trough https
+    httpOnly: true, //if true prevents client side JS from reading the cookie
+    maxAge: 180 * 24 * 60 * 60 * 1000
+  }
+}));
+
+
 var user;
 
 let tempAccounts = false;
@@ -38,44 +50,18 @@ const registerToken = [];
 
 var orderId;
 
-const finalCheckoutData = [];
-
 const path = require('path');
-
-var axios = require("axios").default;
 
 const endpointSecret = "whsec_28efc077e25dd49ed9cbf3024bccc58b8ed0a609a869429a67693ac5e300161e";
 
-app.get("/insertCheckoutData", async (req, res) => {
-  try {
-    const db = dbService.getDbServiceInstance();
 
-    console.log(finalCheckoutData);
-
-    db.insertCheckoutData(finalCheckoutData[0].data, finalCheckoutData[0].date, finalCheckoutData[0].items, finalCheckoutData[0].price, finalCheckoutData[1].payment_id, finalCheckoutData[1].method, finalCheckoutData[1].charge_id)
-      .then(() => {
-        console.log("Success!")
-        finalCheckoutData.splice(0, finalCheckoutData.length)
-      })
-      .catch((error) => {
-        console.log(error);
-        finalCheckoutData.splice(0, finalCheckoutData.length)
-      })
-    res.redirect('/');
-
-  } catch (error) {
-    console.log(error);
-    finalCheckoutData.splice(0, finalCheckoutData.length)
-  }
-})
-
-app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
-  const sig = request.headers['stripe-signature'];
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
 
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     console.log("Webhook verified!");
   } catch (err) {
     response.status(400).send(`Webhook Error: ${err.message}`);
@@ -87,20 +73,28 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (request, respon
       paymentIntentSucceeded = event.data.object;
       console.log("64", paymentIntentSucceeded.id, paymentIntentSucceeded.latest_charge)
       console.log("65", orderId)
-      finalCheckoutData.push({ payment_id: paymentIntentSucceeded.id, method: 'stripe', charge_id: paymentIntentSucceeded.latest_charge })
-      insertCheckoutData();
+
+      //const data = { payment_id: paymentIntentSucceeded.id, method: 'stripe', charge_id: paymentIntentSucceeded.latest_charge }
+
+
+      const checkoutdata = await getCheckoutData();
+
+      console.log("82", checkoutdata);
+      //(insertCheckout(paymentIntentSucceeded.id, 'stripe', paymentIntentSucceeded.latest_charge);
       // Then define and call a function to handle the event payment_intent.succeeded
       break;
     // ... handle other event types
     case 'charge.refunded':
       const refunded = event.data.object;
-      response.json(refunded);
+      console.log("97 ", refunded);
+      res.json(refunded);
+ 
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
 
   // Return a 200 response to acknowledge receipt of the event
-  response.send();
+  res.send();
 });
 
 app.set('view engine', 'ejs');
@@ -112,16 +106,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(flash());
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    secure: false, //set true on production so it goes trough https
-    httpOnly: true, //if true prevents client side JS from reading the cookie
-    maxAge: 180 * 24 * 60 * 60 * 1000
-  }
-}));
 
 app.use(passport.initialize())
 app.use(passport.session());
@@ -156,7 +140,7 @@ app.use((req, res, next) => {
 
   } else if (validFetchPaths.includes(urlPath)) {
     next();
-  } else if (urlPath.startsWith('/getBlog/') || urlPath.includes(`${base}/v1/oauth2/token`) || urlPath.startsWith('/api/orders/') || urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
+  } else if (urlPath.startsWith('/getBlog/') || urlPath.startsWith('/panel/orders/initiateRefund/') || urlPath.includes(`${base}/v1/oauth2/token`) || urlPath.startsWith('/api/orders/') || urlPath.startsWith('/getGalleryData/') || urlPath.startsWith('/gallery/') || urlPath.startsWith('/getProduct/') || urlPath.startsWith('/confirm/') || urlPath.startsWith('/unsubscribe/') || urlPath.startsWith('/register/') || urlPath.startsWith('/password-reset/') || urlPath.startsWith('/panel/products/removeProduct/') || urlPath.startsWith('/panel/products/getProduct/') || urlPath.startsWith('/panel/blog/removeBlog/') || urlPath.startsWith('/panel/coupon/removeCoupon/') || urlPath.startsWith('/panel/manageAccounts/getAccount/') || urlPath.startsWith('/panel/manageAccounts/removeAccount/')) {
     console.log(urlPath);
     const newPath = validHTMLPaths.find(validPath => urlPath.includes(validPath));
     console.log(newPath);
@@ -284,52 +268,6 @@ const blogUpload = multer({ storage: blogPicStorage, fileFilter: fileFilter });
 const productUpload = multer({ storage: productPicStorage, fileFilter: fileFilter });
 const categoryUpload = multer({ storage: categoryPicStorage, fileFilter: fileFilter });
 
-
-//DHL INTEGRATION
-const getAccessToken = async () => {
-  const tokenUrl = 'https://api-eu.dhl.com/oauth/token';
-  const authString = Buffer.from(`${process.env.DHL_API_KEY}:${process.env.DHL_API_SECRET}`).toString('base64');
-
-  try {
-    const response = await axios.post(tokenUrl, 'grant_type=client_credentials', {
-      headers: {
-        'Authorization': `Basic ${authString}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
-
-    if (response.status === 200) {
-      return response.data.access_token;
-    } else {
-      throw new Error(`Unexpected response status: ${response.status}`);
-    }
-  } catch (error) {
-    throw new Error(`Error obtaining access token: ${error.response ? JSON.stringify(error.response.data, null, 2) : error.message}`);
-  }
-};
-
-const createDHLShipment = async (shipmentData) => {
-  try {
-    const accessToken = await getAccessToken();
-
-    const response = await axios.post('https://api-eu.dhl.com/shipments', shipmentData, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (response.status === 200) {
-      return response.data;
-    } else {
-      throw new Error(`Unexpected response status: ${response.status}`);
-    }
-  } catch (error) {
-    const errorMessage = error.response ? JSON.stringify(error.response.data, null, 2) : error.message;
-    throw new Error(`Error creating DHL shipment: ${errorMessage}`);
-  }
-};
-
 //Paypal access token generation
 
 const generateAccessToken = async () => {
@@ -417,10 +355,6 @@ const createOrder = async (checkoutData, discount) => {
     }
   }
 
-  const currentDate = new Date();
-  const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
-  console.log(formattedDate);
-
   console.log(totalPrice, "312")
 
   const accessToken = await generateAccessToken();
@@ -451,10 +385,11 @@ const createOrder = async (checkoutData, discount) => {
     body: JSON.stringify(payload),
   });
 
-  finalCheckoutData.push({ data: checkoutData[0], date: formattedDate, items: itemNames, price: totalPrice })
+  const data = { responseData: await handleResponse(response), items: itemNames, total: totalPrice };
 
   totalPrice = 0;
-  return handleResponse(response);
+
+  return data;
 };
 
 const refundOrder = async (paymentId) => {
@@ -530,7 +465,29 @@ app.post("/api/orders", upload.none(), async (req, res) => {
     console.log("387", checkoutData);
 
     let discount = req.session.discount;
-    const { jsonResponse, httpStatusCode } = await createOrder(checkoutData, discount);
+
+    const data = await createOrder(checkoutData, discount);
+
+    console.log("499 ", data);
+
+    const { jsonResponse, httpStatusCode } = data.responseData;
+
+    console.log("499 ", jsonResponse, httpStatusCode);
+
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+    console.log(formattedDate);
+
+    req.session.checkout = req.session.checkout || [];
+    req.session.checkout = { data: checkoutData[0], date: formattedDate, items: data.items, price: data.total }
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+      }
+      // Confirm that session has been saved
+      console.log('Session saved successfully:', req.session.checkout);
+    });
+
     console.log("526", jsonResponse);
     res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
@@ -538,15 +495,27 @@ app.post("/api/orders", upload.none(), async (req, res) => {
     res.status(500).json({ error: "Failed to create order." });
   }
 });
+
 app.post("/api/orders/:orderID/capture", async (req, res) => {
   try {
     const { orderID } = req.params;
     const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
 
+    const db = dbService.getDbServiceInstance();
+
     console.log("510, ", jsonResponse.purchase_units[0].payments.captures[0].id);
 
-    finalCheckoutData.push({ payment_id: orderID, method: 'paypal', charge_id: jsonResponse.purchase_units[0].payments.captures[0].id })
-    insertCheckoutData();
+    const checkoutData = req.session.checkout;
+
+    console.log("534", checkoutData);
+
+    db.insertCheckoutData(checkoutData.data, checkoutData.date, checkoutData.items, checkoutData.price, orderID, 'paypal', jsonResponse.purchase_units[0].payments.captures[0].id)
+      .then(() => {
+        req.session.checkout = null
+        req.session.save();
+
+        console.log("542", req.session.checkout);
+      })
 
     res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
@@ -554,6 +523,7 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
     res.status(500).json({ error: "Failed to capture order." });
   }
 });
+
 
 app.post('/applyCoupon', upload.none(), (req, res) => {
 
@@ -635,7 +605,7 @@ app.post('/applyCoupon', upload.none(), (req, res) => {
   }
 })
 
-app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
+app.post('/proceed-to-checkout', upload.none(), (req, res) => {
 
   const checkoutData = req.body;
 
@@ -661,72 +631,127 @@ app.post('/proceed-to-checkout', upload.none(), async (req, res) => {
 
   const items = [];
 
+  console.log("671 ", req.session);
+
   try {
-    const productCheckoutData = await db.getCheckoutProducts(productData);
+    db.getCheckoutProducts(productData)
+      .then(async data => {
+        data.forEach(item => {
+          let price = 0;
 
-    console.log(productCheckoutData, "197");
+          if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
+            price = item.product_price_reduced;
+            totalPrice += +item.product_price_reduced;
+          } else {
+            price = item.product_price;
+            totalPrice += +item.product_price;
+          }
 
-    productCheckoutData.forEach(item => {
-      let price = 0;
+          let discount = req.session.discount;
 
-      if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
-        price = item.product_price_reduced;
-        totalPrice += +item.product_price_reduced;
-      } else {
-        price = item.product_price;
-        totalPrice += +item.product_price;
-      }
+          console.log(discount);
+          if (discount) {
+            if (discount.includes('%')) {
+              let percentValue = parseFloat(discount.match(/\d+/)[0])
+              price = price * (1 - (percentValue / 100));
+              console.log("test1", price);
+            } else {
+              price = price - (discount / totalQuantity);
+              console.log("test2", price);
+            }
 
-      let discount = req.session.discount;
+          }
+          items.push({
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: item.product_name,
+                images: [`http://localhost:3001/${item.image_url}`],
+              },
+              unit_amount: Math.round(price * 100), // Use unit_amount instead of price
+            },
+            quantity: item.quantity
+          });
 
-      console.log(discount);
-      if (discount) {
-        if (discount.includes('%')) {
-          let percentValue = parseFloat(discount.match(/\d+/)[0])
-          price = price * (1 - (percentValue / 100));
-          console.log("test1", price);
-        } else {
-          price = price - (discount / totalQuantity);
-          console.log("test2", price);
-        }
+        })
 
-      }
-      items.push({
-        price_data: {
-          currency: "eur",
-          product_data: {
-            name: item.product_name,
-            images: [`http://localhost:3001/${item.image_url}`],
-          },
-          unit_amount: Math.round(price * 100), // Use unit_amount instead of price
-        },
-        quantity: item.quantity
-      });
-    });
+        console.log(items, "225")
 
-    console.log(items, "225")
+        const currentDate = new Date();
+        const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
+        console.log(formattedDate);
 
-    // Create the Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: items,
-      mode: "payment",
-      success_url: "http://localhost:3001/index",
-      cancel_url: "http://localhost:3001/index"
-    });
+        req.session.checkout = req.session.checkout || [];
+        req.session.checkout = { data: checkoutData[0], date: formattedDate, items: itemNames, price: totalPrice }
+        req.session.save(async (err) => {
+          if (err) {
+            console.error('Session save error:', err);
+          }
+          // Confirm that session has been saved
+          console.log('Session saved successfully:', req.session.checkout);
+          console.log("690 ", req.session.checkout);
 
-    const currentDate = new Date();
-    const formattedDate = currentDate.toISOString().slice(0, 19).replace("T", " ");
-    console.log(formattedDate);
+          // Create the Checkout Session
+          const session = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            line_items: items,
+            mode: "payment",
+            success_url: "http://localhost:3001/index",
+            cancel_url: "http://localhost:3001/index"
+          });
 
-    finalCheckoutData.push({ data: checkoutData[0], date: formattedDate, items: itemNames, price: totalPrice })
+          res.json({ id: session.id });
 
-    res.json({ id: session.id });
+        });
+
+      })
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 
+})
+
+app.post("/insertCheckoutData", upload.none(), (req, res) => {
+
+  const checkoutData = req.session.checkout;
+
+  console.log("523, ", req.session)
+
+  try {
+
+    console.log(req.body, "60");
+
+    const { paymentId, method, chargeId } = req.body;
+
+    console.log("526", paymentId, method, chargeId);
+    const db = dbService.getDbServiceInstance();
+
+    console.log("530", checkoutData);
+
+    db.insertCheckoutData(checkoutData.data, checkoutData.date, checkoutData.items, checkoutData.price, payment_id, method, charge_id)
+      .then(() => {
+        console.log("Success!");
+        req.session.checkout = null
+        req.session.save();
+
+        console.log("542", req.session.checkout);
+      })
+    res.redirect('/');
+
+  } catch (error) {
+    console.log(error);
+  }
+})
+
+app.get('/getCheckoutData', (req, res) => {
+
+  const data = req.session.checkout;
+
+  console.log("755", data);
+
+  //res.json(data);
 })
 
 app.post('/remove-from-cart', upload.none(), (req, res) => {
@@ -1331,6 +1356,20 @@ app.get('/panel', checkAuthenticated, (req, res) => {
 
 })
 
+//Dashboard
+
+app.get('/panel/dashboard', checkPermission(['Admin', 'Editor']), (req, res) => {
+
+  const db = dbService.getDbServiceInstance();
+
+  db.getDashboardData()
+  .then(data => {
+    console.log(data);
+    res.json(data);
+  })
+  .catch(err => console.log(err));
+})
+
 //Products section
 
 app.get('/panel/products', checkPermission(['Admin', 'Editor']), (req, res) => {
@@ -1755,21 +1794,43 @@ app.get('/panel/orders/initiateRefund/:id', checkPermission(['Admin']), (req, re
 
   const db = dbService.getDbServiceInstance();
 
+  console.log(id);
+
   const retrieveRefundData = db.getRefundData(id);
 
   retrieveRefundData
     .then(async (data) => {
       console.log(data);
-      if (data[0].method === 'stripe') {
-        console.log(data[0].method);
-        stripe.refunds.create({
-          charge: data[0].charge_id,
-        }); 
+      if (data.payment_method === 'stripe') {
+        console.log(data.payment_method);
+        try {
+          const refund = await stripe.refunds.create({ charge: data.charge_id });
+          console.log('Refund successful:', refund.refunded);
+          console.log(refund.status);
+          if (refund.status === 'succeeded') {
+            db.changeRefundStatus(id)
+              .then(() => {
+                res.status(200).json('Success!');
+              })
+          }
+        } catch (error) {
+          if (error instanceof stripe.errors.StripeInvalidRequestError && error.message.includes('has already been refunded')) {
+            console.log(`Charge ${data.charge_id} has already been refunded.`);
+            // Handle the already refunded charge case
+          } else {
+            console.error('An error occurred:', error);
+            // Handle other errors or rethrow them
+            throw error;
+          }
+        }
 
-      } else if (data[0].method === 'paypal') {
+      } else if (data.payment_method === 'paypal') {
         console.log('paypal');
-        const { jsonResponse, httpStatusCode } = await refundOrder(data[0].charge_id);
-        res.status(httpStatusCode).json(jsonResponse);
+        const { jsonResponse, httpStatusCode } = await refundOrder(data.charge_id);
+        db.changeRefundStatus(id)
+          .then(() => {
+            res.status(httpStatusCode).json(jsonResponse);
+          })
       }
     })
 })
@@ -2317,8 +2378,26 @@ function validateEmail(email) {
   return emailRegex.test(email);
 }
 
-function insertCheckoutData() {
-  fetch('http://localhost:3001/insertCheckoutData')
-    .then(() => console.log("Success"))
-    .catch(error => console.log(error));
+function insertCheckout(payment_id, method, charge_id) {
+
+  const data = { paymentId: payment_id, method: method, chargeId: charge_id };
+
+  console.log("2346 ", data)
+
+  fetch('http://localhost:3001/insertCheckoutData', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+}
+
+function getCheckoutData() {
+  fetch('http://localhost:3001/getCheckoutData')
+      //.then(response => response.json())
+      .then(data => {
+        console.log("2386", data);
+        //return data;
+      })
 }

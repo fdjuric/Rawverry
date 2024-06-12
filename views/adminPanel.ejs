@@ -171,7 +171,7 @@
                             </svg>
 
                             <p>Total Sales</p>
-                            <h2 class="blk">$259.99</h2>
+                            <h2 class="blk total-sales">$259.99</h2>
                         </div>
                         <div class="element">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="29" viewBox="0 0 28 29"
@@ -185,7 +185,7 @@
                             </svg>
 
                             <p>Total Orders</p>
-                            <h2 class="blk">10,550</h2>
+                            <h2 class="blk total-orders">10,550</h2>
                         </div>
                         <div class="element">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" viewBox="0 0 24 25"
@@ -195,8 +195,8 @@
                                     fill="var(--primary-color)" />
                             </svg>
 
-                            <p>Total Product Returns</p>
-                            <h2 class="blk">99</h2>
+                            <p>Total Returns</p>
+                            <h2 class="blk total-returns">99</h2>
                         </div>
                         <div class="element">
                             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 35 35"
@@ -206,8 +206,8 @@
                                     fill="var(--primary-color)" />
                             </svg>
 
-                            <p class="blk-shade">Total Visitors</p>
-                            <h2 class="blk">2,569</h2>
+                            <p class="blk-shade">Total Products Bought</p>
+                            <h2 class="blk total-products-bought">2,569</h2>
                         </div>
                     </div>
 
@@ -216,18 +216,15 @@
                             <div class="sales-header">
                                 <h2>Sales Overview</h2>
                                 <div class="time">
-                                    <p class="month-button">Monthly</p>
-                                    <p class="year-button">Yearly</p>
+                                    <p class="month-button button-active">Monthly</p>
+                                    <p class="year-button button-not-active">Yearly</p>
                                 </div>
                             </div>
                             <div class="graph-sales">
                                 <canvas class="sales-graph"></canvas>
                             </div>
-                        </div>
-                        <div class="order-status">
-                            <h2>Order Status</h2>
-                            <div class="graph-order">
-                                <canvas class="status-graph"></canvas>
+                            <div class="graph-sales-year">
+                                <canvas class="sales-graph"></canvas>
                             </div>
                         </div>
                     </div>
@@ -246,77 +243,19 @@
                                             <p class="subheader">Product Name</p>
                                         </th>
                                         <th>
-                                            <p class="subheader">Price</p>
-                                        </th>
-                                        <th>
                                             <p class="subheader">Amount Sold</p>
-                                        </th>
-                                        <th>
-                                            <p class="subheader">Sales</p>
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <p class="product-id">1</p>
-                                        </td>
-                                        <td>
-                                            <div><img class="table-img" src="images/product1.jpg">
-                                                <p class="product-name">Conceal</p>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <p class="product-price">$399.99</p>
-                                        </td>
-                                        <td>
-                                            <p class="product-amount">1050</p>
-                                        </td>
-                                        <td>
-                                            <p class="product-sales">$419,989</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <p class="product-id">1</p>
-                                        </td>
-                                        <td>
-                                            <div><img class="table-img" src="images/product1.jpg">
-                                                <p class="product-name">Conceal</p>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <p class="product-price">$399.99</p>
-                                        </td>
-                                        <td>
-                                            <p class="product-amount">1050</p>
-                                        </td>
-                                        <td>
-                                            <p class="product-sales">$419,989</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <p class="product-id">1</p>
-                                        </td>
-                                        <td>
-                                            <div><img class="table-img" src="images/product1.jpg">
-                                                <p class="product-name">Conceal</p>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <p class="product-price">$399.99</p>
-                                        </td>
-                                        <td>
-                                            <p class="product-amount">1050</p>
-                                        </td>
-                                        <td>
-                                            <p class="product-sales">$419,989</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
 
+                        </div>
+                        <div class="order-status">
+                            <h2>Order Status</h2>
+                            <div class="graph-order">
+                                <canvas class="status-graph"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>

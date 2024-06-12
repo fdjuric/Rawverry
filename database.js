@@ -169,6 +169,132 @@ class dbService {
         }
     }
 
+    async getDashboardData() {
+
+        try {
+
+            const totalMoney = await new Promise((resolve, reject) => {
+                const query = `SELECT SUM(total) AS total_sales FROM orders WHERE status <> 'Refunded'`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve(results[0]);
+                })
+
+            })
+
+            const totalOrders = await new Promise((resolve, reject) => {
+                const query = `SELECT 
+                                status, 
+                                COUNT(*) AS row_count
+                                FROM orders 
+                                GROUP BY status`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve(results);
+                })
+
+            })
+
+            const totalProductsBought = await new Promise((resolve, reject) => {
+                const query = `SELECT 
+                                SUM(product_amount_bought_total) AS total_amount_bought
+                                FROM product`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve(results[0]);
+                })
+
+            })
+
+            const totalMonthSales = await new Promise((resolve, reject) => {
+                const query = ` WITH all_months AS (
+                                    SELECT 
+                                        CONCAT(YEAR(CURRENT_DATE()), '-', LPAD(months.month, 2, '0')) AS month
+                                    FROM (
+                                        SELECT 1 AS month
+                                        UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 
+                                        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 
+                                        UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 
+                                        UNION ALL SELECT 11 UNION ALL SELECT 12
+                                    ) AS months
+                                )
+                                SELECT 
+                                    m.month,
+                                    COALESCE(SUM(o.total), 0) AS total_amount
+                                FROM all_months m
+                                LEFT JOIN (
+                                    SELECT DATE_FORMAT(date_col, '%Y-%m') AS month, total
+                                    FROM orders
+                                    WHERE YEAR(date_col) = YEAR(CURRENT_DATE()) -- Filter orders for the current year
+                                ) o ON m.month = o.month
+                                GROUP BY m.month
+                                ORDER BY m.month`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve(results);
+                })
+
+            })
+            const totalYearSales = await new Promise((resolve, reject) => {
+                const query = `SELECT 
+                                DATE_FORMAT(date_col, '%Y') AS year,
+                                SUM(total) AS total_amount
+                                FROM orders
+                                GROUP BY year
+                                ORDER BY year ASC;
+                                `;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve(results);
+                })
+
+            })
+
+            const mostSoldProducts = await new Promise((resolve, reject) => {
+                const query = `SELECT 
+                                p.product_id, p.product_name, p.product_amount_bought_total, MIN(pi.image_url) as image_url
+                                FROM product p
+                                JOIN product_images pi ON p.product_id = pi.product_id
+                                GROUP BY p.product_id, p.product_name, p.product_amount_bought_total
+                                ORDER BY p.product_amount_bought_total DESC
+                                LIMIT 5`;
+
+                db.query(query, (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve(results);
+                })
+
+            })
+
+            const finalData = [];
+
+            finalData.push(totalMoney);
+            finalData.push(totalOrders);
+            finalData.push(totalProductsBought);
+            finalData.push(totalMonthSales);
+            finalData.push(totalYearSales);
+            finalData.push(mostSoldProducts);
+
+            console.log(finalData);
+
+            return finalData;
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async getProductNames() {
         try {
             const response = await new Promise((resolve, reject) => {
@@ -1164,14 +1290,14 @@ class dbService {
                 const query = `SELECT * FROM orders ORDER BY date_col DESC`;
 
                 db.query(query, (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve(results);
                 })
             })
 
             return response;
-        }catch(error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -1202,14 +1328,14 @@ class dbService {
                 const query = "UPDATE orders SET status = ?, tracking_id = ? WHERE id = ?";
 
                 db.query(query, [status, trackingId, id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve();
                 })
             })
 
             return response;
-        }catch(error) {
+        } catch (error) {
             console.log(error)
         }
     }
@@ -1221,15 +1347,32 @@ class dbService {
                 const query = "SELECT payment_method, charge_id, email FROM orders WHERE id = ?";
 
                 db.query(query, [id], (err, results) => {
-                    if(err) reject(new Error(err.message))
+                    if (err) reject(new Error(err.message))
 
                     resolve(results[0]);
                 })
             })
 
             return response;
-        }catch(error) {
+        } catch (error) {
             console.log(error)
+        }
+    }
+
+    async changeRefundStatus(id) {
+        try {
+            const response = await new Promise((resolve, reject) => {
+                const query = "UPDATE orders SET status = ? WHERE id = ?";
+
+                db.query(query, ['Refunded', id], (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve();
+                })
+            })
+            return response;
+        } catch (error) {
+            console.log(error);
         }
     }
 

@@ -220,7 +220,6 @@ nav div:hover {
 
 .row2 {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
     box-sizing: border-box;
     gap: 40px;
 }
@@ -238,6 +237,12 @@ nav div:hover {
     width: 100%;
 }
 
+.row3 {
+    display: flex;
+    box-sizing: border-box;
+    gap: 40px;
+}
+
 .order-status {
     border-radius: 10px;
     background-color: var(--primary-color);
@@ -246,7 +251,6 @@ nav div:hover {
     display: flex;
     flex-direction: column;
     gap: 40px;
-    height: 60%;
 }
 
 .item-cell-wrapper {
@@ -265,7 +269,11 @@ nav div:hover {
     gap: 20px;
 }
 
-.month-button {
+.month-button, .year-button {
+    transition: all 0.4s ease;
+}
+
+.button-active {
     border-radius: 10px;
     background-color: var(--accent-color);
     color: var(--primary-color);
@@ -275,22 +283,48 @@ nav div:hover {
     align-items: center;
 }
 
-.year-button {
+.button-active:hover {
+    cursor: pointer;
+}
+
+.button-not-active {
     border-radius: 10px;
-    border: 1px solid var(--primary-shade);
-    color: var(--secondary-color);
+    background-color: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
     padding: 5px 30px;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.graph-sales {
+.button-not-active:hover {
+    cursor: pointer;
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+}
+
+.graph-sales{
     width: 100%;
     aspect-ratio: 16/9;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 0.4s ease;
+}
+
+.graph-sales-year {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: none;
+    opacity: 0;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.4s ease;
+}
+
+.dashboard .month-button {
+
 }
 
 .graph-order {
@@ -307,16 +341,11 @@ nav div:hover {
 
 .sales-graph {
     aspect-ratio: 16/9;
+    width: 100%;
 }
 
 .status-graph, .sales-graph {
     align-self: center;
-}
-
-
-.row3 {
-    display: grid;
-    gap: 40px;
 }
 
 .top-products {
@@ -327,6 +356,7 @@ nav div:hover {
     padding: var(--padding-40);
     background-color: var(--primary-color);
     border-radius: 10px;
+    width: 100%;
 }
 
 table {
@@ -439,6 +469,18 @@ td div {
     border: 1px solid var(--accent-color);
     z-index: 100;
     transition: all 0.4s ease;
+}
+
+.order-refund {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+.order-refund div {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 
 .edit-category-wrapper {
@@ -970,11 +1012,6 @@ td div {
         grid-template-columns: 1fr 1fr;
     }
 
-    .row2 {
-        grid-template-rows: 1fr 0.5fr;
-        grid-template-columns: 1fr;
-
-    }
     .sales-overview {
         grid-column-start: 1;
         grid-column-end: 2;
@@ -982,8 +1019,6 @@ td div {
 
     .order-status {
         height: 100%;
-        width: 40%;
-        aspect-ratio: 1/1;
         justify-self: center;
     }
   }
