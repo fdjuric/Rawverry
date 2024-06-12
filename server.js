@@ -71,17 +71,15 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   switch (event.type) {
     case 'payment_intent.succeeded':
       paymentIntentSucceeded = event.data.object;
-      console.log("64", paymentIntentSucceeded.id, paymentIntentSucceeded.latest_charge)
-      console.log("65", orderId)
 
-      //const data = { payment_id: paymentIntentSucceeded.id, method: 'stripe', charge_id: paymentIntentSucceeded.latest_charge }
+      const metadata = paymentIntentSucceeded.metadata;
 
+      const data = {name: metadata.name, email: metadata.email, address: metadata.address, country: metadata.country, city: metadata.city, postal: metadata.postal, phone: metadata.phone};
 
-      const checkoutdata = await getCheckoutData();
+      const db = dbService.getDbServiceInstance();
 
-      console.log("82", checkoutdata);
-      //(insertCheckout(paymentIntentSucceeded.id, 'stripe', paymentIntentSucceeded.latest_charge);
-      // Then define and call a function to handle the event payment_intent.succeeded
+      db.insertCheckoutData(data, metadata.date, metadata.items, metadata.price, paymentIntentSucceeded.id, 'stripe', paymentIntentSucceeded.latest_charge);
+
       break;
     // ... handle other event types
     case 'charge.refunded':
@@ -513,11 +511,12 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
       .then(() => {
         req.session.checkout = null
         req.session.save();
+        setTimeout(() => {
+          res.redirect('/index');
+        }, 1000)
 
-        console.log("542", req.session.checkout);
       })
 
-    res.status(httpStatusCode).json(jsonResponse);
   } catch (error) {
     console.error("Failed to create order:", error);
     res.status(500).json({ error: "Failed to capture order." });
@@ -696,6 +695,20 @@ app.post('/proceed-to-checkout', upload.none(), (req, res) => {
             payment_method_types: ["card"],
             line_items: items,
             mode: "payment",
+            payment_intent_data:  {
+              metadata: {
+                name: checkoutData[0].name,
+                email: checkoutData[0].email, 
+                address: checkoutData[0].address, 
+                country: checkoutData[0].country, 
+                city: checkoutData[0].city, 
+                postal: checkoutData[0].postal, 
+                phone: checkoutData[0].phone,  
+                date: formattedDate, 
+                items: itemNames, 
+                price: totalPrice // here you can set the metadata
+              },
+          },
             success_url: "http://localhost:3001/index",
             cancel_url: "http://localhost:3001/index"
           });
@@ -1784,7 +1797,7 @@ app.post('/panel/orders/insertTrackingId', checkPermission(['Admin']), upload.no
   const db = dbService.getDbServiceInstance();
 
   db.insertTrackingId(id, status, trackingId)
-    .then(() => console.log("Success!"))
+    .then(() => res.status(200).json("Success!"))
     .catch(error => console.log(error))
 
 })

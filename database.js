@@ -1304,6 +1304,33 @@ class dbService {
     async insertCheckoutData(data, date, items, price, payment_id, method, charge_id) {
         try {
 
+            let splitItems = [];
+
+            splitItems = items.split('/');
+
+            splitItems.pop();
+
+            splitItems.forEach(item => {
+
+                const matches = item.match(/^(.*?)\(\d+x\d+cm\)x(\d+)$/);
+
+                const itemName = matches[1];
+                const quantity = matches[2];
+
+                const query = `UPDATE product SET product_amount_bought_total = product_amount_bought_total + ? WHERE product_name = ?`;
+
+                db.query(query, [quantity, itemName], (err, results) => {
+                    if (err) {
+                        console.log(err)
+                        return;
+                    }
+                    console.log("success!");
+                    
+                })
+
+            })
+
+
             const response = await new Promise((resolve, reject) => {
 
                 const query = `INSERT INTO orders (full_name, address, country, postal, phone, date_col, status, items, total, payment_id, city, payment_method, charge_id, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;

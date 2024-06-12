@@ -2108,18 +2108,20 @@ document.addEventListener('DOMContentLoaded', function () {
                                             method: 'POST',
                                             body: formData // Set the body of the request as FormData
                                         })
-                                            .then(() => {
-                                                console.log("Success!")
-                                                const orderWrapper = document.querySelector('.order-sent-wrapper');
-                                                orderWrapper.style.opacity = 0;
+                                            .then((response) => {
+                                                if (response.ok) {
+                                                    console.log("Success!")
+                                                    const orderWrapper = document.querySelector('.order-sent-wrapper');
+                                                    orderWrapper.style.opacity = 0;
 
-                                                const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
+                                                    const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
 
-                                                setTimeout(() => {
-                                                    orderWrapper.style.display = "flex";
-                                                    trackingNumberField.value = '';
-                                                }, 400)
+                                                    setTimeout(() => {
+                                                        orderWrapper.style.display = "flex";
+                                                        trackingNumberField.value = '';
+                                                    }, 400)
 
+                                                }
                                             })
                                             .catch(error => console.log(error));
 
@@ -2159,20 +2161,24 @@ document.addEventListener('DOMContentLoaded', function () {
                                 confirmButton.addEventListener('click', () => {
 
                                     fetch(`/panel/orders/initiateRefund/${order.id}`)
-                                        .then(() => {
-                                            alert('Successfully refunded the order!');
+                                        .then((response) => {
+
+                                            if(response.ok){
+                                                alert('Successfully refunded the order!');
                                             statusCell.firstChild.textContent = 'Refunded';
                                             statusCell.firstChild.style.color = "var(--red-color)";
 
-                                            refundWrapper.style.opacity = 1;
+                                            refundWrapper.style.opacity = 0;
                                             setTimeout(() => {
-                                                refundWrapper.style.display = "flex";
+                                                refundWrapper.style.display = "none";
                                             }, 400)
+
+                                            }
                                         })
                                         .catch(error => alert(error));
                                 })
 
-                                const cancelButton = document.querySelector('order-refund .remove-button');
+                                const cancelButton = document.querySelector('.order-refund .remove-button');
 
                                 cancelButton.addEventListener('click', () => {
 
