@@ -54,12 +54,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const orderStatus = document.querySelector('.status-graph');
 
-                //Chart.defaults.font.family = 'Mitr';
+                Chart.defaults.font.family = 'Mitr';
                 Chart.defaults.font.size = 16;
                 Chart.defaults.font.weight = '400';
                 Chart.defaults.color = '#1A1A1A';
                 Chart.defaults.plugins.legend.position = 'bottom';
                 Chart.defaults.responsive = 'true';
+                Chart.defaults.maintainAspectRatio = 'false';
                 //Chart.defaults.options.clip = false;
 
                 const legendMargin = {
@@ -82,6 +83,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
                 chartMonthHighest = Math.max(...chartMonth);
+
+                chartMonthHighest = roundUp(chartMonthHighest);
 
                 console.log(chartMonthHighest);
 
@@ -135,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 let chartDataYearsHighest;
 
+
                 data[4].forEach(item => {
                     chartDataYears.push(item.year);
                     chartDataYearsSales.push(item.total_amount);
@@ -142,6 +146,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 chartDataYearsHighest = Math.max(...chartDataYearsSales);
 
+                chartDataYearsHighest = roundUp(chartMonthHighest);
+                
                 var chartDataYear = {
                     labels: chartDataYears,
                     datasets: [{
@@ -2163,15 +2169,15 @@ document.addEventListener('DOMContentLoaded', function () {
                                     fetch(`/panel/orders/initiateRefund/${order.id}`)
                                         .then((response) => {
 
-                                            if(response.ok){
+                                            if (response.ok) {
                                                 alert('Successfully refunded the order!');
-                                            statusCell.firstChild.textContent = 'Refunded';
-                                            statusCell.firstChild.style.color = "var(--red-color)";
+                                                statusCell.firstChild.textContent = 'Refunded';
+                                                statusCell.firstChild.style.color = "var(--red-color)";
 
-                                            refundWrapper.style.opacity = 0;
-                                            setTimeout(() => {
-                                                refundWrapper.style.display = "none";
-                                            }, 400)
+                                                refundWrapper.style.opacity = 0;
+                                                setTimeout(() => {
+                                                    refundWrapper.style.display = "none";
+                                                }, 400)
 
                                             }
                                         })
@@ -3961,6 +3967,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     })
+
+
+    function roundUp(value) {
+        const digits = value.toString().length;
+        const multiplier = Math.pow(10, digits - 4);
+        return Math.ceil(value / multiplier) * multiplier;
+      }
 
 
 })

@@ -231,7 +231,7 @@ class dbService {
                                 LEFT JOIN (
                                     SELECT DATE_FORMAT(date_col, '%Y-%m') AS month, total
                                     FROM orders
-                                    WHERE YEAR(date_col) = YEAR(CURRENT_DATE()) -- Filter orders for the current year
+                                    WHERE YEAR(date_col) = YEAR(CURRENT_DATE()) AND status <> 'Refunded'
                                 ) o ON m.month = o.month
                                 GROUP BY m.month
                                 ORDER BY m.month`;
@@ -248,6 +248,7 @@ class dbService {
                                 DATE_FORMAT(date_col, '%Y') AS year,
                                 SUM(total) AS total_amount
                                 FROM orders
+                                WHERE status <> 'Refunded'
                                 GROUP BY year
                                 ORDER BY year ASC;
                                 `;
