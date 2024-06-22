@@ -6,7 +6,7 @@ const dbService = require('./database.js');
 const crypto = require('crypto');
 
 const validHTMLPaths = ['/index', '/about', '/blog-entry', '/blog', '/cart', '/contact', '/gallery', '/imprint', '/privacy-policy', '/product-page', '/return-policy', '/terms-and-conditions'];
-const validFetchPaths = ['/insertCheckoutData', '/getCheckoutData', '/panel/dashboard', '/panel/orders/insertTrackingId', '/api/orders', '/paypal/refund', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
+const validFetchPaths = ['/sendCheckoutEmail', '/insertCheckoutData', '/getCheckoutData', '/panel/dashboard', '/panel/orders/insertTrackingId', '/api/orders', '/paypal/refund', '/webhook', '/applyCoupon', '/proceed-to-checkout', '/remove-from-cart', '/add-to-cart', '/getCart', '/getCartData', '/getFavourites', '/getProduct', '/getCategories', '/getBlogs', '/insertNewsletter', '/sendEmail', '/login', '/panel', '/forgot-password', '/products', '/panel/newsletter/sendNewsletter', '/panel/products', '/panel/orders', '/panel/transactions', '/panel/blog', '/panel/newsletter', '/panel/coupon', '/panel/coupon/getProductNames', '/panel/coupon/createCoupon', '/panel/coupon/editCoupon', '/panel/manageAccounts', '/panel/manage-accounts/getAccounts', '/panel/manageAccounts/getAccountRoles', '/panel/manageAccounts/editAccount', '/panel/manageAccounts/createAccount', '/change-profile-pic', '/panel/products/getProductSizes', '/panel/products/addProductSizes', '/panel/products/removeSizes', '/panel/products/getProductCategory', '/panel/products/addProductCategory', '/panel/products/editProductCategory', '/panel/products/removeCategories', '/panel/products/addProduct', '/panel/products/editProduct', '/panel/products/removeProduct', '/panel/products/getProduct/', '/panel/products/getProducts', '/panel/blog/createBlog', '/panel/blog/editBlog', '/panel/blog/removeBlog', '/panel/createBackup', '/logout'];
 
 const express = require('express');
 const app = express();
@@ -20,6 +20,7 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
+const cheerio = require('cheerio');
 
 const stripe = require('stripe')(`${process.env.stripe_secret}`)
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT = 8888 } = process.env;
@@ -41,6 +42,17 @@ app.use(session({
 }));
 
 
+//Setting up credentials for the email
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_TEMP,
+    pass: process.env.EMAIL_TEMP_PASS,
+  },
+});
+
+
 var user;
 
 let tempAccounts = false;
@@ -53,7 +65,6 @@ var orderId;
 const path = require('path');
 
 const endpointSecret = "whsec_28efc077e25dd49ed9cbf3024bccc58b8ed0a609a869429a67693ac5e300161e";
-
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -74,19 +85,151 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
       const metadata = paymentIntentSucceeded.metadata;
 
-      const data = {name: metadata.name, email: metadata.email, address: metadata.address, country: metadata.country, city: metadata.city, postal: metadata.postal, phone: metadata.phone};
+      console.log("135", metadata);
 
+      const userData = JSON.parse(metadata.data);
+
+      const data = { name: userData.name, email: userData.email, address: userData.address, country: userData.country, city: userData.city, postal: userData.postal, phone: userData.phone };
+
+      console.log("136", userData);
       const db = dbService.getDbServiceInstance();
 
-      db.insertCheckoutData(data, metadata.date, metadata.items, metadata.price, paymentIntentSucceeded.id, 'stripe', paymentIntentSucceeded.latest_charge);
+      db.insertCheckoutData(data, userData.date, userData.items, userData.price, paymentIntentSucceeded.id, 'stripe', paymentIntentSucceeded.latest_charge)
+        .then(orderData => {
+          console.log("99", orderData);
 
+          const filePath = path.join(__dirname, 'public', 'mailCheckout.html');
+
+          fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+              console.log(error);
+              return;
+            }
+
+            const products = [];
+
+            // Iterate over each key-value pair in the object
+            Object.entries(metadata).forEach(([key, value]) => {
+              if (key !== 'data') {
+                products.push(JSON.parse(value));
+              }
+            });
+
+            console.log("158", products)
+
+            const $final = cheerio.load(data);
+
+            let subtotal = products[0].product_price * products[0].product_quantity;
+
+            $final('.cus-name').text(`Hello ${userData.name},`);
+            $final('.p_name').text(`${products[0].product_name}`);
+            $final('.p_size').text(`Size: ${products[0].product_size}`);
+            $final('.p_quantity').text(`Quantity: ${products[0].product_quantity}`);
+            $final('.p_price').text(`$${(products[0].product_price * products[0].product_quantity).toFixed(2)}`);
+            $final('.b_title').html(`ORDER NO. ${orderData.insertId} <br>
+              ${userData.date.split(" ")[0]}`)
+
+            products.forEach((item, index) => {
+
+              if (index > 0) {
+
+                subtotal += + (item.product_price * item.product_quantity);
+
+                $final('.product-row').last().after(`<tr class="product-row">
+                          <td align="left"
+                            style="padding:0;Margin:0;padding-left:20px;padding-right:20px;padding-bottom:40px">
+                            <table cellpadding="0" cellspacing="0" class="es-left" align="left" role="none"
+                              style="border-collapse:collapse;border-spacing:0px;float:left">
+                              <tbody>
+                                <tr>
+                                  <td align="left" class="es-m-p20b" style="padding:0;Margin:0;width:195px">
+                                    <table cellpadding="0" cellspacing="0" width="100%" role="presentation"
+                                      style="border-collapse:collapse;border-spacing:0px">
+                                      <tbody>
+                                        <tr>
+                                          <td align="center" style="padding:0;Margin:0;font-size:0px">
+                                            <a target="_blank" href=""
+                                              style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;text-decoration:underline;color:#67A329;font-size:16px">
+                                              <img class="adapt-img p_image"
+                                                src="https://drive.google.com/thumbnail?id=1c__dt0jIc7xsRBjr0G0R0j9ie3y9SN47"
+                                                alt=""
+                                                style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;"
+                                                width="195">
+                                            </a>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <table cellpadding="0" cellspacing="0" class="es-right" align="right" role="none"
+                              style="border-collapse:collapse;border-spacing:0px;float:right">
+                              <tbody>
+                                <tr>
+                                  <td align="left" style="padding:0;Margin:0;width:345px">
+                                    <table cellpadding="0" cellspacing="0" width="100%" role="presentation">
+                                      <tbody>
+                                        <tr>
+                                          <td align="left" class="es-m-txt-c"
+                                            style="Margin:0;padding-left:20px;padding-right:20px;padding-bottom:25px">
+                                            <h3 class="p_name"
+                                              style="Margin:0;line-height:36px;font-family:Mitr, Arial, sans-serif;font-size:24px;font-style:normal;font-weight:normal;color:#386641">${item.product_name}</h3>
+                                            <p class="p_size"
+                                              style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
+                                              Size: ${item.product_size}</p>
+                                            <p class="p_quantity"
+                                              style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
+                                              Quantity: ${item.product_quantity}</p>
+                                            <h3 class="p_price"
+                                              style="Margin:0;line-height:36px;font-family:Mitr, Arial, sans-serif;font-size:24px;font-style:normal;font-weight:normal;color:#386641">$${(item.product_price * item.product_quantity).toFixed(2)}</h3>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>`);
+                }
+
+            })
+
+            
+            $final('.order-total').html(`$${subtotal}<br>$${parseFloat(userData.discount).toFixed(2)}<br>$00.00`);
+            $final('.total-price').text(`$${userData.price}`);
+
+            const modifiedHtmlString = $final.html();
+
+            const mailOptions = {
+              from: process.env.EMAIL_TEMP,
+              to: process.env.EMAIL_TEMP,
+              subject: 'Order received',
+              html: modifiedHtmlString
+            };
+
+            setTimeout(() => {
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+            }, 5000)
+
+          })
+        })
       break;
     // ... handle other event types
     case 'charge.refunded':
       const refunded = event.data.object;
       console.log("97 ", refunded);
       res.json(refunded);
- 
+
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
@@ -164,16 +307,6 @@ app.use((req, res, next) => {
     res. status(statusCode).render('error', { statusCode: statusCode, errorMessage: errorMessage});
 }); */
 
-
-//Setting up credentials for the email
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_NAME,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 const profilePicDir = 'public/images/profile';
 const blogPicDir = 'public/images/blog';
@@ -614,6 +747,7 @@ app.post('/proceed-to-checkout', upload.none(), (req, res) => {
 
   let totalQuantity = 0;
   let totalPrice = 0;
+  let totalDiscount = 0;
   let itemNames = "";
 
   checkoutData.forEach((item, index) => {
@@ -632,6 +766,8 @@ app.post('/proceed-to-checkout', upload.none(), (req, res) => {
 
   console.log("671 ", req.session);
 
+  const productEmailData = [];
+
   try {
     db.getCheckoutProducts(productData)
       .then(async data => {
@@ -640,26 +776,37 @@ app.post('/proceed-to-checkout', upload.none(), (req, res) => {
 
           if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
             price = item.product_price_reduced;
-            totalPrice += +item.product_price_reduced;
+            totalPrice += +(item.product_price_reduced * item.quantity);
           } else {
             price = item.product_price;
-            totalPrice += +item.product_price;
+            totalPrice += +(item.product_price * item.quantity);
           }
 
           let discount = req.session.discount;
+
+          productEmailData.push({ product_name: item.product_name, product_size: item.size_value, product_price: price, product_quantity: item.quantity, product_image: item.image_url });
 
           console.log(discount);
           if (discount) {
             if (discount.includes('%')) {
               let percentValue = parseFloat(discount.match(/\d+/)[0])
+              let discountPrice = price;
               price = price * (1 - (percentValue / 100));
+              discountPrice -= price;
+              totalDiscount += + discountPrice * item.quantity;
+              totalPrice -= discountPrice * item.quantity;
               console.log("test1", price);
             } else {
+              let discountPrice = price;
               price = price - (discount / totalQuantity);
+              discountPrice -= price;
+              totalDiscount += + discountPrice * item.quantity;
+              totalPrice -= discountPrice * item.quantity;
               console.log("test2", price);
             }
 
           }
+
           items.push({
             price_data: {
               currency: "eur",
@@ -690,28 +837,44 @@ app.post('/proceed-to-checkout', upload.none(), (req, res) => {
           console.log('Session saved successfully:', req.session.checkout);
           console.log("690 ", req.session.checkout);
 
+          const finalData = {
+            data: JSON.stringify({
+              name: checkoutData[0].name,
+              email: checkoutData[0].email,
+              address: checkoutData[0].address,
+              country: checkoutData[0].country,
+              city: checkoutData[0].city,
+              postal: checkoutData[0].postal,
+              phone: checkoutData[0].phone,
+              date: formattedDate,
+              items: itemNames,
+              price: totalPrice.toFixed(2),
+              discount: totalDiscount.toFixed(2)
+            })
+          }
+
+          productEmailData.forEach((item, index) => {
+            finalData[`product${index}`] = JSON.stringify(item);
+          })
+
+          console.log("820", finalData);
+
           // Create the Checkout Session
           const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: items,
             mode: "payment",
-            payment_intent_data:  {
-              metadata: {
-                name: checkoutData[0].name,
-                email: checkoutData[0].email, 
-                address: checkoutData[0].address, 
-                country: checkoutData[0].country, 
-                city: checkoutData[0].city, 
-                postal: checkoutData[0].postal, 
-                phone: checkoutData[0].phone,  
-                date: formattedDate, 
-                items: itemNames, 
-                price: totalPrice // here you can set the metadata
-              },
-          },
+            payment_intent_data: {
+              metadata: finalData
+
+            },
             success_url: "http://localhost:3001/index",
             cancel_url: "http://localhost:3001/index"
           });
+
+          req.session.checkout = req.session.checkout || [];
+          req.session.checkout = null;
+          req.session.save();
 
           res.json({ id: session.id });
 
@@ -1228,7 +1391,7 @@ app.post('/panel/newsletter/sendNewsletter', checkPermission(['Admin', 'Editor']
             }
           });
 
-        }, index * 1000)
+        }, index * 6000)
 
       })
 
@@ -1376,11 +1539,11 @@ app.get('/panel/dashboard', checkPermission(['Admin', 'Editor']), (req, res) => 
   const db = dbService.getDbServiceInstance();
 
   db.getDashboardData()
-  .then(data => {
-    console.log(data);
-    res.json(data);
-  })
-  .catch(err => console.log(err));
+    .then(data => {
+      console.log(data);
+      res.json(data);
+    })
+    .catch(err => console.log(err));
 })
 
 //Products section
@@ -2286,7 +2449,7 @@ app.post('/forgot-password', (request, response) => {
               console.log(error);
               response.status(500).send("Error sending email");
             } else {
-              console.log(info);
+              console.log(info.response);
               response.status(200).send("Email sent successfully");
             }
           });
@@ -2389,28 +2552,4 @@ function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   return emailRegex.test(email);
-}
-
-function insertCheckout(payment_id, method, charge_id) {
-
-  const data = { paymentId: payment_id, method: method, chargeId: charge_id };
-
-  console.log("2346 ", data)
-
-  fetch('http://localhost:3001/insertCheckoutData', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-}
-
-function getCheckoutData() {
-  fetch('http://localhost:3001/getCheckoutData')
-      //.then(response => response.json())
-      .then(data => {
-        console.log("2386", data);
-        //return data;
-      })
 }
