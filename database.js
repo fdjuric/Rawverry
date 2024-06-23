@@ -1358,11 +1358,19 @@ class dbService {
                 db.query(query, [status, trackingId, id], (err, results) => {
                     if (err) reject(new Error(err.message))
 
-                    resolve();
+                    resolve(results);
                 })
             })
 
-            return response;
+            const email = await new Promise((resolve, reject) => {
+                const query = "SELECT email FROM orders WHERE id = ?";
+                db.query(query, [id], (err, results) => {
+                    if(err) reject (new Error(err.message))
+                        resolve(results[0].email)
+                })
+            })
+
+            return email;
         } catch (error) {
             console.log(error)
         }
@@ -1398,7 +1406,17 @@ class dbService {
                     resolve();
                 })
             })
-            return response;
+
+            const email = await new Promise((resolve, reject) => {
+                const query = "SELECT email FROM orders WHERE id = ?";
+
+                db.query(query, [id], (err, results) => {
+                    if (err) reject(new Error(err.message))
+
+                    resolve(results[0].email);
+                })
+            })
+            return email;
         } catch (error) {
             console.log(error);
         }

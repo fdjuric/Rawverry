@@ -194,11 +194,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
                             </table>
                           </td>
                         </tr>`);
-                }
+              }
 
             })
 
-            
+
             $final('.order-total').html(`$${subtotal}<br>$${parseFloat(userData.discount).toFixed(2)}<br>$00.00`);
             $final('.total-price').text(`$${userData.price}`);
 
@@ -455,6 +455,8 @@ const createOrder = async (checkoutData, discount) => {
 
   const productCheckoutData = await db.getCheckoutProducts(productData);
 
+  const productEmailData = [];
+
   console.log(productCheckoutData, "197");
 
   productCheckoutData.forEach((item, index) => {
@@ -468,20 +470,33 @@ const createOrder = async (checkoutData, discount) => {
       totalPrice += +(item.product_price * productData[index].quantity);
     }
 
+    productEmailData.push({ product_name: item.product_name, product_size: item.size_value, product_price: price, product_quantity: item.quantity, product_image: item.image_url });
+
     console.log(productData[index].quantity);
   })
+
+  console.log("478", productEmailData);
 
   console.log(discount);
 
   console.log("Total: ", totalPrice)
 
+  let totalDiscount = 0;
+
   if (discount) {
     if (discount.includes('%')) {
       let percentValue = parseFloat(discount.match(/\d+/)[0]);
+      let discountPrice = totalPrice;
+
       totalPrice = totalPrice * (1 - (percentValue / 100));
+      discountPrice -= totalPrice;
+      totalDiscount = discountPrice;
       console.log("test1 304", totalPrice);
     } else {
       totalPrice = totalPrice - (discount / totalQuantity);
+      let discountPrice = totalPrice;
+      discountPrice -= totalPrice;
+      totalDiscount = discountPrice;
       console.log("test2 307", totalPrice);
     }
   }
@@ -516,7 +531,7 @@ const createOrder = async (checkoutData, discount) => {
     body: JSON.stringify(payload),
   });
 
-  const data = { responseData: await handleResponse(response), items: itemNames, total: totalPrice };
+  const data = { responseData: await handleResponse(response), items: itemNames, total: totalPrice, discount: totalDiscount, emailData: productEmailData };
 
   totalPrice = 0;
 
@@ -603,6 +618,17 @@ app.post("/api/orders", upload.none(), async (req, res) => {
 
     const { jsonResponse, httpStatusCode } = data.responseData;
 
+    req.session.emailData = req.session.emailData || [];
+
+    Object.entries(data.emailData).forEach(([key, value]) => {
+        req.session.emailData.push(value);
+    });
+
+    req.session.save((err) => {
+      if(err) console.log(err);
+      console.log("628", req.session.emailData)
+    })
+
     console.log("499 ", jsonResponse, httpStatusCode);
 
     const currentDate = new Date();
@@ -610,7 +636,7 @@ app.post("/api/orders", upload.none(), async (req, res) => {
     console.log(formattedDate);
 
     req.session.checkout = req.session.checkout || [];
-    req.session.checkout = { data: checkoutData[0], date: formattedDate, items: data.items, price: data.total }
+    req.session.checkout = { data: checkoutData[0], date: formattedDate, items: data.items, price: data.total, discount: data.discount }
     req.session.save((err) => {
       if (err) {
         console.error('Session save error:', err);
@@ -638,11 +664,135 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
 
     const checkoutData = req.session.checkout;
 
+    const emailProduct = req.session.emailData;
+
     console.log("534", checkoutData);
 
     db.insertCheckoutData(checkoutData.data, checkoutData.date, checkoutData.items, checkoutData.price, orderID, 'paypal', jsonResponse.purchase_units[0].payments.captures[0].id)
-      .then(() => {
-        req.session.checkout = null
+    .then(orderData => {
+      console.log("99", orderData);
+
+      const filePath = path.join(__dirname, 'public', 'mailCheckout.html');
+
+      fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+          console.log(error);
+          return;
+        }
+
+        console.log("158", emailProduct)
+
+        const $final = cheerio.load(data);
+
+        let subtotal = emailProduct[0].product_price * emailProduct[0].product_quantity;
+
+        $final('.cus-name').text(`Hello ${checkoutData.data.name},`);
+        $final('.p_name').text(`${emailProduct[0].product_name}`);
+        $final('.p_size').text(`Size: ${emailProduct[0].product_size}`);
+        $final('.p_quantity').text(`Quantity: ${emailProduct[0].product_quantity}`);
+        $final('.p_price').text(`$${(emailProduct[0].product_price * emailProduct[0].product_quantity).toFixed(2)}`);
+        $final('.b_title').html(`ORDER NO. ${orderData.insertId} <br>
+          ${checkoutData.date.split(" ")[0]}`)
+
+          emailProduct.forEach((item, index) => {
+
+          if (index > 0) {
+
+            console.log("700", item);
+
+            subtotal += + (item.product_price * item.product_quantity);
+
+            $final('.product-row').last().after(`<tr class="product-row">
+                      <td align="left"
+                        style="padding:0;Margin:0;padding-left:20px;padding-right:20px;padding-bottom:40px">
+                        <table cellpadding="0" cellspacing="0" class="es-left" align="left" role="none"
+                          style="border-collapse:collapse;border-spacing:0px;float:left">
+                          <tbody>
+                            <tr>
+                              <td align="left" class="es-m-p20b" style="padding:0;Margin:0;width:195px">
+                                <table cellpadding="0" cellspacing="0" width="100%" role="presentation"
+                                  style="border-collapse:collapse;border-spacing:0px">
+                                  <tbody>
+                                    <tr>
+                                      <td align="center" style="padding:0;Margin:0;font-size:0px">
+                                        <a target="_blank" href=""
+                                          style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;text-decoration:underline;color:#67A329;font-size:16px">
+                                          <img class="adapt-img p_image"
+                                            src="https://drive.google.com/thumbnail?id=1c__dt0jIc7xsRBjr0G0R0j9ie3y9SN47"
+                                            alt=""
+                                            style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;"
+                                            width="195">
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <table cellpadding="0" cellspacing="0" class="es-right" align="right" role="none"
+                          style="border-collapse:collapse;border-spacing:0px;float:right">
+                          <tbody>
+                            <tr>
+                              <td align="left" style="padding:0;Margin:0;width:345px">
+                                <table cellpadding="0" cellspacing="0" width="100%" role="presentation">
+                                  <tbody>
+                                    <tr>
+                                      <td align="left" class="es-m-txt-c"
+                                        style="Margin:0;padding-left:20px;padding-right:20px;padding-bottom:25px">
+                                        <h3 class="p_name"
+                                          style="Margin:0;line-height:36px;font-family:Mitr, Arial, sans-serif;font-size:24px;font-style:normal;font-weight:normal;color:#386641">${item.product_name}</h3>
+                                        <p class="p_size"
+                                          style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
+                                          Size: ${item.product_size}</p>
+                                        <p class="p_quantity"
+                                          style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;font-family:tahoma, verdana, segoe, sans-serif;line-height:24px;color:#4D4D4D;font-size:16px">
+                                          Quantity: ${item.product_quantity}</p>
+                                        <h3 class="p_price"
+                                          style="Margin:0;line-height:36px;font-family:Mitr, Arial, sans-serif;font-size:24px;font-style:normal;font-weight:normal;color:#386641">$${(item.product_price * item.product_quantity).toFixed(2)}</h3>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>`);
+          }
+
+        })
+
+
+        $final('.order-total').html(`$${subtotal.toFixed(2)}<br>$${parseFloat(checkoutData.discount).toFixed(2)}<br>$00.00`);
+        $final('.total-price').text(`$${(subtotal- checkoutData.discount).toFixed(2)}`);
+
+        const modifiedHtmlString = $final.html();
+
+        const mailOptions = {
+          from: process.env.EMAIL_TEMP,
+          to: process.env.EMAIL_TEMP,
+          subject: 'Order received',
+          html: modifiedHtmlString
+        };
+
+        setTimeout(() => {
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+          });
+        }, 5000)
+
+      })
+    })
+    .then(() => {
+        req.session.checkout = null;
+        req.session.emailData = null;
         req.session.save();
         setTimeout(() => {
           res.redirect('/index');
@@ -719,19 +869,34 @@ app.post('/applyCoupon', upload.none(), (req, res) => {
           console.log(req.session.discount);
           req.session.save(session.discount);
 
+          let discountPrice = 0;
+
           if (data.discount_amount.includes('%')) {
             console.log("percent")
+            let temp = 0;
             let percentValue = parseFloat(data.discount_amount.match(/\d+/)[0])
+            temp = total;
             total = total * (1 - (percentValue / 100));
+            temp -= total;
+            discountPrice = temp;
             console.log("test1", total);
-            res.json(total)
+            const finalData = {discount: discountPrice, total: total};
+            res.json(finalData)
           } else {
+            let temp = 0;
             total = total - data.discount_amount;
+            temp -= total;
+            discountPrice = temp;
             console.log("test2", total);
-            res.json(total)
+            const finalData = {discount: discountPrice, total: total};
+            res.json(finalData)
           }
 
+        } else {
+          res.status(404).json("Invalid coupon code!");
+            return;
         }
+
       })
       .catch(err => console.log(err))
   }
@@ -771,7 +936,7 @@ app.post('/proceed-to-checkout', upload.none(), (req, res) => {
   try {
     db.getCheckoutProducts(productData)
       .then(async data => {
-        data.forEach(item => {
+        data.forEach((item, index) => {
           let price = 0;
 
           if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
@@ -791,6 +956,7 @@ app.post('/proceed-to-checkout', upload.none(), (req, res) => {
             if (discount.includes('%')) {
               let percentValue = parseFloat(discount.match(/\d+/)[0])
               let discountPrice = price;
+
               price = price * (1 - (percentValue / 100));
               discountPrice -= price;
               totalDiscount += + discountPrice * item.quantity;
@@ -1140,7 +1306,7 @@ app.get('/getProduct/:name', (req, res) => {
 
   const db = dbService.getDbServiceInstance();
 
-  const product = db.getProduct(name);
+  const product = db.getProduct(name.replace("-", " "));
 
   product
     .then((data) => {
@@ -1960,7 +2126,31 @@ app.post('/panel/orders/insertTrackingId', checkPermission(['Admin']), upload.no
   const db = dbService.getDbServiceInstance();
 
   db.insertTrackingId(id, status, trackingId)
-    .then(() => res.status(200).json("Success!"))
+    .then((data) => {
+      console.log(data);
+
+      const mailOptions = {
+        from: process.env.EMAIL_TEMP,
+        to: process.env.EMAIL_TEMP,
+        subject: 'Order sent!',
+        text: `
+        Thank you for choosing us!
+        Your tracking number is: ${trackingId}
+        To track your package visit the following link: https://www.dhl.com/ba-en/home/tracking.html`
+      };
+
+      setTimeout(() => {
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log('Email sent: ' + info.response);
+            res.status(200).json("Success!")
+          }
+        });
+      }, 5000)
+
+    })
     .catch(error => console.log(error))
 
 })
@@ -1985,7 +2175,26 @@ app.get('/panel/orders/initiateRefund/:id', checkPermission(['Admin']), (req, re
           console.log(refund.status);
           if (refund.status === 'succeeded') {
             db.changeRefundStatus(id)
-              .then(() => {
+              .then((data) => {
+                const mailOptions = {
+                  from: process.env.EMAIL_TEMP,
+                  to: process.env.EMAIL_TEMP,
+                  subject: 'Order refunded!',
+                  text: `
+                  Unfortunately we had to refund your order due to technical difficulties!
+                  Thank you for choosing us!`
+                };
+          
+                setTimeout(() => {
+                  transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                      console.log(error);
+                    } else {
+                      console.log('Email sent: ' + info.response);
+                      res.status(200).json("Success!")
+                    }
+                  });
+                }, 5000)
                 res.status(200).json('Success!');
               })
           }
@@ -2004,7 +2213,25 @@ app.get('/panel/orders/initiateRefund/:id', checkPermission(['Admin']), (req, re
         console.log('paypal');
         const { jsonResponse, httpStatusCode } = await refundOrder(data.charge_id);
         db.changeRefundStatus(id)
-          .then(() => {
+          .then((data) => {
+            const mailOptions = {
+              from: process.env.EMAIL_TEMP,
+              to: process.env.EMAIL_TEMP,
+              subject: 'Order refunded!',
+              text: `
+              Unfortunately we had to refund your order due to technical difficulties!
+              Thank you for choosing us!`
+            };
+
+            setTimeout(() => {
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+            }, 5000)
             res.status(httpStatusCode).json(jsonResponse);
           })
       }

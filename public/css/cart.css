@@ -230,12 +230,7 @@ body {
     width: 100%;
 }
 
-.checkout-subtotal {
-    display: flex;
-    justify-content: space-between;
-}
-
-.checkout-total {
+.checkout-subtotal, .checkout-discount, .checkout-total {
     display: flex;
     justify-content: space-between;
 }
@@ -317,6 +312,19 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 0.4s ease;
+}
+.stripe-checkout svg path {
+    transition: all 0.4s ease;
+}
+.stripe-checkout:hover {
+    cursor: pointer;
+    background-color: transparent;
+    border: 1px solid #5433FF;
+    color:#5433FF;
+}
+.stripe-checkout:hover svg path {
+    fill:#5433FF;
 }
 
 .input-wrapper {
@@ -390,9 +398,19 @@ body {
         padding: 0;
     }
 
-    
+    .order-data {
+        width: 90%;
+    }
 
+    .data-form .input-row {
+        flex-direction: column;
+    }
 
+    .data-form .button {
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+    }
 
 }
 
@@ -480,6 +498,20 @@ body {
         text-align: center;
     }
 
+    .order-data {
+        width: 90%;
+    }
+
+    .data-form .input-row {
+        flex-direction: column;
+    }
+
+    .data-form .button {
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
 }
 
 @media (min-width: 768px) and (max-width: 1024px){
@@ -498,5 +530,9 @@ body {
     .coupon-wrapper div a {
         box-sizing: border-box;
         width: 100%;
+    }
+
+    .order-data {
+        width: 60%;
     }
 }

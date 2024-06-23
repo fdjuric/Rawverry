@@ -82,28 +82,28 @@ document.addEventListener('DOMContentLoaded', () => {
                             const response = await fetch("/api/orders", {
                                 method: "POST",
                                 headers: {
-                                  "Content-Type": "application/json",
+                                    "Content-Type": "application/json",
                                 },
                                 // use the "body" param to optionally pass additional order information
                                 // like product ids and quantities
                                 body: JSON.stringify(checkoutData),
-                              });
-                              
-                              const orderData = await response.json();
-                              checkoutData.splice(1, checkoutData.length);
+                            });
 
-                              console.log(orderData.id)
-                              
-                              if (orderData.id) {
+                            const orderData = await response.json();
+                            checkoutData.splice(1, checkoutData.length);
+
+                            console.log(orderData.id)
+
+                            if (orderData.id) {
                                 return orderData.id;
-                              } else {
+                            } else {
                                 const errorDetail = orderData?.details?.[0];
                                 const errorMessage = errorDetail
-                                  ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
-                                  : JSON.stringify(orderData);
-                                
+                                    ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
+                                    : JSON.stringify(orderData);
+
                                 throw new Error(errorMessage);
-                              }
+                            }
 
                         } catch (error) {
                             console.log(error);
@@ -396,6 +396,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     totalPrice();
                                 }
 
+                                const discount = document.querySelector('.discount-price');
+                                discount.textContent = `$0.00`;
+
                             })
 
                             quantityPhone.addEventListener('change', () => {
@@ -433,6 +436,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                     totalPrice();
                                 }
+
+                                const discount = document.querySelector('.discount-price');
+                                discount.textContent = `$0.00`;
 
                             })
                             // Append the total paragraph to the total wrapper
@@ -484,6 +490,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             const couponCode = document.querySelector('.coupon-wrapper .coupon').value;
 
                             const quantity = document.querySelectorAll('.quantity-wrapper input');
+
+                            if(!couponCode)
+                                return;
+                                
 
                             let quantityAmount = 0;
 
@@ -548,10 +558,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                     } else {
 
                                         const subtotal = document.querySelector('.subtotal-price');
+                                        const discount = document.querySelector('.discount-price');
                                         const total = document.querySelector('.total-price');
 
-                                        subtotal.textContent = `$${data.toFixed(2)}`;
-                                        total.textContent = `$${data.toFixed(2)}`;
+                                        subtotal.textContent = `$${parseFloat(data.total + data.discount).toFixed(2)}`;
+                                        discount.textContent = `$${data.discount.toFixed(2)}`;
+                                        total.textContent = `$${data.total.toFixed(2)}`;
 
                                     }
 
@@ -621,8 +633,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const postal = document.querySelector('.order-data .user-postal');
                                 const phone = document.querySelector('.order-data .user-phone');
 
-                                if (name.value && address.value && country.value && city.value && postal.value && phone.value) {
+                                if (name.value && email.value && address.value && country.value && city.value && postal.value && phone.value) {
 
+                                    if(email.classList.contains('invalid')) {
+                                        alert('Invalid email!')
+                                        return;
+                                    }
                                     checkoutData.push({ name: name.value, email: email.value, address: address.value, country: country.value, city: city.value, postal: postal.value, phone: phone.value });
                                     console.log(checkoutData);
                                     dataForm.style.opacity = 0;
@@ -695,6 +711,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             }
 
+            const checkoutEmail = document.querySelector('.order-data .data-form .user-email');
+            checkoutEmail.addEventListener('change', () => {
+                checkoutEmail.classList.add('invalid');
+                console.log(validateEmail(checkoutEmail.value))
+                if(!validateEmail(checkoutEmail.value)) {
+                    checkoutEmail.style.s = 'var(--red-color)'
+                    checkoutEmail.style.boxShadow = '2px 2px 0px 0px var(--red-color), -2px -2px 0px 0px var(--red-color), 2px -2px 0px 0px var(--red-color), -2px 2px 0px 0px var(--red-color)'
+                }else {
+                    checkoutEmail.style.boxShadow = '';
+                    checkoutEmail.classList.remove('invalid');
+                }
+            })
+
         })
 
     async function checkoutHandlerStripe(quantity, data) {
@@ -702,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const stripe = await loadStripe("pk_test_51Oz0TyP1klN1xJaKPs3Ca1DKd2WE1c4u9GnPq7JpDBgdCWaOhR2rqOhfpY9fq2ntoeD3WCTKmh3s4JvHrEGXozPU00R7JTxQyJ");
 
         quantity.forEach((item, index) => {
-            checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value});
+            checkoutData.push({ product_id: data[index].product_id, product_name: data[index].product_name, quantity: item, size_value: data[index].size_value });
         })
 
         fetch('/proceed-to-checkout', {
@@ -824,4 +853,11 @@ document.addEventListener('DOMContentLoaded', () => {
         totalPrice.textContent = `$${temp.toFixed(2)}`;
 
     }
+
+    function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+        return emailRegex.test(email);
+      }
+
 })

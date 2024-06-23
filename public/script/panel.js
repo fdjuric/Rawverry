@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 chartDataYearsHighest = Math.max(...chartDataYearsSales);
 
                 chartDataYearsHighest = roundUp(chartMonthHighest);
-                
+
                 var chartDataYear = {
                     labels: chartDataYears,
                     datasets: [{
@@ -1880,7 +1880,37 @@ document.addEventListener('DOMContentLoaded', function () {
                                 for (let i = 1; i < priceRows.length; i++) {
                                     priceRows[i].remove();
                                 }
+
+                                editorDesc.root.innerHTML = '';
+                                editorDetails.root.innerHTML = '';
+
+                                const title = document.querySelector('.create-product .product-form-title');
+                                const price = document.querySelector('.create-product .product-form-price');
+                                const priceReduced = document.querySelector('.create-product .product-form-price-reduced');
+                                title.value = '';
+                                price.value = '';
+                                priceReduced.value = '';
+
+                                title.style.borderColor = '';
+                                title.classList.remove('placeholder');
+
+                                priceReduced.classList.remove('invalid');
+                                priceReduced.style.border = '';
                             }, 400);
+                        })
+
+                        const input = document.querySelector('.product-creation .product-form-price');
+                        const input1 = document.querySelector('.product-creation .product-form-price-reduced');
+
+                        input1.addEventListener('change', () => {
+                            if (input.value <= input1.value) {
+                                input1.style.border = '2px solid var(--red-color)'
+                                input1.classList.add('invalid');
+                            } else {
+                                input1.classList.remove('invalid');
+                                input1.style.border = '2px solid var(--accent-color)'
+                            }
+
                         })
 
                         const addSizeCreate = document.querySelector('.product-creation .add-size');
@@ -2188,9 +2218,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 cancelButton.addEventListener('click', () => {
 
-                                    refundWrapper.style.opacity = 1;
+                                    refundWrapper.style.opacity = 0;
                                     setTimeout(() => {
-                                        refundWrapper.style.display = "flex";
+                                        refundWrapper.style.display = "none";
                                     }, 400)
                                 })
 
@@ -2224,8 +2254,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log(editorDesc.root.innerHTML);
         if (title.classList.contains('placeholder')) {
-            alert("That Blog title already exists!")
+            alert("That Title already exists!")
             return;
+        }
+
+        const reducedInput = document.querySelectorAll('.create-product .product-form-price-reduced');
+
+        for (let i = 0; i < reducedInput.length; i++) {
+            if (reducedInput[i].classList.contains('invalid')) {
+                alert('Reduced price can\'t be same or higher than the original price');
+                return;
+            }
         }
 
         const categories = document.querySelectorAll('.product-creation .product-category-wrapper div input');
@@ -2340,17 +2379,33 @@ document.addEventListener('DOMContentLoaded', function () {
                             setTimeout(() => {
                                 productCreation.style.display = "none";
 
+                                const title = document.querySelector('.product-creation .product-form-title');
+                                title.value = '';
+                                title.style.borderColor = '';
+                                title.classList.remove('placeholder');
+
                                 const editSizes = document.querySelectorAll('.product-creation .product-form-price-wrapper');
                                 const editCategories = document.querySelectorAll('.product-creation .product-category-wrapper div input')
 
-                                editSizes.forEach(item => {
-                                    item.remove();
+                                editSizes.forEach((item, index) => {
+                                    if (index > 0)
+                                        item.remove();
                                 })
+
+                                const price = document.querySelector('.product-creation .product-form-price');
+                                const priceReduced = document.querySelector('.product-creation .product-form-price-reduced');
+                                price.value = '';
+                                priceReduced.value = '';
+                                priceReduced.classList.remove('invalid');
+                                priceReduced.style.border = '';
                                 editCategories.forEach(input => {
 
                                     input.checked = false;
 
                                 })
+
+                                editorDesc.root.innerHTML = '';
+                                editorDetails.root.innerHTML = '';
 
                             }, 400);
                         } else {
@@ -3259,6 +3314,17 @@ document.addEventListener('DOMContentLoaded', function () {
         input1.setAttribute('type', 'number');
         input1.value = item.product_price_reduced;
 
+        input1.addEventListener('change', () => {
+            if (input.value <= input1.value) {
+                input1.style.border = '2px solid var(--red-color)'
+                input1.classList.add('invalid');
+            } else {
+                input1.classList.remove('invalid');
+                input1.style.border = '2px solid var(--accent-color)'
+            }
+
+        })
+
         const input1Div = document.createElement('div');
         input1Div.classList.add('input-wrapper');
         const input1Title = document.createElement('p');
@@ -3407,6 +3473,17 @@ document.addEventListener('DOMContentLoaded', function () {
         input1.classList.add('product-form-price-reduced');
         input1.setAttribute('type', 'number');
         input1.placeholder = "ex. 399.99";
+
+        input1.addEventListener('change', () => {
+            if (input.value <= input1.value) {
+                input1.style.border = '2px solid var(--red-color)'
+                input1.classList.add('invalid');
+            } else {
+                input1.classList.remove('invalid');
+                input1.style.border = '2px solid var(--accent-color)'
+            }
+
+        })
 
         const input1Div = document.createElement('div');
         input1Div.classList.add('input-wrapper');
@@ -3973,7 +4050,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const digits = value.toString().length;
         const multiplier = Math.pow(10, digits - 4);
         return Math.ceil(value / multiplier) * multiplier;
-      }
+    }
 
 
 })
