@@ -450,14 +450,15 @@ footer {
   align-items: start;
 }
 
-.footer-element {
+.footer-element p{
   color: var(--primary-shade);
   padding-bottom: var(--padding-20);
-  transition: all 0.3ms ease-in-out;
+  transition: all 0.4s ease;
 }
 
-.footer-element:hover {
+.footer-element:hover p{
   color: var(--primary-color);
+  filter:brightness(1.2);
 }
 
 .newsletter-wrapper {
