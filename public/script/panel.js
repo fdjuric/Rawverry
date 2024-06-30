@@ -329,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 section[prevSection].style.display = "none";
 
                 navSvg.forEach((item, index) => {
-                    if (index === 6) {
+                    if (item.parentElement.parentElement.classList.contains('coupon-btn')) {
                         navSvgCoupon[0].style.stroke = "var(--secondary-color)";
                         navSvgCoupon[0].style.color = "var(--secondary-color)";
                         navSvgCoupon[1].style.stroke = "var(--secondary-color)";
@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     item.style.color = "var(--secondary-color)";
                 })
 
-                if (index === 6) {
+                if (item.classList.contains('coupon-btn')) {
                     console.log(navSvgCoupon)
                     navSvgCoupon[0].style.stroke = "var(--accent-color)";
                     navSvgCoupon[0].style.color = "var(--accent-color)";
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     navSvgCoupon[1].style.color = "var(--accent-color)";
                     navText[index].style.color = "var(--accent-color)";
 
-                } else if (index === 7) {
+                } else if (item.classList.contains('manage-accounts-btn')) {
                     navSvg[index + 1].style.fill = "var(--accent-color)";
                     navText[index].style.color = "var(--accent-color)";
                 } else {
@@ -2020,225 +2020,227 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let areOrdersAdded = false;
 
-    ordersButton.addEventListener('click', () => {
-        if (!areOrdersAdded) {
-            fetch('/panel/orders')
-                .then(response => response.json())
-                .then(data => {
-                    const tbody = document.createElement('tbody');
-                    const table = document.querySelector('.orders .products-table table');
-                    let temp;
-                    data.forEach(order => {
-                        const row = document.createElement('tr');
+    if (ordersButton) {
 
-                        if (temp != order.id) {
+        ordersButton.addEventListener('click', () => {
+            if (!areOrdersAdded) {
+                fetch('/panel/orders')
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.createElement('tbody');
+                        const table = document.querySelector('.orders .products-table table');
+                        let temp;
+                        data.forEach(order => {
+                            const row = document.createElement('tr');
 
-                            let items = [];
+                            if (temp != order.id) {
 
-                            items = order.items.split('/');
+                                let items = [];
 
-                            productNames.push(order.full_name);
-                            // Create and populate table data (td) for each field
-                            const titleCellWrapper = document.createElement('td');
-                            const titleCellWrapperDiv = document.createElement('div');
-                            titleCellWrapperDiv.classList.add('title-cell-wrapper');
-                            const titleCell = document.createElement('p');
-                            titleCell.classList.add('full-name');
-                            titleCell.textContent = order.full_name;
+                                items = order.items.split('/');
 
-                            console.log(items);
+                                productNames.push(order.full_name);
+                                // Create and populate table data (td) for each field
+                                const titleCellWrapper = document.createElement('td');
+                                const titleCellWrapperDiv = document.createElement('div');
+                                titleCellWrapperDiv.classList.add('title-cell-wrapper');
+                                const titleCell = document.createElement('p');
+                                titleCell.classList.add('full-name');
+                                titleCell.textContent = order.full_name;
 
-                            const addressWrapper = document.createElement('td');
-                            const addressCellWrapperDiv = document.createElement('div');
-                            addressCellWrapperDiv.classList.add('address-cell-wrapper');
-                            const addressCell = document.createElement('p');
-                            addressCell.textContent = order.address;
-                            addressCell.classList.add('order-address');
-                            const countryCell = document.createElement('p');
-                            countryCell.textContent = order.country;
-                            countryCell.classList.add('order-country');
-                            const postalCell = document.createElement('p');
-                            postalCell.textContent = order.postal;
-                            postalCell.classList.add('order-postal');
+                                console.log(items);
 
-                            addressCellWrapperDiv.appendChild(countryCell);
-                            addressCellWrapperDiv.appendChild(addressCell);
-                            addressCellWrapperDiv.appendChild(postalCell);
-                            addressWrapper.appendChild(addressCellWrapperDiv);
+                                const addressWrapper = document.createElement('td');
+                                const addressCellWrapperDiv = document.createElement('div');
+                                addressCellWrapperDiv.classList.add('address-cell-wrapper');
+                                const addressCell = document.createElement('p');
+                                addressCell.textContent = order.address;
+                                addressCell.classList.add('order-address');
+                                const countryCell = document.createElement('p');
+                                countryCell.textContent = order.country;
+                                countryCell.classList.add('order-country');
+                                const postalCell = document.createElement('p');
+                                postalCell.textContent = order.postal;
+                                postalCell.classList.add('order-postal');
 
-                            const phoneCell = document.createElement('p');
-                            phoneCell.textContent = order.phone;
-                            phoneCell.classList.add('order-phone');
-                            const itemsCellWrapper = document.createElement('td');
-                            const itemsCellWrapperDiv = document.createElement('div');
-                            itemsCellWrapperDiv.classList.add('order-items-wrapper');
-                            items.forEach(item => {
-                                const itemsCell = document.createElement('p');
-                                itemsCell.textContent = item;
-                                itemsCell.classList.add('order-items');
-                                itemsCellWrapperDiv.appendChild(itemsCell);
-                            })
+                                addressCellWrapperDiv.appendChild(countryCell);
+                                addressCellWrapperDiv.appendChild(addressCell);
+                                addressCellWrapperDiv.appendChild(postalCell);
+                                addressWrapper.appendChild(addressCellWrapperDiv);
 
-                            itemsCellWrapper.appendChild(itemsCellWrapperDiv);
-                            const priceCell = createTableCell(order.total, 'order-price');
-                            const statusCell = createTableCell(order.status, 'order-delivery-status');
-                            const trackingCell = createTableCell(order.tracking_id, 'order-tracking');
+                                const phoneCell = document.createElement('p');
+                                phoneCell.textContent = order.phone;
+                                phoneCell.classList.add('order-phone');
+                                const itemsCellWrapper = document.createElement('td');
+                                const itemsCellWrapperDiv = document.createElement('div');
+                                itemsCellWrapperDiv.classList.add('order-items-wrapper');
+                                items.forEach(item => {
+                                    const itemsCell = document.createElement('p');
+                                    itemsCell.textContent = item;
+                                    itemsCell.classList.add('order-items');
+                                    itemsCellWrapperDiv.appendChild(itemsCell);
+                                })
 
-                            const emailCell = document.createElement('p');
-                            emailCell.classList.add('order-email');
-                            emailCell.textContent = order.email;
-                            // Append table data to the table row
+                                itemsCellWrapper.appendChild(itemsCellWrapperDiv);
+                                const priceCell = createTableCell(order.total, 'order-price');
+                                const statusCell = createTableCell(order.status, 'order-delivery-status');
+                                const trackingCell = createTableCell(order.tracking_id, 'order-tracking');
 
-                            if (statusCell.textContent === 'Pending')
-                                statusCell.firstChild.style.color = "var(--warning-color)";
-                            else if (statusCell.textContent === 'Sent')
-                                statusCell.firstChild.style.color = "var(--accent-color)";
-                            else
-                                statusCell.firstChild.style.color = "var(--red-color)";
+                                const emailCell = document.createElement('p');
+                                emailCell.classList.add('order-email');
+                                emailCell.textContent = order.email;
+                                // Append table data to the table row
 
-                            titleCellWrapperDiv.appendChild(titleCell);
-                            titleCellWrapperDiv.appendChild(phoneCell);
-                            titleCellWrapperDiv.appendChild(emailCell);
-                            titleCellWrapper.appendChild(titleCellWrapperDiv);
-                            row.appendChild(titleCellWrapper);
-                            row.appendChild(addressWrapper);
-                            row.appendChild(itemsCellWrapper);
-                            row.appendChild(priceCell);
-                            row.appendChild(statusCell);
-                            row.appendChild(trackingCell);
+                                if (statusCell.textContent === 'Pending')
+                                    statusCell.firstChild.style.color = "var(--warning-color)";
+                                else if (statusCell.textContent === 'Sent')
+                                    statusCell.firstChild.style.color = "var(--accent-color)";
+                                else
+                                    statusCell.firstChild.style.color = "var(--red-color)";
 
-                            // Create and append the SVG icons
-                            const settingsEditIcons = createSettingsOrdersIcons(); // Function to create SVG icons
-                            const settingsCell = document.createElement('td');
-                            settingsCell.appendChild(settingsEditIcons);
-                            row.appendChild(settingsCell);
+                                titleCellWrapperDiv.appendChild(titleCell);
+                                titleCellWrapperDiv.appendChild(phoneCell);
+                                titleCellWrapperDiv.appendChild(emailCell);
+                                titleCellWrapper.appendChild(titleCellWrapperDiv);
+                                row.appendChild(titleCellWrapper);
+                                row.appendChild(addressWrapper);
+                                row.appendChild(itemsCellWrapper);
+                                row.appendChild(priceCell);
+                                row.appendChild(statusCell);
+                                row.appendChild(trackingCell);
 
-                            settingsEditIcons.firstChild.addEventListener('click', () => {
+                                // Create and append the SVG icons
+                                const settingsEditIcons = createSettingsOrdersIcons(); // Function to create SVG icons
+                                const settingsCell = document.createElement('td');
+                                settingsCell.appendChild(settingsEditIcons);
+                                row.appendChild(settingsCell);
 
-                                const orderWrapper = document.querySelector('.order-sent-wrapper');
+                                settingsEditIcons.firstChild.addEventListener('click', () => {
 
-                                orderWrapper.style.display = "flex";
-                                orderWrapper.style.opacity = 1;
+                                    const orderWrapper = document.querySelector('.order-sent-wrapper');
 
-                                const finishButton = document.querySelector('.order-sent-wrapper .order-sent .button');
+                                    orderWrapper.style.display = "flex";
+                                    orderWrapper.style.opacity = 1;
 
-                                console.log(finishButton);
-                                finishButton.addEventListener('click', () => {
+                                    const finishButton = document.querySelector('.order-sent-wrapper .order-sent .button');
 
-                                    const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
+                                    console.log(finishButton);
+                                    finishButton.addEventListener('click', () => {
 
-                                    if (trackingNumberField.value !== '') {
-                                        console.log(trackingNumberField.value)
+                                        const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
 
-                                        trackingCell.firstChild.textContent = trackingNumberField.value;
-                                        statusCell.firstChild.textContent = 'Sent';
-                                        statusCell.firstChild.style.color = 'var(--accent-color)';
+                                        if (trackingNumberField.value !== '') {
+                                            console.log(trackingNumberField.value)
 
-                                        const formData = new FormData();
+                                            trackingCell.firstChild.textContent = trackingNumberField.value;
+                                            statusCell.firstChild.textContent = 'Sent';
+                                            statusCell.firstChild.style.color = 'var(--accent-color)';
 
-                                        formData.append('id', order.id);
-                                        formData.append('status', 'Sent');
-                                        formData.append('trackingId', trackingNumberField.value);
+                                            const formData = new FormData();
 
-                                        fetch('/panel/orders/insertTrackingId', {
-                                            method: 'POST',
-                                            body: formData // Set the body of the request as FormData
-                                        })
+                                            formData.append('id', order.id);
+                                            formData.append('status', 'Sent');
+                                            formData.append('trackingId', trackingNumberField.value);
+
+                                            fetch('/panel/orders/insertTrackingId', {
+                                                method: 'POST',
+                                                body: formData // Set the body of the request as FormData
+                                            })
+                                                .then((response) => {
+                                                    if (response.ok) {
+                                                        console.log("Success!")
+                                                        const orderWrapper = document.querySelector('.order-sent-wrapper');
+                                                        orderWrapper.style.opacity = 0;
+
+                                                        const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
+
+                                                        setTimeout(() => {
+                                                            orderWrapper.style.display = "flex";
+                                                            trackingNumberField.value = '';
+                                                        }, 400)
+
+                                                    }
+                                                })
+                                                .catch(error => console.log(error));
+
+                                        } else {
+                                            alert('Tracking Number Field cannot be empty!');
+                                        }
+                                    })
+
+                                    const cancelButton = document.querySelector('.order-sent-wrapper .order-sent .remove-button');
+
+                                    cancelButton.addEventListener('click', () => {
+
+                                        const orderWrapper = document.querySelector('.order-sent-wrapper');
+                                        orderWrapper.style.opacity = 0;
+
+                                        const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
+
+                                        setTimeout(() => {
+                                            orderWrapper.style.display = "flex";
+                                            trackingNumberField.value = '';
+                                        }, 400)
+
+                                    })
+
+                                })
+
+                                settingsEditIcons.lastChild.addEventListener('click', () => {
+
+                                    const refundWrapper = document.querySelector('.order-refund-wrapper');
+
+                                    refundWrapper.style.display = "flex";
+                                    refundWrapper.style.opacity = 1;
+
+                                    const confirmButton = document.querySelector('.order-refund-wrapper .order-refund .button');
+
+                                    console.log(order.id);
+                                    confirmButton.addEventListener('click', () => {
+
+                                        fetch(`/panel/orders/initiateRefund/${order.id}`)
                                             .then((response) => {
+
                                                 if (response.ok) {
-                                                    console.log("Success!")
-                                                    const orderWrapper = document.querySelector('.order-sent-wrapper');
-                                                    orderWrapper.style.opacity = 0;
+                                                    alert('Successfully refunded the order!');
+                                                    statusCell.firstChild.textContent = 'Refunded';
+                                                    statusCell.firstChild.style.color = "var(--red-color)";
 
-                                                    const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
-
+                                                    refundWrapper.style.opacity = 0;
                                                     setTimeout(() => {
-                                                        orderWrapper.style.display = "flex";
-                                                        trackingNumberField.value = '';
+                                                        refundWrapper.style.display = "none";
                                                     }, 400)
 
                                                 }
                                             })
-                                            .catch(error => console.log(error));
+                                            .catch(error => alert(error));
+                                    })
 
-                                    } else {
-                                        alert('Tracking Number Field cannot be empty!');
-                                    }
-                                })
+                                    const cancelButton = document.querySelector('.order-refund .remove-button');
 
-                                const cancelButton = document.querySelector('.order-sent-wrapper .order-sent .remove-button');
+                                    cancelButton.addEventListener('click', () => {
 
-                                cancelButton.addEventListener('click', () => {
-
-                                    const orderWrapper = document.querySelector('.order-sent-wrapper');
-                                    orderWrapper.style.opacity = 0;
-
-                                    const trackingNumberField = document.querySelector('.order-sent-wrapper .order-tracking-number');
-
-                                    setTimeout(() => {
-                                        orderWrapper.style.display = "flex";
-                                        trackingNumberField.value = '';
-                                    }, 400)
+                                        refundWrapper.style.opacity = 0;
+                                        setTimeout(() => {
+                                            refundWrapper.style.display = "none";
+                                        }, 400)
+                                    })
 
                                 })
 
-                            })
+                                // Append the row to the table body
+                                tbody.appendChild(row);
 
-                            settingsEditIcons.lastChild.addEventListener('click', () => {
+                                temp = order.id;
+                            } else return;
+                        });
 
-                                const refundWrapper = document.querySelector('.order-refund-wrapper');
-
-                                refundWrapper.style.display = "flex";
-                                refundWrapper.style.opacity = 1;
-
-                                const confirmButton = document.querySelector('.order-refund-wrapper .order-refund .button');
-
-                                console.log(order.id);
-                                confirmButton.addEventListener('click', () => {
-
-                                    fetch(`/panel/orders/initiateRefund/${order.id}`)
-                                        .then((response) => {
-
-                                            if (response.ok) {
-                                                alert('Successfully refunded the order!');
-                                                statusCell.firstChild.textContent = 'Refunded';
-                                                statusCell.firstChild.style.color = "var(--red-color)";
-
-                                                refundWrapper.style.opacity = 0;
-                                                setTimeout(() => {
-                                                    refundWrapper.style.display = "none";
-                                                }, 400)
-
-                                            }
-                                        })
-                                        .catch(error => alert(error));
-                                })
-
-                                const cancelButton = document.querySelector('.order-refund .remove-button');
-
-                                cancelButton.addEventListener('click', () => {
-
-                                    refundWrapper.style.opacity = 0;
-                                    setTimeout(() => {
-                                        refundWrapper.style.display = "none";
-                                    }, 400)
-                                })
-
-                            })
-
-                            // Append the row to the table body
-                            tbody.appendChild(row);
-
-                            temp = order.id;
-                        } else return;
-                    });
-
-                    table.appendChild(tbody);
-                })
-            areOrdersAdded = true;
-        }
-    })
-
+                        table.appendChild(tbody);
+                    })
+                areOrdersAdded = true;
+            }
+        })
+    }
 
     function getText(textEditor) {
         let editorContent = textEditor.root.innerHTML;
@@ -2874,374 +2876,382 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let areAccountsAdded = false;
 
-    manageAccountsBtn.addEventListener('click', () => {
+    if (manageAccountsBtn) {
 
-        if (!areAccountsAdded) {
-            fetch('/panel/manageAccounts')
-                .then(response => response.json())
-                .then(data => {
-                    const tbody = document.createElement('tbody');
-                    const table = document.querySelector('.manage-accounts .products-table table');
-                    let temp;
-                    data.forEach(account => {
-                        const row = document.createElement('tr');
-                        console.log('Account');
-                        if (temp != account.id) {
-                            // Create and populate table data (td) for each field
 
-                            console.log('AccountID');
-                            const idCell = createTableCell(account.id, 'account-id');
-                            const titleCellWrapper = document.createElement('td');
-                            const titleCellWrapperDiv = document.createElement('div');
-                            const titleCellImgWrapper = document.createElement('div');
-                            titleCellImgWrapper.classList.add('account-picture');
-                            if (account.picture_path !== null) {
-                                const titlePic = document.createElement('img');
-                                titlePic.src = account.picture_path;
-                                titlePic.style.width = "50px";
-                                titlePic.style.height = "50px";
-                                titlePic.style.borderRadius = "50%";
-                                titleCellWrapperDiv.appendChild(titlePic);
-                            } else {
-                                const titlePic = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                                titlePic.setAttribute("class", "acc-default");
-                                titlePic.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-                                titlePic.setAttribute("width", "35");
-                                titlePic.setAttribute("height", "35");
-                                titlePic.setAttribute("viewBox", "0 0 35 35");
-                                titlePic.setAttribute("fill", "none");
-                                titlePic.setAttribute("style", "display: block;");
+        manageAccountsBtn.addEventListener('click', () => {
 
-                                // Create the path element
-                                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                                path.setAttribute("d", "M17.4987 17.5C15.8945 17.5 14.5213 16.9288 13.3789 15.7864C12.2365 14.6441 11.6654 13.2708 11.6654 11.6666C11.6654 10.0625 12.2365 8.68922 13.3789 7.54685C14.5213 6.40449 15.8945 5.83331 17.4987 5.83331C19.1029 5.83331 20.4761 6.40449 21.6185 7.54685C22.7609 8.68922 23.332 10.0625 23.332 11.6666C23.332 13.2708 22.7609 14.6441 21.6185 15.7864C20.4761 16.9288 19.1029 17.5 17.4987 17.5ZM5.83203 29.1666V25.0833C5.83203 24.2569 6.04495 23.4971 6.47078 22.8039C6.89661 22.1107 7.46148 21.5823 8.16536 21.2187C9.67231 20.4653 11.2036 19.8999 12.7591 19.5227C14.3147 19.1455 15.8945 18.9573 17.4987 18.9583C19.1029 18.9583 20.6827 19.1469 22.2383 19.5241C23.7938 19.9014 25.3251 20.4662 26.832 21.2187C27.5369 21.5833 28.1022 22.1122 28.5281 22.8054C28.9539 23.4986 29.1663 24.2579 29.1654 25.0833V29.1666H5.83203ZM8.7487 26.25H26.2487V25.0833C26.2487 24.816 26.1816 24.5729 26.0474 24.3541C25.9133 24.1354 25.7373 23.9653 25.5195 23.8437C24.207 23.1875 22.8824 22.6955 21.5456 22.3679C20.2088 22.0403 18.8598 21.876 17.4987 21.875C16.1376 21.875 14.7886 22.0393 13.4518 22.3679C12.115 22.6965 10.7904 23.1885 9.47786 23.8437C9.25911 23.9653 9.08266 24.1354 8.94849 24.3541C8.81432 24.5729 8.74773 24.816 8.7487 25.0833V26.25ZM17.4987 14.5833C18.3008 14.5833 18.9877 14.2975 19.5593 13.7258C20.131 13.1541 20.4163 12.4678 20.4154 11.6666C20.4154 10.8646 20.1295 10.1777 19.5579 9.60602C18.9862 9.03435 18.2998 8.74901 17.4987 8.74998C16.6966 8.74998 16.0097 9.03581 15.4381 9.60748C14.8664 10.1791 14.5811 10.8655 14.582 11.6666C14.582 12.4687 14.8679 13.1556 15.4395 13.7273C16.0112 14.2989 16.6976 14.5843 17.4987 14.5833Z");
-                                path.setAttribute("fill", "var(--accent-color)");
+            if (!areAccountsAdded) {
+                fetch('/panel/manageAccounts')
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.createElement('tbody');
+                        const table = document.querySelector('.manage-accounts .products-table table');
+                        let temp;
+                        data.forEach(account => {
+                            const row = document.createElement('tr');
+                            console.log('Account');
+                            if (temp != account.id) {
+                                // Create and populate table data (td) for each field
 
-                                // Append the path to the SVG
-                                titlePic.appendChild(path);
+                                console.log('AccountID');
+                                const idCell = createTableCell(account.id, 'account-id');
+                                const titleCellWrapper = document.createElement('td');
+                                const titleCellWrapperDiv = document.createElement('div');
+                                const titleCellImgWrapper = document.createElement('div');
+                                titleCellImgWrapper.classList.add('account-picture');
+                                if (account.picture_path !== null) {
+                                    const titlePic = document.createElement('img');
+                                    titlePic.src = account.picture_path;
+                                    titlePic.style.width = "50px";
+                                    titlePic.style.height = "50px";
+                                    titlePic.style.borderRadius = "50%";
+                                    titleCellWrapperDiv.appendChild(titlePic);
+                                } else {
+                                    const titlePic = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                                    titlePic.setAttribute("class", "acc-default");
+                                    titlePic.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+                                    titlePic.setAttribute("width", "35");
+                                    titlePic.setAttribute("height", "35");
+                                    titlePic.setAttribute("viewBox", "0 0 35 35");
+                                    titlePic.setAttribute("fill", "none");
+                                    titlePic.setAttribute("style", "display: block;");
 
-                                // Append the SVG to the body
-                                titleCellImgWrapper.appendChild(titlePic);
-                                titleCellWrapperDiv.appendChild(titleCellImgWrapper);
-                            }
-                            const titleCell = document.createElement('p');
-                            titleCell.classList.add('account-name');
-                            titleCell.textContent = account.user_name;
+                                    // Create the path element
+                                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                                    path.setAttribute("d", "M17.4987 17.5C15.8945 17.5 14.5213 16.9288 13.3789 15.7864C12.2365 14.6441 11.6654 13.2708 11.6654 11.6666C11.6654 10.0625 12.2365 8.68922 13.3789 7.54685C14.5213 6.40449 15.8945 5.83331 17.4987 5.83331C19.1029 5.83331 20.4761 6.40449 21.6185 7.54685C22.7609 8.68922 23.332 10.0625 23.332 11.6666C23.332 13.2708 22.7609 14.6441 21.6185 15.7864C20.4761 16.9288 19.1029 17.5 17.4987 17.5ZM5.83203 29.1666V25.0833C5.83203 24.2569 6.04495 23.4971 6.47078 22.8039C6.89661 22.1107 7.46148 21.5823 8.16536 21.2187C9.67231 20.4653 11.2036 19.8999 12.7591 19.5227C14.3147 19.1455 15.8945 18.9573 17.4987 18.9583C19.1029 18.9583 20.6827 19.1469 22.2383 19.5241C23.7938 19.9014 25.3251 20.4662 26.832 21.2187C27.5369 21.5833 28.1022 22.1122 28.5281 22.8054C28.9539 23.4986 29.1663 24.2579 29.1654 25.0833V29.1666H5.83203ZM8.7487 26.25H26.2487V25.0833C26.2487 24.816 26.1816 24.5729 26.0474 24.3541C25.9133 24.1354 25.7373 23.9653 25.5195 23.8437C24.207 23.1875 22.8824 22.6955 21.5456 22.3679C20.2088 22.0403 18.8598 21.876 17.4987 21.875C16.1376 21.875 14.7886 22.0393 13.4518 22.3679C12.115 22.6965 10.7904 23.1885 9.47786 23.8437C9.25911 23.9653 9.08266 24.1354 8.94849 24.3541C8.81432 24.5729 8.74773 24.816 8.7487 25.0833V26.25ZM17.4987 14.5833C18.3008 14.5833 18.9877 14.2975 19.5593 13.7258C20.131 13.1541 20.4163 12.4678 20.4154 11.6666C20.4154 10.8646 20.1295 10.1777 19.5579 9.60602C18.9862 9.03435 18.2998 8.74901 17.4987 8.74998C16.6966 8.74998 16.0097 9.03581 15.4381 9.60748C14.8664 10.1791 14.5811 10.8655 14.582 11.6666C14.582 12.4687 14.8679 13.1556 15.4395 13.7273C16.0112 14.2989 16.6976 14.5843 17.4987 14.5833Z");
+                                    path.setAttribute("fill", "var(--accent-color)");
 
-                            const emailCell = createTableCell(account.user_email, 'account-email');
-                            const joinedCell = createTableCell(account.date_col, 'account-date-joined');
-                            const roleCell = createTableCell(account.account_role, 'account-role');
+                                    // Append the path to the SVG
+                                    titlePic.appendChild(path);
 
-                            // Append table data to the table row
-                            titleCellWrapperDiv.appendChild(titleCell);
-                            titleCellWrapper.appendChild(titleCellWrapperDiv);
-                            row.appendChild(idCell);
-                            row.appendChild(titleCellWrapper);
-                            row.appendChild(emailCell);
-                            row.appendChild(joinedCell);
-                            row.appendChild(roleCell);
+                                    // Append the SVG to the body
+                                    titleCellImgWrapper.appendChild(titlePic);
+                                    titleCellWrapperDiv.appendChild(titleCellImgWrapper);
+                                }
+                                const titleCell = document.createElement('p');
+                                titleCell.classList.add('account-name');
+                                titleCell.textContent = account.user_name;
 
-                            // Create and append the SVG icons
-                            const settingsEditIcons = createSettingsEditIcons(); // Function to create SVG icons
-                            const settingsCell = document.createElement('td');
-                            settingsCell.appendChild(settingsEditIcons);
-                            row.appendChild(settingsCell);
+                                const emailCell = createTableCell(account.user_email, 'account-email');
+                                const joinedCell = createTableCell(account.date_col, 'account-date-joined');
+                                const roleCell = createTableCell(account.account_role, 'account-role');
 
-                            // Append the row to the table body
-                            tbody.appendChild(row);
+                                // Append table data to the table row
+                                titleCellWrapperDiv.appendChild(titleCell);
+                                titleCellWrapper.appendChild(titleCellWrapperDiv);
+                                row.appendChild(idCell);
+                                row.appendChild(titleCellWrapper);
+                                row.appendChild(emailCell);
+                                row.appendChild(joinedCell);
+                                row.appendChild(roleCell);
 
-                            temp = account.id;
-                        } else return;
-                    });
+                                // Create and append the SVG icons
+                                const settingsEditIcons = createSettingsEditIcons(); // Function to create SVG icons
+                                const settingsCell = document.createElement('td');
+                                settingsCell.appendChild(settingsEditIcons);
+                                row.appendChild(settingsCell);
 
-                    table.appendChild(tbody);
-                })
-            fetch(`/panel/manageAccounts/getAccountRoles`)
-                .then(response => response.json())
-                .then(data => {
-                    const sizeWrapper = document.querySelector('.account-creation .create-account');
+                                // Append the row to the table body
+                                tbody.appendChild(row);
 
-                    const accountRoleWrapper = document.querySelector('.account-creation .create-account .account-role-wrapper');
+                                temp = account.id;
+                            } else return;
+                        });
 
-                    const select = document.createElement('select');
-                    select.name = "role";
-                    select.classList.add('account-role');
-
-                    data.forEach((item) => {
-
-                        const option = document.createElement('option');
-                        option.setAttribute('value', item);
-                        option.textContent = item;
-                        select.appendChild(option);
+                        table.appendChild(tbody);
                     })
+                fetch(`/panel/manageAccounts/getAccountRoles`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const sizeWrapper = document.querySelector('.account-creation .create-account');
 
-                    accountRoleWrapper.appendChild(select);
+                        const accountRoleWrapper = document.querySelector('.account-creation .create-account .account-role-wrapper');
 
-                    const removeAccountButton = document.querySelectorAll('.manage-accounts .products-table .product-settings svg:nth-child(2)');
+                        const select = document.createElement('select');
+                        select.name = "role";
+                        select.classList.add('account-role');
 
-                    removeAccountButton.forEach((item, index) => {
+                        data.forEach((item) => {
 
-                        item.addEventListener('click', () => {
+                            const option = document.createElement('option');
+                            option.setAttribute('value', item);
+                            option.textContent = item;
+                            select.appendChild(option);
+                        })
 
-                            const accountRemove = document.querySelector('.remove-account-wrapper');
+                        accountRoleWrapper.appendChild(select);
 
-                            const row = item.closest('tr');
+                        const removeAccountButton = document.querySelectorAll('.manage-accounts .products-table .product-settings svg:nth-child(2)');
 
-                            console.log(row);
+                        removeAccountButton.forEach((item, index) => {
 
-                            accountRemove.style.display = "flex";
-                            accountRemove.style.opacity = 1;
+                            item.addEventListener('click', () => {
 
-                            const removeButton = document.querySelector('.remove-account-wrapper .remove-button');
+                                const accountRemove = document.querySelector('.remove-account-wrapper');
 
-                            const cancelButton = document.querySelector('.remove-account-wrapper .button:last-child');
+                                const row = item.closest('tr');
 
-                            const productId = document.querySelectorAll('.manage-accounts .products-table table tbody .account-id');
+                                console.log(row);
 
-                            const removeAccountId = productId[index].textContent;
+                                accountRemove.style.display = "flex";
+                                accountRemove.style.opacity = 1;
 
-                            console.log(removeAccountId);
+                                const removeButton = document.querySelector('.remove-account-wrapper .remove-button');
 
-                            removeButton.addEventListener('click', () => {
+                                const cancelButton = document.querySelector('.remove-account-wrapper .button:last-child');
 
-                                fetch(`/panel/manageAccounts/removeAccount/${removeAccountId}`)
+                                const productId = document.querySelectorAll('.manage-accounts .products-table table tbody .account-id');
 
-                                    .then(response => {
-                                        if (response.ok) {
-                                            const status = document.querySelector('.remove-account-wrapper .status-category');
-                                            status.textContent = "Successfully removed Account!";
-                                            status.classList.add('in-stock');
+                                const removeAccountId = productId[index].textContent;
 
-                                            const wrapper = document.querySelector('.remove-account-wrapper');
+                                console.log(removeAccountId);
 
-                                            row.remove();
+                                removeButton.addEventListener('click', () => {
 
-                                            setTimeout(() => {
-                                                wrapper.style.opacity = 0;
+                                    fetch(`/panel/manageAccounts/removeAccount/${removeAccountId}`)
+
+                                        .then(response => {
+                                            if (response.ok) {
+                                                const status = document.querySelector('.remove-account-wrapper .status-category');
+                                                status.textContent = "Successfully removed Account!";
+                                                status.classList.add('in-stock');
+
+                                                const wrapper = document.querySelector('.remove-account-wrapper');
+
+                                                row.remove();
+
                                                 setTimeout(() => {
-                                                    wrapper.style.display = "none";
+                                                    wrapper.style.opacity = 0;
+                                                    setTimeout(() => {
+                                                        wrapper.style.display = "none";
+                                                    }, 400)
                                                 }, 400)
-                                            }, 400)
 
-                                            console.log(removeAccountId);
+                                                console.log(removeAccountId);
 
-                                        } else {
-                                            const status = document.querySelector('.remove-account-wrapper .status-category');
-                                            status.textContent = "Error removing account!";
-                                            status.classList.add('out-of-stock');
-                                            console.log("Failed!");
-                                        }
-                                    })
-                                    .catch((err) => {
-                                        console.log(err);
-                                    })
+                                            } else {
+                                                const status = document.querySelector('.remove-account-wrapper .status-category');
+                                                status.textContent = "Error removing account!";
+                                                status.classList.add('out-of-stock');
+                                                console.log("Failed!");
+                                            }
+                                        })
+                                        .catch((err) => {
+                                            console.log(err);
+                                        })
 
-                            })
+                                })
 
-                            cancelButton.addEventListener('click', () => {
-                                accountRemove.style.opacity = 0;
+                                cancelButton.addEventListener('click', () => {
+                                    accountRemove.style.opacity = 0;
 
-                                setTimeout(() => {
-                                    accountRemove.style.display = "none";
-                                }, 400);
+                                    setTimeout(() => {
+                                        accountRemove.style.display = "none";
+                                    }, 400);
+                                })
+
                             })
 
                         })
 
-                    })
+                        //Edit Product Button Creation with EventListeners
 
-                    //Edit Product Button Creation with EventListeners
+                        const editAccountButton = document.querySelectorAll('.manage-accounts .products-table .product-settings svg:first-child');
 
-                    const editAccountButton = document.querySelectorAll('.manage-accounts .products-table .product-settings svg:first-child');
+                        editAccountButton.forEach((item, index) => {
 
-                    editAccountButton.forEach((item, index) => {
+                            item.addEventListener('click', () => {
 
-                        item.addEventListener('click', () => {
+                                const accountEdit = document.querySelector('.account-edit');
 
-                            const accountEdit = document.querySelector('.account-edit');
+                                accountEdit.style.display = "block";
+                                accountEdit.style.opacity = 1;
 
-                            accountEdit.style.display = "block";
-                            accountEdit.style.opacity = 1;
+                                const closeBtn = document.querySelector('.account-edit .close-btn');
 
-                            const closeBtn = document.querySelector('.account-edit .close-btn');
+                                closeBtn.addEventListener('click', () => {
+                                    accountEdit.style.opacity = 0;
+
+                                    setTimeout(() => {
+                                        accountEdit.style.display = "none";
+
+                                        const priceRows = document.querySelectorAll('.product-edit .product-form-price-row');
+                                        for (let i = 0; i < priceRows.length; i++) {
+                                            priceRows[i].remove();
+                                        }
+
+                                        const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
+
+                                        while (productPictures.firstChild) {
+                                            productPictures.removeChild(productPictures.firstChild);
+                                        }
+                                    }, 400);
+                                })
+
+                                //Adding Data into Fields
+
+                                const tr = item.closest('tr');
+                                const accountId = tr.querySelector('.account-id');
+
+                                const editAccountId = accountId.textContent;
+
+                                fetch(`/panel/manageAccounts/getAccount/${editAccountId}`)
+                                    .then(response => response.json())
+                                    .then((dat) => {
+
+                                        const editName = document.querySelector('.account-edit .account-form-username');
+                                        const editEmail = document.querySelector('.account-edit .account-form-email');
+
+                                        console.log(editName);
+                                        editName.value = dat[0].user_name;
+                                        editEmail.value = dat[0].user_email;
+
+                                        const accountRoleWrapper = document.querySelector('.account-edit .edit-account .account-role-wrapper');
+
+                                        const select = document.createElement('select');
+                                        select.name = "role";
+                                        select.classList.add('account-role');
+
+                                        data.forEach((item) => {
+
+                                            const option = document.createElement('option');
+                                            option.setAttribute('value', item);
+                                            option.textContent = item;
+                                            select.appendChild(option);
+
+                                        })
+
+                                        const optionToSelect = Array.from(select.options).find((option) => option.value === dat[0].account_role);
+                                        select.selectedIndex = Array.from(select.options).indexOf(optionToSelect);
+
+                                        accountRoleWrapper.appendChild(select);
+
+
+                                        const confirmEditButton = document.querySelector('.account-edit .edit-account .edit-button');
+
+                                        confirmEditButton.addEventListener('click', () => {
+
+                                            const formData = new FormData();
+
+                                            const accountId = dat[0].id;
+
+                                            const username = editName.value;
+                                            const email = editEmail.value;
+
+                                            const role = document.querySelector('.account-edit .edit-account .account-role');
+
+                                            const accountRole = role.value;
+
+                                            console.log(accountId, username, email, accountRole);
+
+                                            if (validateEmail(email)) {
+
+
+
+                                                formData.append('id', accountId);
+                                                formData.append('username', username);
+                                                formData.append('email', email);
+                                                formData.append('role', accountRole);
+
+
+                                                console.log(formData);
+
+                                                fetch('/panel/manageAccounts/editAccount', {
+                                                    method: 'POST',
+                                                    body: formData
+                                                })
+                                                    .then(response => {
+                                                        if (response.ok) {
+                                                            alert('Account edited successfully!');
+
+                                                            accountEdit.style.opacity = 0;
+
+                                                            setTimeout(() => {
+                                                                accountEdit.style.display = "none";
+
+                                                            }, 400);
+
+                                                        } else {
+                                                            alert('Error editing Account!');
+                                                        }
+                                                    })
+                                                    .catch(err => console.log(err));
+
+                                            } else {
+                                                editEmail.style.borderColor = "var(--red-color)";
+                                                alert('Incorrect email format!');
+                                            }
+
+                                        });
+                                    })
+                                    .catch(err => console.log(err));
+
+                            })
+
+                        })
+
+                        const addAccountButton = document.querySelector('.add-an-account');
+
+                        addAccountButton.addEventListener('click', () => {
+
+                            const accountCreation = document.querySelector('.account-creation');
+
+                            accountCreation.style.display = "block";
+                            accountCreation.style.opacity = 1;
+
+                            const closeBtn = document.querySelector('.account-creation .close-btn');
 
                             closeBtn.addEventListener('click', () => {
-                                accountEdit.style.opacity = 0;
+                                accountCreation.style.opacity = 0;
 
                                 setTimeout(() => {
-                                    accountEdit.style.display = "none";
-
-                                    const priceRows = document.querySelectorAll('.product-edit .product-form-price-row');
-                                    for (let i = 0; i < priceRows.length; i++) {
-                                        priceRows[i].remove();
-                                    }
-
-                                    const productPictures = document.querySelector('.edit-product .img-wrapper .img-box');
-
-                                    while (productPictures.firstChild) {
-                                        productPictures.removeChild(productPictures.firstChild);
-                                    }
+                                    accountCreation.style.display = "none";
                                 }, 400);
                             })
 
-                            //Adding Data into Fields
+                            const createAccountBtn = document.querySelector('.account-creation .creation-button');
 
-                            const tr = item.closest('tr');
-                            const accountId = tr.querySelector('.account-id');
-
-                            const editAccountId = accountId.textContent;
-
-                            fetch(`/panel/manageAccounts/getAccount/${editAccountId}`)
-                                .then(response => response.json())
-                                .then((dat) => {
-
-                                    const editName = document.querySelector('.account-edit .account-form-username');
-                                    const editEmail = document.querySelector('.account-edit .account-form-email');
-
-                                    console.log(editName);
-                                    editName.value = dat[0].user_name;
-                                    editEmail.value = dat[0].user_email;
-
-                                    const accountRoleWrapper = document.querySelector('.account-edit .edit-account .account-role-wrapper');
-
-                                    const select = document.createElement('select');
-                                    select.name = "role";
-                                    select.classList.add('account-role');
-
-                                    data.forEach((item) => {
-
-                                        const option = document.createElement('option');
-                                        option.setAttribute('value', item);
-                                        option.textContent = item;
-                                        select.appendChild(option);
-
-                                    })
-
-                                    const optionToSelect = Array.from(select.options).find((option) => option.value === dat[0].account_role);
-                                    select.selectedIndex = Array.from(select.options).indexOf(optionToSelect);
-
-                                    accountRoleWrapper.appendChild(select);
-
-
-                                    const confirmEditButton = document.querySelector('.account-edit .edit-account .edit-button');
-
-                                    confirmEditButton.addEventListener('click', () => {
-
-                                        const formData = new FormData();
-
-                                        const accountId = dat[0].id;
-
-                                        const username = editName.value;
-                                        const email = editEmail.value;
-
-                                        const role = document.querySelector('.account-edit .edit-account .account-role');
-
-                                        const accountRole = role.value;
-
-                                        console.log(accountId, username, email, accountRole);
-
-                                        if (validateEmail(email)) {
-
-
-
-                                            formData.append('id', accountId);
-                                            formData.append('username', username);
-                                            formData.append('email', email);
-                                            formData.append('role', accountRole);
-
-
-                                            console.log(formData);
-
-                                            fetch('/panel/manageAccounts/editAccount', {
-                                                method: 'POST',
-                                                body: formData
-                                            })
-                                                .then(response => {
-                                                    if (response.ok) {
-                                                        alert('Account edited successfully!');
-
-                                                        accountEdit.style.opacity = 0;
-
-                                                        setTimeout(() => {
-                                                            accountEdit.style.display = "none";
-
-                                                        }, 400);
-
-                                                    } else {
-                                                        alert('Error editing Account!');
-                                                    }
-                                                })
-                                                .catch(err => console.log(err));
-
-                                        } else {
-                                            editEmail.style.borderColor = "var(--red-color)";
-                                            alert('Incorrect email format!');
-                                        }
-
-                                    });
-                                })
-                                .catch(err => console.log(err));
+                            createAccountBtn.addEventListener('click', handleAccountCreation);
 
                         })
 
                     })
 
-                    const addAccountButton = document.querySelector('.add-an-account');
+                areAccountsAdded = true;
+            }
 
-                    addAccountButton.addEventListener('click', () => {
-
-                        const accountCreation = document.querySelector('.account-creation');
-
-                        accountCreation.style.display = "block";
-                        accountCreation.style.opacity = 1;
-
-                        const closeBtn = document.querySelector('.account-creation .close-btn');
-
-                        closeBtn.addEventListener('click', () => {
-                            accountCreation.style.opacity = 0;
-
-                            setTimeout(() => {
-                                accountCreation.style.display = "none";
-                            }, 400);
-                        })
-
-                        const createAccountBtn = document.querySelector('.account-creation .creation-button');
-
-                        createAccountBtn.addEventListener('click', handleAccountCreation);
-
-                    })
-
-                })
-
-            areAccountsAdded = true;
-        }
-
-    })
+        })
+    }
 
     const backupDataBtn = document.querySelector('.backup-btn');
 
-    backupDataBtn.addEventListener('click', async () => {
-        try {
-            const response = await fetch('/panel/createBackup');
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+    if (backupDataBtn) {
 
-            const a = document.createElement('a');
-            a.href = url;
 
-            const contentDispositionHeader = response.headers.get('Content-Disposition');
+        backupDataBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/panel/createBackup');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
 
-            const fileName = contentDispositionHeader.match(/filename="([^"]+)"/);
+                const a = document.createElement('a');
+                a.href = url;
 
-            a.download = fileName[1];
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.log(error);
-        }
+                const contentDispositionHeader = response.headers.get('Content-Disposition');
 
-    })
+                const fileName = contentDispositionHeader.match(/filename="([^"]+)"/);
+
+                a.download = fileName[1];
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.log(error);
+            }
+
+        })
+    }
 
     function handleAccountCreation() {
 
