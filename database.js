@@ -18,8 +18,6 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
-//Connecting to the database 
-
 db.connect((err) => {
     if (err) {
         console.log(err);
@@ -27,14 +25,10 @@ db.connect((err) => {
     console.log('MySQL database connected!');
 })
 
-// Returns a single instance of the Database Service
-
 class dbService {
     static getDbServiceInstance() {
         return instance ? instance : new dbService();
     }
-
-    //MySQL queries
 
     async getCategories() {
         try {

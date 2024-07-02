@@ -43,6 +43,12 @@ body {
     aspect-ratio: 1/1;
 }
 
+.account-picture img {
+    width: 40px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
 .additional-wrapper {
     width: 100%;
     display: flex;
@@ -91,9 +97,10 @@ body {
 .image-wrapper {
     width: 100%;
     height: 100%;
-    aspect-ratio: 1/1;
     overflow: hidden;
 }
+
+
 
 .blog-entry img {
     transition: all 0.8s ease;

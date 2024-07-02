@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     else {
                         const authorPic = document.createElement('img');
                         authorPic.src = item.author_picture;
+                        accountPicture.appendChild(authorPic);
                     }
 
                     // Create author name
@@ -149,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     else {
                         const authorPic = document.createElement('img');
                         authorPic.src = item.author_picture;
+                        accountPicture.appendChild(authorPic);
                     }
 
                     // Create author name

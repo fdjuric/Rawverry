@@ -275,6 +275,12 @@ body {
     gap: 20px;
 }
 
+.data-form .button {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
 .close-btn:hover {
     cursor: pointer;
 }

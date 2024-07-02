@@ -13,8 +13,6 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const bcrypt = require('bcrypt');
 const fs = require('fs');
-const os = require('os');
-const https = require('https');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
@@ -23,6 +21,7 @@ const session = require('express-session');
 const cheerio = require('cheerio');
 
 const stripe = require('stripe')(`${process.env.stripe_secret}`)
+
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PORT = 8888 } = process.env;
 const base = "https://api-m.sandbox.paypal.com";
 
@@ -35,8 +34,8 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie: {
-    secure: false, //set true on production so it goes trough https
-    httpOnly: true, //if true prevents client side JS from reading the cookie
+    secure: false,
+    httpOnly: true,
     maxAge: 180 * 24 * 60 * 60 * 1000
   }
 }));
