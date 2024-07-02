@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </svg>`;
         else {
             const authorPic = document.createElement('img');
-            authorPic.src = '../' + item.author_picture;
+            authorPic.src = '../' + data.author_picture;
             accountPicture.appendChild(authorPic);
         }
         const author = document.querySelector('.author-wrapper .author-name');

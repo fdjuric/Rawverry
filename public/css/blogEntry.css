@@ -43,6 +43,12 @@ body {
     aspect-ratio: 1 / 1;
 }
 
+.account-picture img {
+    width: 40px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
 .author-wrapper, .date-wrapper {
     display : flex;
     gap: 10px;
