@@ -873,11 +873,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    var Bullet = Quill.import('formats/list');
+    var ListItem = Quill.import('formats/list/item');
+
+    class CustomListItem extends ListItem {
+        format(name, value) {
+            if (name === 'list') {
+                if (value === 'ordered' || value === 'bullet') {
+                    this.domNode.classList.add('subheader'); // Add your custom class 'subheader'
+                }
+            }
+            super.format(name, value);
+        }
+    }
+
+    // Custom class for bullet points
+    class CustomBullet extends Bullet {
+        static create(value) {
+            const node = super.create(value);
+            node.classList.add('subheader'); // Add your custom class 'subheader'
+            return node;
+        }
+    }
+
     Quill.register({
         'formats/bold': CustomBold,
+        'formats/list': CustomBullet,
+        'formats/list/item': CustomListItem,
     }, true);
-
-
 
     const logoutButton = document.querySelector('.log-out-btn');
     console.log(logoutButton);
