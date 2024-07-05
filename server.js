@@ -198,7 +198,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
             })
 
 
-            $final('.order-total').html(`$${subtotal}<br>$${parseFloat(userData.discount).toFixed(2)}<br>$00.00`);
+            $final('.order-total').html(`$${subtotal.toFixed(2)}<br>$${parseFloat(userData.discount).toFixed(2)}<br>$00.00`);
             $final('.total-price').text(`$${userData.price}`);
 
             const modifiedHtmlString = $final.html();
@@ -1429,7 +1429,7 @@ app.post('/insertNewsletter', (request, response) => {
           response.json({ success: false, message: newsletterStatus });
         } else {
           const mailOptions = {
-            from: process.env.EMAIL_NAME,
+            from: process.env.EMAIL_TEMP,
             to: email,
             subject: 'Confirm Your Subscription',
             text: `Click on the following link to confirm your subscription: http://localhost:3001/confirm/${tokenValue},
@@ -1503,7 +1503,7 @@ app.post('/sendEmail', (request, response) => {
 
   const mailOptions = {
     from: `${email}`,
-    to: `${process.env.Email_NAME}`,
+    to: `${process.env.EMAIL_TEMP}`,
     subject: `New message from ${name}`,
     text: `From: ${name} (${email})\n\nMessage: ${message}`
   };
@@ -1539,7 +1539,7 @@ app.post('/panel/newsletter/sendNewsletter', checkPermission(['Admin', 'Editor']
           console.log(item.email);
 
           const mailOptions = {
-            from: `${process.env.Email_NAME}`,
+            from: `${process.env.EMAIL_TEMP}`,
             to: `${item.email}`,
             subject: title,
             //text: `From: ${name} (${email})\n\nMessage: ${message}`
@@ -2048,7 +2048,7 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
         })
       }
 
-      if (removePicsArray != null) {
+      if (removePicsArray) {
 
         removePicsArray.forEach(item => {
 
@@ -2581,7 +2581,7 @@ app.post('/panel/manageAccounts/createAccount', checkPermission('Admin'), upload
       .then(() => {
 
         const mailOptions = {
-          from: process.env.EMAIL_NAME,
+          from: process.env.EMAIL_TEMP,
           to: email,
           subject: 'Create your Account',
           //text: `Click on the following link to register your account: http://25.48.211.38:3001/register/${tokenValue}`,
@@ -2663,7 +2663,7 @@ app.post('/forgot-password', (request, response) => {
         .then(() => {
 
           const mailOptions = {
-            from: process.env.EMAIL_NAME,
+            from: process.env.EMAIL_TEMP,
             to: data.user_email,
             subject: 'Reset Your Password',
             text: `Click on the following link to reset your password: http://25.48.211.38:3001/password-reset/${tokenValue},

@@ -72,8 +72,6 @@ class dbService {
                 })
             });
 
-            createBackup();
-
             return response;
 
         } catch (error) {
@@ -1889,8 +1887,12 @@ class dbService {
                 if (changedSizes != null)
                     ChangedSizesArray.push(...changedSizes);
 
-                categoriesArray.push(...categories);
-                oldCategoriesArray.push(...oldCategories);
+                for(let i=0; i<=categories.length; i++){
+                    categoriesArray.push(categories[i]);
+                }
+                for(let i=0; i<=oldCategories.length; i++){
+                    oldCategoriesArray.push(oldCategories[i]);
+                }
 
                 const categoriesRemoved = oldCategoriesArray.filter(category => !categoriesArray.includes(category));
                 const categoriesAdded = categoriesArray.filter(value => !oldCategoriesArray.includes(value));
@@ -2095,10 +2097,21 @@ class dbService {
                     if (!Array.isArray(removePics)) {
                         // Check if removePics is not an array and is not undefined before pushing
                         if (removePics !== undefined) {
-                            removePicsArray.push(removePics);
+                            if(removePics.includes(" "))
+                            removePicsArray.push(removePics.replace(" ", "%20"));
+                            else
+                            removePicsArray.push(removePics)
                         }
                     } else if (Array.isArray(removePics)) {
                         // Use filter to exclude undefined values when populating the array
+                        for(let i=0;i<=removePics.length; i++){
+                            if (removePics[i] !== undefined) {
+                                if(removePics[i].includes(" "))
+                                removePicsArray.push(removePics[i].replace(" ", "%20"));
+                                else
+                                removePicsArray.push(removePics[i])
+                            }
+                        }
                         removePicsArray.push(...removePics.filter(item => item !== undefined));
                     }
                 }
@@ -2127,9 +2140,14 @@ class dbService {
                 if (images != null) {
                     images.forEach(item => {
 
+                        let imagePath;
+                        if(item.includes(" "))
+                            imagePath = item.replace(" ", "%20")
+                        else
+                            imagePath = item;
                         const query = `INSERT INTO product_images (product_id, image_url) VALUES (?, ?)`
 
-                        db.query(query, [id, item], (err, results) => {
+                        db.query(query, [id, imagePath], (err, results) => {
                             if (err) reject(new Error(err.message))
                             console.log("Successfully added: " + item);
                         })
@@ -2170,7 +2188,13 @@ class dbService {
                     renameImageArray.forEach(item => {
                         const query = `UPDATE product_images SET image_url = ? WHERE product_id = ? AND image_url = ?`;
 
-                        const imageUrl = "images/products/" + title + "/" + item.split('/').pop();
+                        let finalTitle;
+                        if(title.includes(" "))
+                            finalTitle = title.replace(" ", "%20");
+                        else
+                            finalTitle = title;
+
+                        const imageUrl = "images/products/" + finalTitle + "/" + item.split('/').pop();
 
                         console.log(imageUrl);
 

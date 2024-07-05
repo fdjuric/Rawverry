@@ -1446,6 +1446,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         item.addEventListener('click', () => {
 
+                            const scrollContainer = document.querySelector('.main-content')
+                            scrollContainer.scrollTo(0, 0);
+
                             const productEdit = document.querySelector('.product-edit');
 
                             productEdit.style.display = "block";

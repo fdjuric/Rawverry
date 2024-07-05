@@ -101,14 +101,14 @@ body {
 
 
 
-.blog-entry img {
+.blog-entry .image-wrapper img {
     transition: all 0.8s ease;
 }
 
 .blog-entry:hover {
     cursor: pointer;
 }
-.blog-entry:hover img {
+.blog-entry:hover .image-wrapper img {
     transform: scale(1.5);
 }
 
