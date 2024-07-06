@@ -1992,6 +1992,7 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
 
   const author = req.session.passport.user.username;
   console.log(author);
+  console.log(categories);
 
   let removePricesData;
   let changedSizesData;
@@ -2022,7 +2023,7 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
     })
   }
 
-  console.log(removePicsArray);
+  console.log("2026", removePicsArray);
 
   const fileNames = files.map(item => productPicDir.substring('public/'.length) + "/" + title + "/" + item.originalname);
 
@@ -2034,7 +2035,7 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
     .then(() => {
       console.log("Successfully edited product: " + newTitle);
 
-      if (title !== newTitle) {
+      if (title != newTitle) {
 
         const productPicDirOld = `public/images/products/${title}`;
         const productPicDirNew = `public/images/products/${newTitle}`;
@@ -2048,11 +2049,17 @@ app.post('/panel/products/editProduct', checkPermission(['Admin', 'Editor']), pr
         })
       }
 
-      if (removePicsArray) {
+      if (removePicsArray[0]) {
 
         removePicsArray.forEach(item => {
 
-          const productPicDir = `public/${item}`;
+          let finalPath;
+          if(item.includes("%20"))
+            finalPath = item.replace("%20", " ")
+          else
+            finalPath = item;
+
+          const productPicDir = `public/${finalPath}`;
 
           fs.unlink(productPicDir, (err) => {
             if (err) {

@@ -718,6 +718,16 @@ td div {
     min-height: 500px;
     height: 100%;
 }
+.ql-editor ul {
+    padding-left: 20px;
+    display: flex;
+    justify-content: start;
+    flex-direction: column;
+}
+.ql-editor ul > li {
+    margin-left: 0;
+    padding-left: 0;
+}
 
  #editor, #editor2, #editorDescCreate, #editorDetailsCreate, #editorDescEdit, #editorDetailsEdit {
     min-height: 500px;

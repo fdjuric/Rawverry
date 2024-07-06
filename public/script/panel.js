@@ -1407,13 +1407,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                                 wrapper.style.opacity = 0;
                                                 setTimeout(() => {
                                                     wrapper.style.display = "none";
+                                                    status.textContent = "";
+                                                    status.classList.remove('in-stock');
                                                 }, 400)
                                             }, 400)
 
                                             console.log(removeProductId);
 
-
-                                            window.location.reload();
                                         } else {
                                             const status = document.querySelector('.remove-product-wrapper .status-category');
                                             status.textContent = "Error removing product!";
@@ -1838,7 +1838,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                         setTimeout(() => {
                                                             productEdit.style.display = "none";
 
-                                                            const editSizes = document.querySelectorAll('.edit-product .product-form-price-wrapper');
+                                                            const editSizes = document.querySelectorAll('.edit-product .product-form-price-row');
                                                             const editCategories = document.querySelectorAll('.edit-product .product-category-wrapper div input')
 
                                                             editSizes.forEach(item => {
