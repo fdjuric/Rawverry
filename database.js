@@ -810,65 +810,44 @@ class dbService {
             const productData = await new Promise((resolve, reject) => {
 
                 const query1 = `SELECT 
-                main.product_id, 
-                main.product_name, 
-                MIN(Product_size_link.product_price) AS product_price,
-                main.product_price_reduced, 
-                main.in_stock, 
-                main.size_id,
-                product_size.size_value,
-                img1.image_url AS image_url_1,
-                img2.image_url AS image_url_2,
-                GROUP_CONCAT(pc.category_name) AS category_names
-            FROM (
-                SELECT 
-                    Product.product_id, 
-                    Product.product_name, 
-                    Product_size_link.product_price_reduced, 
-                    Product.in_stock, 
-                    Product_size_link.size_id AS size_id
-                FROM Product
-                LEFT JOIN Product_size_link ON Product.product_id = Product_size_link.product_id
-            ) AS main
-            LEFT JOIN (
-                SELECT 
-                    product_id,
-                    product_price,
-                    ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY product_price) AS rn
-                FROM Product_size_link
-            ) AS Product_size_link ON main.product_id = Product_size_link.product_id AND Product_size_link.rn = 1
-            LEFT JOIN product_size ON main.size_id = product_size.size_id
-            LEFT JOIN (
-                SELECT 
-                    product_id,
-                    image_url
-                FROM (
-                    SELECT 
-                        Product_Images.product_id,
-                        Product_Images.image_url,
-                        ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
-                    FROM Product_Images
-                ) AS img_subquery
-                WHERE img_rn = 1
-            ) AS img1 ON main.product_id = img1.product_id
-            LEFT JOIN (
-                SELECT 
-                    product_id,
-                    image_url
-                FROM (
-                    SELECT 
-                        Product_Images.product_id,
-                        Product_Images.image_url,
-                        ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
-                    FROM Product_Images
-                ) AS img_subquery
-                WHERE img_rn = 2
-            ) AS img2 ON main.product_id = img2.product_id
-            JOIN product_category_link pcl ON main.product_id = pcl.product_id
-            JOIN product_category pc ON pc.category_id = pcl.category_id
-            WHERE pcl.category_id = ?
-            GROUP BY main.product_id, main.product_name, main.product_price_reduced, main.in_stock, main.size_id, product_size.size_value, img1.image_url, img2.image_url;
-            `;
+                            p.product_id, 
+                            p.product_name, 
+                            MIN(psl.product_price) AS product_price,
+                            psl.product_price_reduced, 
+                            p.in_stock, 
+                            psl.size_id,
+                            ps.size_value,
+                            MAX(CASE WHEN pi.img_rn = 1 THEN pi.image_url END) AS image_url_1,
+                            MAX(CASE WHEN pi.img_rn = 2 THEN pi.image_url END) AS image_url_2,
+                            GROUP_CONCAT(pc.category_name) AS category_names
+                        FROM 
+                            Product p
+                        LEFT JOIN (
+                            SELECT 
+                                psl.product_id,
+                                psl.product_price,
+                                psl.product_price_reduced,
+                                psl.size_id,
+                                ROW_NUMBER() OVER (PARTITION BY psl.product_id ORDER BY psl.product_price) AS rn
+                            FROM 
+                                Product_size_link psl
+                        ) AS psl ON p.product_id = psl.product_id AND psl.rn = 1
+                        LEFT JOIN product_size ps ON psl.size_id = ps.size_id
+                        LEFT JOIN (
+                            SELECT 
+                                pi.product_id,
+                                pi.image_url,
+                                ROW_NUMBER() OVER (PARTITION BY pi.product_id ORDER BY pi.id) AS img_rn
+                            FROM 
+                                Product_Images pi
+                        ) AS pi ON p.product_id = pi.product_id
+                        JOIN product_category_link pcl ON p.product_id = pcl.product_id
+                        JOIN product_category pc ON pcl.category_id = pc.category_id
+                        WHERE 
+                            pcl.category_id = ?
+                        GROUP BY 
+                            p.product_id, p.product_name, psl.product_price_reduced, p.in_stock, psl.size_id, ps.size_value;
+                            `;
 
                 db.query(query1, [pageData.category_id], (err, results) => {
                     if (err) reject(new Error(err.message))
@@ -896,63 +875,45 @@ class dbService {
     async getCatalogProducts() {
         try {
             const response = await new Promise((resolve, reject) => {
-                const query = `WITH lowest_price_products AS (
-    SELECT 
-        Product.product_id, 
-        Product.product_name, 
-        MIN(Product_size_link.product_price) AS product_price,
-        Product_size_link.product_price_reduced, 
-        Product.in_stock, 
-        Product_size_link.size_id
-    FROM Product
-    LEFT JOIN Product_size_link ON Product.product_id = Product_size_link.product_id
-    GROUP BY Product.product_id, Product.product_name, Product_size_link.product_price_reduced, Product.in_stock, Product_size_link.size_id
-)
-
-SELECT 
-    main.product_id, 
-    main.product_name, 
-    main.product_price,
-    main.product_price_reduced, 
-    main.in_stock, 
-    main.size_id,
-    product_size.size_value,
-    img1.image_url AS image_url_1,
-    img2.image_url AS image_url_2,
-    GROUP_CONCAT(pc.category_name) AS category_names
-FROM lowest_price_products AS main
-LEFT JOIN product_size ON main.size_id = product_size.size_id
-LEFT JOIN (
-    SELECT 
-        product_id,
-        image_url
-    FROM (
-        SELECT 
-            Product_Images.product_id,
-            Product_Images.image_url,
-            ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
-        FROM Product_Images
-    ) AS img_subquery
-    WHERE img_rn = 1
-) AS img1 ON main.product_id = img1.product_id
-LEFT JOIN (
-    SELECT 
-        product_id,
-        image_url
-    FROM (
-        SELECT 
-            Product_Images.product_id,
-            Product_Images.image_url,
-            ROW_NUMBER() OVER (PARTITION BY Product_Images.product_id ORDER BY Product_Images.id) AS img_rn
-        FROM Product_Images
-    ) AS img_subquery
-    WHERE img_rn = 2
-) AS img2 ON main.product_id = img2.product_id
-JOIN product_category_link pcl ON main.product_id = pcl.product_id
-JOIN product_category pc ON pc.category_id = pcl.category_id
-WHERE pcl.category_id = 3
-GROUP BY main.product_id, main.product_name, main.product_price, main.product_price_reduced, main.in_stock, main.size_id, product_size.size_value, img1.image_url, img2.image_url;
-`;
+                const query = `SELECT 
+                            p.product_id, 
+                            p.product_name, 
+                            MIN(psl.product_price) AS product_price,
+                            psl.product_price_reduced, 
+                            p.in_stock, 
+                            psl.size_id,
+                            ps.size_value,
+                            MAX(CASE WHEN pi.img_rn = 1 THEN pi.image_url END) AS image_url_1,
+                            MAX(CASE WHEN pi.img_rn = 2 THEN pi.image_url END) AS image_url_2,
+                            GROUP_CONCAT(pc.category_name) AS category_names
+                        FROM 
+                            Product p
+                        LEFT JOIN (
+                            SELECT 
+                                psl.product_id,
+                                psl.product_price,
+                                psl.product_price_reduced,
+                                psl.size_id,
+                                ROW_NUMBER() OVER (PARTITION BY psl.product_id ORDER BY psl.product_price) AS rn
+                            FROM 
+                                Product_size_link psl
+                        ) AS psl ON p.product_id = psl.product_id AND psl.rn = 1
+                        LEFT JOIN product_size ps ON psl.size_id = ps.size_id
+                        LEFT JOIN (
+                            SELECT 
+                                pi.product_id,
+                                pi.image_url,
+                                ROW_NUMBER() OVER (PARTITION BY pi.product_id ORDER BY pi.id) AS img_rn
+                            FROM 
+                                Product_Images pi
+                        ) AS pi ON p.product_id = pi.product_id
+                        JOIN product_category_link pcl ON p.product_id = pcl.product_id
+                        JOIN product_category pc ON pcl.category_id = pc.category_id
+                        WHERE 
+                            pcl.category_id = 3
+                        GROUP BY 
+                            p.product_id, p.product_name, psl.product_price_reduced, p.in_stock, psl.size_id, ps.size_value;
+                            `;
 
                 db.query(query, (err, results) => {
                     if (err) reject(new Error(err.message));
@@ -1315,7 +1276,7 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
                         return;
                     }
                     console.log("success!");
-                    
+
                 })
 
             })
@@ -1354,8 +1315,8 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
             const email = await new Promise((resolve, reject) => {
                 const query = "SELECT email FROM orders WHERE id = ?";
                 db.query(query, [id], (err, results) => {
-                    if(err) reject (new Error(err.message))
-                        resolve(results[0].email)
+                    if (err) reject(new Error(err.message))
+                    resolve(results[0].email)
                 })
             })
 
@@ -1564,7 +1525,9 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
                 const query = `SELECT product_size_link.*, product_size.*
                 FROM product_size_link
                 JOIN product_size ON product_size_link.size_id = product_size.size_id
-                WHERE product_size_link.product_id = ?;`;
+                WHERE product_size_link.product_id = ?
+                ORDER BY 
+                COALESCE(product_price_reduced, product_price) ASC;`;
 
                 db.query(query, [id.product_id], (err, results) => {
                     if (err) reject(new Error(err.message));
@@ -1879,11 +1842,11 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
                 if (!Array.isArray(categories)) {
                     categories = [categories];
                 }
-                
+
                 if (!Array.isArray(oldCategories)) {
                     oldCategories = [oldCategories];
                 }
-                
+
                 if (removePrices != null)
                     removedPricesArray.push(...removePrices);
 
@@ -1892,10 +1855,10 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
                 if (changedSizes != null)
                     ChangedSizesArray.push(...changedSizes);
 
-                for(let i=0; i<=categories.length; i++){
+                for (let i = 0; i <= categories.length; i++) {
                     categoriesArray.push(categories[i]);
                 }
-                for(let i=0; i<=oldCategories.length; i++){
+                for (let i = 0; i <= oldCategories.length; i++) {
                     oldCategoriesArray.push(oldCategories[i]);
                 }
 
@@ -2102,19 +2065,19 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
                     if (!Array.isArray(removePics)) {
                         // Check if removePics is not an array and is not undefined before pushing
                         if (removePics !== undefined) {
-                            if(removePics.includes(" "))
-                            removePicsArray.push(removePics.replace(" ", "%20"));
+                            if (removePics.includes(" "))
+                                removePicsArray.push(removePics.replace(" ", "%20"));
                             else
-                            removePicsArray.push(removePics)
+                                removePicsArray.push(removePics)
                         }
                     } else if (Array.isArray(removePics)) {
                         // Use filter to exclude undefined values when populating the array
-                        for(let i=0;i<=removePics.length; i++){
+                        for (let i = 0; i <= removePics.length; i++) {
                             if (removePics[i] !== undefined) {
-                                if(removePics[i].includes(" "))
-                                removePicsArray.push(removePics[i].replace(" ", "%20"));
+                                if (removePics[i].includes(" "))
+                                    removePicsArray.push(removePics[i].replace(" ", "%20"));
                                 else
-                                removePicsArray.push(removePics[i])
+                                    removePicsArray.push(removePics[i])
                             }
                         }
                         removePicsArray.push(...removePics.filter(item => item !== undefined));
@@ -2146,7 +2109,7 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
                     images.forEach(item => {
 
                         let imagePath;
-                        if(item.includes(" "))
+                        if (item.includes(" "))
                             imagePath = item.replace(" ", "%20")
                         else
                             imagePath = item;
@@ -2194,7 +2157,7 @@ GROUP BY main.product_id, main.product_name, main.product_price, main.product_pr
                         const query = `UPDATE product_images SET image_url = ? WHERE product_id = ? AND image_url = ?`;
 
                         let finalTitle;
-                        if(title.includes(" "))
+                        if (title.includes(" "))
                             finalTitle = title.replace(" ", "%20");
                         else
                             finalTitle = title;

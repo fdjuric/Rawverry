@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let movePosition = 0;
     let movePositionY = 0;
 
+    const collectionButton = document.querySelector('.favourites .collection');
+
+    collectionButton.addEventListener('click', () => {
+        window.location.href = '/gallery/favourites';
+    })
 
     //Favourites Carousel
 
@@ -25,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 let imgSource = img.src;
 
-                img.addEventListener('mouseover', () => {
+                img.addEventListener('mouseenter', () => {
                     if (item.image_url_2 !== null) {
 
                         img.style.opacity = 0.2; // Fade out the image
@@ -46,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
 
-                img.addEventListener('mouseout', () => {
+                img.addEventListener('mouseleave', () => {
 
                     if (img.src !== imgSource) {
                         img.style.opacity = 0.2; // Fade out the image
@@ -54,12 +59,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         // Change the image source after the fade-out transition completes
                         setTimeout(function () {
                             img.src = item.image_url_1; // Change to the new image source
-                        }, 400); // Adjust this value to match the transition duration
+                        }, 300); // Adjust this value to match the transition duration
 
                         // Fade in the new image after a short delay
                         setTimeout(function () {
                             img.style.opacity = 1;
-                        }, 400); // Adjust this value to match the delay + transition duration
+                        }, 300); // Adjust this value to match the delay + transition duration
                     }
                 })
 
