@@ -3419,7 +3419,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         wrapper.appendChild(inputDiv);
         wrapper.appendChild(input1Div);
-        createSizeSelector(wrapper, data.sizes);
+        createSizeSelectorEdit(wrapper, data.sizes, item);
         wrapper.appendChild(sizeWrapper);
         wrapper.appendChild(sizeDiv);
         wrapper.appendChild(sizeDiv1);
@@ -4038,6 +4038,105 @@ document.addEventListener('DOMContentLoaded', function () {
         return Math.ceil(value / multiplier) * multiplier;
     }
 
+    function createSizeSelectorEdit(wrapper, data, size) {
+
+        const select = document.createElement('select');
+        select.name = "size";
+        select.classList.add('product-size');
+
+        data.forEach((item) => {
+
+            const option = document.createElement('option');
+            option.setAttribute('value', item.size_value);
+            option.textContent = item.size_value;
+            select.appendChild(option);
+        })
+
+        const optionToSelect = Array.from(select.options).find((option) => option.value === size.size_value);
+        select.selectedIndex = Array.from(select.options).indexOf(optionToSelect);
+
+        const option = document.createElement('option');
+        option.setAttribute('value', 'remove-size');
+        option.textContent = 'Remove a size';
+
+        select.appendChild(option);
+        const option1 = document.createElement('option');
+        option1.setAttribute('value', 'add-size');
+        option1.textContent = 'Add a size';
+
+        select.appendChild(option1);
+
+        wrapper.appendChild(select);
+
+        const addSizeWrapper = document.querySelector('.add-size-wrapper');
+        const removeSizeWrapper = document.querySelector('.remove-size-wrapper')
+
+        console.log(select);
+
+        select.addEventListener('change', () => {
+
+            handleInputChange(select);
+
+            if (select.value === 'add-size') {
+
+                select.selectedIndex = 0;
+                addSizeWrapper.style.display = "flex";
+                addSizeWrapper.style.opacity = 1;
+
+                const closeBtn = document.querySelector('.add-size-wrapper .close-btn');
+
+                closeBtn.addEventListener('click', () => {
+                    addSizeWrapper.style.opacity = 0;
+
+                    setTimeout(() => {
+                        addSizeWrapper.style.display = "none";
+                    }, 400);
+                })
+
+                const submitBtn = document.querySelector('.add-size-wrapper .button');
+
+                submitBtn.addEventListener('click', addSizeHandler);
+            } else if (select.value === 'remove-size') {
+                const removeSizeInputs = document.querySelector('.remove-size-inputs');
+                data.forEach((item) => {
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'size';
+                    input.value = item.size_value;
+                    const label = document.createElement('label');
+                    label.textContent = item.size_value;
+                    label.setAttribute("for", "size");
+                    const div = document.createElement('div');
+
+                    div.appendChild(input);
+                    div.appendChild(label);
+
+                    removeSizeInputs.appendChild(div);
+                })
+
+                select.selectedIndex = 0;
+                removeSizeWrapper.style.display = "flex";
+                removeSizeWrapper.style.opacity = 1;
+
+                const closeBtn = document.querySelector('.remove-size-wrapper .close-btn');
+
+                closeBtn.addEventListener('click', () => {
+                    removeSizeWrapper.style.opacity = 0;
+
+                    setTimeout(() => {
+                        removeSizeWrapper.style.display = "none";
+                        while (removeSizeInputs.firstChild) {
+                            removeSizeInputs.removeChild(removeSizeInputs.firstChild);
+                        }
+                    }, 400);
+                })
+
+                const submitBtn = document.querySelector('.remove-size-wrapper .button');
+
+                submitBtn.addEventListener('click', removeSizeHandler);
+            }
+        })
+    }
 
     function createSizeSelector(wrapper, data) {
         const select = document.createElement('select');
@@ -4071,8 +4170,6 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log(select);
 
         select.addEventListener('change', () => {
-
-            handleInputChange(select);
 
             if (select.value === 'add-size') {
 
