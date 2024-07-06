@@ -824,7 +824,7 @@ app.post('/applyCoupon', upload.none(), (req, res) => {
         console.log(data);
 
         if (data) {
-
+          
           let restricted = false;
 
           const splitProducts = data.product_restrictions.split('/');
@@ -853,7 +853,7 @@ app.post('/applyCoupon', upload.none(), (req, res) => {
             return;
           }
 
-          if (formattedDateTime >= data.expiration_date) {
+          if (formattedDateTime >= data.expiration_date.toISOString()) {
             res.status(404).json("Invalid coupon code!");
             return;
           }

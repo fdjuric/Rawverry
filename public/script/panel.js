@@ -233,14 +233,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
                 var chartDataStatus = {
-                    labels: ["Pending", "Refunded", "Sent"],
+                    labels: ["Sent", "Refunded", "Pending"],
                     datasets: [{
                         label: ' Amount ',
                         data: chartDataOrderStatus,
                         backgroundColor: [
-                            '#E8995B',
+                            '#67A329',
                             '#a32929',
-                            '#67A329'
+                            '#E8995B'
+                            
                         ],
                         hoverOffset: 4
                     }]
