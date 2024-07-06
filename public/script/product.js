@@ -38,32 +38,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
             sizeValueArray.forEach((item, index) => {
 
-                if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
-                    price.textContent = `$${item.product_price_reduced}`;
-                    priceReduced.textContent = `$${item.product_price}`;
-                } else {
-                    price.textContent = `$${item.product_price}`;
-                }
-
                 const sizeButton = document.createElement('p');
                 sizeButton.classList.add('button-size');
                 sizeButton.textContent = item.size_value;
 
                 if (index === 0) {
                     sizeButton.classList.add('selected');
+                    if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
+                        price.textContent = `$${item.product_price_reduced}`;
+                        priceReduced.textContent = `$${item.product_price}`;
+                    } else {
+                        price.textContent = `$${item.product_price}`;
+                    }
                 }
 
                 sizeButton.addEventListener('click', () => {
 
                     price.style.opacity = 0;
+                    priceReduced.style.opacity = 0;
                     setTimeout(() => {
                         if (item.product_price_reduced !== null && item.product_price_reduced !== '0.00') {
                             price.textContent = `$${item.product_price_reduced}`;
                             priceReduced.textContent = `$${item.product_price}`;
                         } else {
                             price.textContent = `$${item.product_price}`;
+                            priceReduced.textContent = ``;
                         }
                         price.style.opacity = 1;
+                        priceReduced.style.opacity = 1;
                     }, 400)
 
 
