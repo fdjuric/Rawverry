@@ -19,6 +19,12 @@ document.addEventListener('DOMContentLoaded', function () {
     navSvg[0].style.fill = "var(--accent-color)";
     navText[0].style.color = "var(--accent-color)";
 
+    const homePage = document.querySelector('.main .side .brand-name');
+
+    homePage.addEventListener('click', () => {
+        window.location.href = '/'
+    })
+
     console.log(navElement);
 
     let dashboardDataAdded = false

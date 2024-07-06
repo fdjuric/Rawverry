@@ -34,6 +34,10 @@ body {
 
 }
 
+.brand-name:hover {
+    cursor: pointer;
+}
+
 nav {
     display: flex;
     flex-direction: column;

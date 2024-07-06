@@ -2,6 +2,13 @@ body {
     gap: 50px;
 }
 
+.product-description-wrapper ul {
+    justify-content: start;
+    flex-direction: column;
+    list-style: disc;
+    list-style-type: disc;
+}
+
 .product-wrapper {
     width: 100%;
     max-width: 1240px;
